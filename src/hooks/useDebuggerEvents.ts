@@ -1,0 +1,124 @@
+import { listen } from "@tauri-apps/api/event";
+import { useEffect } from "react";
+import { isNativeApp } from "../lib/platform";
+import {
+  isEchoOfRecentOutboundArtNet,
+  isEchoOfRecentOutboundOsc,
+  pushDebugLog,
+} from "../lib/debugLog";
+import { isMidiDebugKind } from "../lib/midiTypes";
+import type { OscArgPayload } from "../lib/oscMessages";
+
+let listenerRefCount = 0;
+let registrationStarted = false;
+let unregisterListeners: (() => void) | null = null;
+
+async function registerListeners() {
+  const [unlistenOsc, unlistenMidi, unlistenArtNet] = await Promise.all([
+    listen<{
+      summary: string;
+      address?: string;
+      args?: OscArgPayload[];
+    }>("osc-debug-message", (event) => {
+      if (isEchoOfRecentOutboundOsc(event.payload.summary)) {
+        return;
+      }
+
+      const payload =
+        event.payload.address !== undefined
+          ? {
+              address: event.payload.address,
+              args: event.payload.args ?? [],
+            }
+          : undefined;
+
+      pushDebugLog({
+        direction: "in",
+        kind: "osc",
+        summary: event.payload.summary,
+        payload,
+      });
+    }),
+    listen<{ kind: string; summary: string; bytes?: number[] }>(
+      "midi-debug-message",
+      (event) => {
+        const { kind, summary, bytes } = event.payload;
+        if (isMidiDebugKind(kind)) {
+          pushDebugLog({
+            direction: "in",
+            kind,
+            summary,
+            payload: bytes ? { bytes } : undefined,
+          });
+        }
+      },
+    ),
+    listen<{
+      summary: string;
+      universe: number;
+      sequence: number;
+      physical: number;
+      channelCount: number;
+      channels: number[];
+    }>("artnet-debug-message", (event) => {
+      if (isEchoOfRecentOutboundArtNet(event.payload.summary)) {
+        return;
+      }
+
+      pushDebugLog({
+        direction: "in",
+        kind: "artnet",
+        summary: event.payload.summary,
+        payload: {
+          universe: event.payload.universe,
+          sequence: event.payload.sequence,
+          physical: event.payload.physical,
+          channelCount: event.payload.channelCount,
+          channels: event.payload.channels,
+        },
+      });
+    }),
+  ]);
+
+  return () => {
+    unlistenOsc();
+    unlistenMidi();
+    unlistenArtNet();
+  };
+}
+
+export function useDebuggerEvents() {
+  useEffect(() => {
+    if (!isNativeApp()) {
+      return;
+    }
+
+    listenerRefCount += 1;
+
+    if (!registrationStarted) {
+      registrationStarted = true;
+      void registerListeners()
+        .then((unregister) => {
+          if (listenerRefCount > 0) {
+            unregisterListeners = unregister;
+          } else {
+            unregister();
+            registrationStarted = false;
+          }
+        })
+        .catch((error) => {
+          registrationStarted = false;
+          console.error("Failed to register debugger listeners:", error);
+        });
+    }
+
+    return () => {
+      listenerRefCount -= 1;
+      if (listenerRefCount === 0 && unregisterListeners) {
+        unregisterListeners();
+        unregisterListeners = null;
+        registrationStarted = false;
+      }
+    };
+  }, []);
+}

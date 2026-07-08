@@ -1,0 +1,25 @@
+[[permission]]
+identifier = "osc-midi-default"
+description = "Enables OSC and MIDI input/output commands."
+commands.allow = [
+  "send_osc",
+  "list_midi_outputs",
+  "send_midi_note",
+  "send_midi_note_off",
+  "send_midi_cc",
+  "send_midi_program_change",
+  "send_midi_pitch_bend",
+  "send_midi_channel_pressure",
+  "send_midi_poly_pressure",
+  "send_midi_raw",
+  "list_midi_inputs",
+  "start_osc_listener",
+  "stop_osc_listener",
+  "start_tuio_listener",
+  "stop_tuio_listener",
+  "send_tuio_cursors",
+  "start_midi_input",
+  "stop_midi_input",
+  "start_input_listeners",
+  "stop_input_listeners",
+]

@@ -1,0 +1,8 @@
+[[permission]]
+identifier = "sensors-default"
+description = "Enables native sensor discovery and watch commands."
+commands.allow = [
+  "list_sensors",
+  "start_sensor_watch",
+  "stop_sensor_watch",
+]
