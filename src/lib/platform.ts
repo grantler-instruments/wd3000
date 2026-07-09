@@ -33,3 +33,23 @@ export function formatShortcutKey(key: string): string {
 
   return usesMeta ? `⌘${key.toUpperCase()}` : `Ctrl+${key.toUpperCase()}`;
 }
+
+export function formatDeleteKey(): string {
+  const usesMeta =
+    typeof navigator !== "undefined" &&
+    /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+
+  return usesMeta ? "⌫" : "Del";
+}
+
+export function isTextInputTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  return (
+    target.tagName === "INPUT" ||
+    target.tagName === "TEXTAREA" ||
+    target.isContentEditable
+  );
+}

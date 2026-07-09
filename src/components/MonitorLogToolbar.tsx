@@ -6,7 +6,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
   Stack,
   TextField,
 } from "@mui/material";
@@ -19,6 +18,7 @@ import {
 } from "../lib/monitorLog";
 import { useMonitorLogStore } from "../store/useMonitorLogStore";
 import { useAppStore } from "../store/useAppStore";
+import { AppDialogTitle } from "./AppDialogHeader";
 
 interface MonitorLogToolbarProps {
   protocol: MonitorLogProtocol;
@@ -94,7 +94,9 @@ export function MonitorLogToolbar({ protocol, entries }: MonitorLogToolbarProps)
       </Stack>
 
       <Dialog open={saveOpen} onClose={() => setSaveOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle>Save {protocolLabel} monitor log</DialogTitle>
+        <AppDialogTitle onClose={() => setSaveOpen(false)}>
+          Save {protocolLabel} monitor log
+        </AppDialogTitle>
         <DialogContent>
           <TextField
             autoFocus
@@ -115,7 +117,9 @@ export function MonitorLogToolbar({ protocol, entries }: MonitorLogToolbarProps)
       </Dialog>
 
       <Dialog open={exportOpen} onClose={() => setExportOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle>Export {protocolLabel} monitor log</DialogTitle>
+        <AppDialogTitle onClose={() => setExportOpen(false)}>
+          Export {protocolLabel} monitor log
+        </AppDialogTitle>
         <DialogContent>
           <TextField
             autoFocus

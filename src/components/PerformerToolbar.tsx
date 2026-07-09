@@ -4,6 +4,7 @@ import {
 } from "@mui/material";
 import { AddControlMenu } from "./AddControlMenu";
 import { ConfigImportExport } from "./ConfigImportExport";
+import { EditControlMenu } from "./EditControlMenu";
 
 export function PerformerToolbar() {
   return (
@@ -21,6 +22,7 @@ export function PerformerToolbar() {
       }}
     >
       <AddControlMenu />
+      <EditControlMenu />
 
       <Divider orientation="vertical" flexItem />
 

@@ -252,6 +252,17 @@ export function AppHeader() {
     <>
       <AppBar position="static" elevation={0} color="default">
         <Toolbar variant="dense" sx={{ gap: 1 }}>
+          {!isMobile && (
+            <IconButton
+              edge="start"
+              aria-label="I/O settings"
+              onClick={() => setIoSettingsOpen(true)}
+              sx={{ color: "text.secondary", mr: 0.5 }}
+            >
+              <SettingsIcon />
+            </IconButton>
+          )}
+
           {isMobile ? (
             <IconButton
               edge="start"
@@ -309,15 +320,6 @@ export function AppHeader() {
                   Run {formatShortcutKey("e")}
                 </Button>
               )
-            )}
-            {!isMobile && (
-              <IconButton
-                aria-label="I/O settings"
-                onClick={() => setIoSettingsOpen(true)}
-                sx={{ color: "text.secondary" }}
-              >
-                <SettingsIcon />
-              </IconButton>
             )}
           </Stack>
         </Toolbar>

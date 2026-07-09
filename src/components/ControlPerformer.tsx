@@ -19,6 +19,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import { useState } from "react";
 import { useViewportSize } from "../hooks/useViewportSize";
 import { useAppStore } from "../store/useAppStore";
+import { AppDialogHeader } from "./AppDialogHeader";
 import { SettingsSectionNav } from "./SettingsSectionNav";
 import { settingsTheme } from "../theme";
 import {
@@ -801,15 +802,15 @@ function ControlInspector({ control }: { control: Control }) {
 export function ControlPerformerDialog() {
   const mode = useAppStore((state) => state.mode);
   const controls = useAppStore((state) => state.controls);
-  const selectedControlId = useAppStore((state) => state.selectedControlId);
-  const selectControl = useAppStore((state) => state.selectControl);
+  const inspectorControlId = useAppStore((state) => state.inspectorControlId);
+  const closeControlInspector = useAppStore((state) => state.closeControlInspector);
   const removeControl = useAppStore((state) => state.removeControl);
   const selectedControl =
-    controls.find((control) => control.id === selectedControlId) ?? null;
+    controls.find((control) => control.id === inspectorControlId) ?? null;
   const open = mode === "edit" && selectedControl !== null;
 
   const handleClose = () => {
-    selectControl(null);
+    closeControlInspector();
   };
 
   const handleDelete = () => {
@@ -838,30 +839,17 @@ export function ControlPerformerDialog() {
     >
       <ThemeProvider theme={settingsTheme}>
         <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              alignItems: { xs: "flex-start", sm: "baseline" },
-              justifyContent: "space-between",
-              gap: { xs: 0.25, sm: 2 },
-              px: { xs: 2, sm: 2.5 },
-              py: 1.5,
-              borderBottom: 1,
-              borderColor: "divider",
-              flexShrink: 0,
-              minWidth: 0,
-            }}
-          >
-            <Typography variant="h6" component="h2" noWrap sx={{ maxWidth: "100%" }}>
-              {selectedControl?.label ?? "Widget"}
-            </Typography>
-            {selectedControl && (
-              <Typography variant="body2" color="text.secondary" noWrap sx={{ flexShrink: 0 }}>
-                {controlTypeLabel(selectedControl.type)}
-              </Typography>
-            )}
-          </Box>
+          <AppDialogHeader
+            title={selectedControl?.label ?? "Widget"}
+            onClose={handleClose}
+            subtitle={
+              selectedControl ? (
+                <Typography variant="body2" color="text.secondary" noWrap sx={{ flexShrink: 0 }}>
+                  {controlTypeLabel(selectedControl.type)}
+                </Typography>
+              ) : undefined
+            }
+          />
 
           <Box sx={{ flex: 1, minHeight: 0, display: "flex" }}>
             {selectedControl && <ControlInspector control={selectedControl} key={selectedControl.id} />}

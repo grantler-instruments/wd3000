@@ -10,6 +10,11 @@ import {
 } from "../lib/sensors/types";
 import { clearRemovedEndpointReferences } from "../lib/performerIo";
 import {
+  cloneControlSubtree,
+  collectControlSubtree,
+  type ControlClipboard,
+} from "../lib/controlClipboard";
+import {
   AppMode,
   Control,
   ControlLayout,
@@ -54,6 +59,7 @@ interface AppState {
   performerIo: PerformerIoConfig;
   layoutSettings: LayoutSettings;
   selectedControlId: string | null;
+  inspectorControlId: string | null;
   midiPorts: string[];
   midiInputPorts: string[];
   controlValues: Record<string, number>;
@@ -63,6 +69,7 @@ interface AppState {
   draggingControlId: string | null;
   dragHoverTabsId: string | null;
   tabDropPreview: TabDropPreview | null;
+  controlClipboard: ControlClipboard | null;
   sensorMappings: Record<string, SensorAxisMapping>;
   lastError: string | null;
   setMode: (mode: AppMode) => void;
@@ -70,9 +77,15 @@ interface AppState {
     view: DashboardView,
     subView?: PerformerSubView | DebuggerSubView,
   ) => void;
-  addControl: (type: ControlType) => void;
+  addControl: (type: ControlType, position?: { x: number; y: number }) => void;
+  copyControl: (id: string) => void;
+  cutControl: (id: string) => void;
+  duplicateControl: (id: string) => void;
+  pasteControl: (position?: { x: number; y: number }) => void;
   removeControl: (id: string) => void;
   selectControl: (id: string | null) => void;
+  openControlInspector: (id: string) => void;
+  closeControlInspector: () => void;
   updateControl: (id: string, patch: Partial<Control>) => void;
   updateControlLayout: (id: string, patch: Partial<ControlLayout>) => void;
   reorderTabChildren: (sourceId: string, targetId: string) => void;
@@ -191,6 +204,7 @@ export const useAppStore = create<AppState>()(
       performerIo: defaultPerformerIoConfig(),
       layoutSettings: defaultLayoutSettings(),
       selectedControlId: null,
+      inspectorControlId: null,
       midiPorts: [],
       midiInputPorts: [],
       controlValues: {},
@@ -200,6 +214,7 @@ export const useAppStore = create<AppState>()(
       draggingControlId: null,
       dragHoverTabsId: null,
       tabDropPreview: null,
+      controlClipboard: null,
       sensorMappings: {},
       lastError: null,
       setMode: (mode) => set({ mode }),
@@ -217,14 +232,87 @@ export const useAppStore = create<AppState>()(
             debuggerSubView: (subView as DebuggerSubView | undefined) ?? state.debuggerSubView,
           };
         }),
-      addControl: (type) => {
+      addControl: (type, position) => {
         const controls = get().controls;
         const performerIo = get().performerIo;
         const index = controls.filter((control) => control.type === type).length + 1;
         const control = createControl(type, index, topLevelControls(controls).length, performerIo);
+        if (position) {
+          control.layout = { ...control.layout, x: position.x, y: position.y };
+        }
         set({
           controls: reindexOrders([...controls, control]),
           selectedControlId: control.id,
+          inspectorControlId: control.id,
+        });
+      },
+      copyControl: (id) => {
+        const controls = get().controls;
+        const subtree = collectControlSubtree(controls, id);
+        set({
+          controlClipboard: {
+            rootId: id,
+            controls: structuredClone(subtree),
+            mode: "copy",
+          },
+        });
+      },
+      cutControl: (id) => {
+        const state = get();
+        const subtree = collectControlSubtree(state.controls, id);
+        const idsToRemove = collectDescendantIds(state.controls, id);
+        const remaining = state.controls.filter((control) => !idsToRemove.has(control.id));
+
+        set({
+          controlClipboard: {
+            rootId: id,
+            controls: structuredClone(subtree),
+            mode: "cut",
+          },
+          controls: reindexOrders(remaining),
+          selectedControlId: idsToRemove.has(state.selectedControlId ?? "")
+            ? null
+            : state.selectedControlId,
+          inspectorControlId: idsToRemove.has(state.inspectorControlId ?? "")
+            ? null
+            : state.inspectorControlId,
+        });
+      },
+      duplicateControl: (id) => {
+        const state = get();
+        const gridSize = state.layoutSettings.gridSize;
+        const { controls: cloned, rootId: newRootId } = cloneControlSubtree(state.controls, id, {
+          positionOffset: { x: gridSize, y: gridSize },
+        });
+
+        set({
+          controls: reindexOrders([...state.controls, ...cloned]),
+          selectedControlId: newRootId,
+        });
+      },
+      pasteControl: (position) => {
+        const state = get();
+        const clipboard = state.controlClipboard;
+        if (!clipboard) {
+          return;
+        }
+
+        const { controls: cloned, rootId: newRootId } = cloneControlSubtree(
+          clipboard.controls,
+          clipboard.rootId,
+          {
+            position,
+            positionOffset: position
+              ? undefined
+              : { x: state.layoutSettings.gridSize, y: state.layoutSettings.gridSize },
+            toTopLevel: position !== undefined,
+          },
+        );
+
+        set({
+          controls: reindexOrders([...state.controls, ...cloned]),
+          selectedControlId: newRootId,
+          controlClipboard: clipboard.mode === "cut" ? null : clipboard,
         });
       },
       removeControl: (id) =>
@@ -237,9 +325,20 @@ export const useAppStore = create<AppState>()(
             selectedControlId: idsToRemove.has(state.selectedControlId ?? "")
               ? null
               : state.selectedControlId,
+            inspectorControlId: idsToRemove.has(state.inspectorControlId ?? "")
+              ? null
+              : state.inspectorControlId,
           };
         }),
-      selectControl: (id) => set({ selectedControlId: id }),
+      selectControl: (id) =>
+        set((state) => ({
+          selectedControlId: id,
+          inspectorControlId:
+            id === null || id !== state.inspectorControlId ? null : state.inspectorControlId,
+        })),
+      openControlInspector: (id) =>
+        set({ selectedControlId: id, inspectorControlId: id }),
+      closeControlInspector: () => set({ inspectorControlId: null }),
       updateControl: (id, patch) =>
         set((state) => {
           let controls = state.controls.map((control) =>
@@ -601,6 +700,7 @@ export const useAppStore = create<AppState>()(
           performerIo: config.performerIo,
           layoutSettings: config.layoutSettings,
           selectedControlId: null,
+          inspectorControlId: null,
           controlValues: {},
           controlActiveNotes: {},
           controlPadValues: {},
@@ -741,6 +841,24 @@ export const useAppStore = create<AppState>()(
                 ? state.layoutSettings.gridSize
                 : defaultLayoutSettings().gridSize,
           },
+        };
+      },
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<
+          Pick<
+            AppState,
+            "controls" | "output" | "performerIo" | "layoutSettings" | "sensorMappings"
+          >
+        >;
+
+        return {
+          ...currentState,
+          ...persisted,
+          mode: "edit",
+          activeView: "performer",
+          performerSubView: "ui",
+          selectedControlId: null,
+          inspectorControlId: null,
         };
       },
       partialize: (state) => ({

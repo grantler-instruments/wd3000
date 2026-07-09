@@ -41,6 +41,9 @@ export function ResizableControlFrame({
 }: ResizableControlFrameProps) {
   const updateControlLayout = useAppStore((state) => state.updateControlLayout);
   const selectControl = useAppStore((state) => state.selectControl);
+  const openControlInspector = useAppStore((state) => state.openControlInspector);
+  const selectedControlId = useAppStore((state) => state.selectedControlId);
+  const selected = editable && selectedControlId === control.id;
   const limits = controlCanvasSizeLimits(control, canvasSize, subtractPosition);
 
   const handleCommit = useCallback(
@@ -67,6 +70,13 @@ export function ResizableControlFrame({
 
   return (
     <Box
+      onPointerDown={(event) => {
+        if (!editable || event.button !== 0) {
+          return;
+        }
+
+        selectControl(control.id);
+      }}
       sx={{
         position: "relative",
         width,
@@ -74,6 +84,11 @@ export function ResizableControlFrame({
         flexShrink: 0,
         overflow: "hidden",
         opacity: resizing ? 0.92 : 1,
+        borderRadius: 1,
+        boxSizing: "border-box",
+        boxShadow: selected
+          ? (theme) => `0 0 0 2px ${theme.palette.primary.main}`
+          : "none",
       }}
     >
       <ControlWidget
@@ -146,12 +161,12 @@ export function ResizableControlFrame({
           )}
           <ControlEditButton
             inline
-            onClick={() => selectControl(control.id)}
+            onClick={() => openControlInspector(control.id)}
           />
         </Box>
       )}
       {editable && !showDragHandle && (
-        <ControlEditButton onClick={() => selectControl(control.id)} />
+        <ControlEditButton onClick={() => openControlInspector(control.id)} />
       )}
       {editable && showCanvasDragHandle && !showDragHandle && (
         <Box

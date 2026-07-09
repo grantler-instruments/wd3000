@@ -2,6 +2,44 @@ import { invoke } from "@tauri-apps/api/core";
 import { pushDebugLog, recordOutboundArtNetDebug } from "./debugLog";
 
 export const ARTNET_DEFAULT_PORT = 6454;
+export const ARTNET_MIN_UNIVERSE = 0;
+export const ARTNET_MAX_UNIVERSE = 32767;
+export const ARTNET_MIN_CHANNEL = 1;
+export const ARTNET_MAX_CHANNEL = 512;
+export const ARTNET_MIN_VALUE = 0;
+export const ARTNET_MAX_VALUE = 255;
+
+export interface ArtNetComposerParams {
+  universe: number;
+  channel: number;
+  value: number;
+}
+
+export const defaultArtNetComposerParams = (): ArtNetComposerParams => ({
+  universe: 0,
+  channel: 1,
+  value: 0,
+});
+
+export function buildArtNetChannels(channel: number, value: number) {
+  const channelIndex =
+    Math.min(ARTNET_MAX_CHANNEL, Math.max(ARTNET_MIN_CHANNEL, Math.round(channel))) -
+    1;
+  const normalized = Math.min(
+    ARTNET_MAX_VALUE,
+    Math.max(ARTNET_MIN_VALUE, Math.round(value)),
+  );
+  const channels = Array.from({ length: channelIndex + 1 }, () => 0);
+  channels[channelIndex] = normalized;
+  return channels;
+}
+
+export function formatArtNetComposerSummary(
+  params: ArtNetComposerParams,
+  sequence: number,
+) {
+  return `Universe ${params.universe} ch ${params.channel} = ${params.value} (seq ${sequence})`;
+}
 
 export interface ArtNetDebugPayload {
   universe: number;

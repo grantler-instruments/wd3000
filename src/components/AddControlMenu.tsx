@@ -1,13 +1,9 @@
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import {
-  Button,
-  ButtonProps,
-  Menu,
-  MenuItem,
-} from "@mui/material";
+import { Button, ButtonProps } from "@mui/material";
 import { useState } from "react";
-import { CONTROL_WIDGET_TYPES, controlTypeLabel } from "../types";
+import { ControlType } from "../types";
 import { useAppStore } from "../store/useAppStore";
+import { AddWidgetMenu } from "./AddWidgetMenu";
 
 interface AddControlMenuProps {
   size?: ButtonProps["size"];
@@ -22,13 +18,8 @@ export function AddControlMenu({
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = anchorEl !== null;
 
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleAdd = (type: (typeof CONTROL_WIDGET_TYPES)[number]) => {
+  const handleAdd = (type: ControlType) => {
     addControl(type);
-    handleClose();
   };
 
   return (
@@ -44,20 +35,13 @@ export function AddControlMenu({
       >
         Add widget
       </Button>
-      <Menu
+      <AddWidgetMenu
         id="add-control-menu"
-        anchorEl={anchorEl}
         open={open}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        transformOrigin={{ vertical: "top", horizontal: "left" }}
-      >
-        {CONTROL_WIDGET_TYPES.map((type) => (
-          <MenuItem key={type} onClick={() => handleAdd(type)}>
-            {controlTypeLabel(type)}
-          </MenuItem>
-        ))}
-      </Menu>
+        onClose={() => setAnchorEl(null)}
+        onAdd={handleAdd}
+        anchorEl={anchorEl}
+      />
     </>
   );
 }

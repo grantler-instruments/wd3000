@@ -32,12 +32,10 @@ export function ControlWidget({
   hideLabel = false,
 }: ControlWidgetProps) {
   const performerIo = useAppStore((state) => state.performerIo);
-  const selectedControlId = useAppStore((state) => state.selectedControlId);
   const setControlValue = useAppStore((state) => state.setControlValue);
   const setLastError = useAppStore((state) => state.setLastError);
   const sliderValue = useAppStore((state) => state.controlValues[control.id] ?? 0);
   const buttonPressed = sliderValue > 0;
-  const selected = selectedControlId === control.id;
 
   const handleButtonPress = async (pressed: boolean) => {
     if (editable) {
@@ -88,12 +86,8 @@ export function ControlWidget({
         p: performance ? 2.5 : 2,
         height: "100%",
         overflow: "hidden",
-        borderColor: selected
-          ? (accentColor ?? "primary.main")
-          : accentColor
-            ? `${accentColor}66`
-            : "divider",
-        borderWidth: selected ? 2 : 1,
+        borderColor: accentColor ? `${accentColor}66` : "divider",
+        borderWidth: 1,
         boxSizing: "border-box",
       }}
     >

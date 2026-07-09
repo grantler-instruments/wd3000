@@ -18,7 +18,9 @@ import {
   tabPanelContentSize,
 } from "../types";
 import { useAppStore } from "../store/useAppStore";
+import { ControlWidgetMenu } from "./ControlWidgetMenu";
 import { ResizableControlFrame } from "./ResizableControlFrame";
+import { useWidgetContextMenu } from "../hooks/useWidgetContextMenu";
 
 interface TabPanelContentProps {
   parentControl: Control;
@@ -91,6 +93,7 @@ function TabChildItem({
   layoutPreview,
   gridSize,
   panelSize,
+  onContextMenu,
 }: {
   control: Control;
   parentControl: Control;
@@ -98,9 +101,12 @@ function TabChildItem({
   layoutPreview?: boolean;
   gridSize: number;
   panelSize: { width: number; height: number };
+  onContextMenu: (event: React.MouseEvent<HTMLElement>, controlId: string) => void;
 }) {
   const updateControlLayout = useAppStore((state) => state.updateControlLayout);
   const draggingControlId = useAppStore((state) => state.draggingControlId);
+  const selectedControlId = useAppStore((state) => state.selectedControlId);
+  const selected = editable && selectedControlId === control.id;
 
   const handleCommit = useCallback(
     (x: number, y: number) => {
@@ -154,11 +160,12 @@ function TabChildItem({
   return (
     <Box
       data-control-frame={control.id}
+      onContextMenu={(event) => onContextMenu(event, control.id)}
       sx={{
         position: "absolute",
         left: position.x,
         top: position.y,
-        zIndex: dragging ? 2 : 1,
+        zIndex: dragging || selected ? 2 : 1,
         opacity: dragging ? 0.92 : isDragging ? 0.35 : 1,
         pointerEvents: dragging ? "none" : "auto",
       }}
@@ -187,6 +194,7 @@ export function TabPanelContent({
   gridSize = LAYOUT_GRID_SIZE,
 }: TabPanelContentProps) {
   const assignControlToTab = useAppStore((state) => state.assignControlToTab);
+  const selectControl = useAppStore((state) => state.selectControl);
   const tabDropPreview = useAppStore((state) => state.tabDropPreview);
   const draggingControlId = useAppStore((state) => state.draggingControlId);
   const controls = useAppStore((state) => state.controls);
@@ -197,6 +205,8 @@ export function TabPanelContent({
   const [dragOverPanel, setDragOverPanel] = useState(false);
   const children = tabChildControls(controls, parentControl.id, tab.id);
   const contentSize = tabPanelContentSize(children, panelSize);
+  const { menu: widgetMenu, handleWidgetContextMenu, closeMenu: closeWidgetMenu } =
+    useWidgetContextMenu(editable);
   const previewForPanel =
     tabDropPreview?.tabsControlId === parentControl.id &&
     tabDropPreview.tabId === tab.id
@@ -358,6 +368,15 @@ export function TabPanelContent({
         ref={contentRef}
         data-tab-drop-target={parentControl.id}
         data-tab-id={tab.id}
+        onPointerDown={(event) => {
+          if (!editable || event.button !== 0) {
+            return;
+          }
+
+          if (event.target === event.currentTarget) {
+            selectControl(null);
+          }
+        }}
         {...(draggingControlId ? {} : dragHandlers)}
         sx={{
           position: "relative",
@@ -419,6 +438,7 @@ export function TabPanelContent({
             layoutPreview={layoutPreview}
             gridSize={gridSize}
             panelSize={contentSize}
+            onContextMenu={handleWidgetContextMenu}
           />
         ))}
 
@@ -433,6 +453,12 @@ export function TabPanelContent({
           />
         )}
       </Box>
+      <ControlWidgetMenu
+        open={widgetMenu !== null}
+        onClose={closeWidgetMenu}
+        controlId={widgetMenu?.controlId ?? null}
+        anchorPosition={widgetMenu ?? undefined}
+      />
     </Box>
   );
 }

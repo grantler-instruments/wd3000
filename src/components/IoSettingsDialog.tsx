@@ -1,11 +1,6 @@
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Dialog, DialogActions, Typography } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
+import { AppDialogHeader } from "./AppDialogHeader";
 import { IoSettingsPanel } from "./IoSettingsPanel";
 import { settingsTheme } from "../theme";
 
@@ -33,27 +28,15 @@ export function IoSettingsDialog({ open, onClose }: IoSettingsDialogProps) {
     >
       <ThemeProvider theme={settingsTheme}>
         <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              alignItems: { xs: "flex-start", sm: "center" },
-              justifyContent: "space-between",
-              gap: { xs: 0.25, sm: 2 },
-              px: { xs: 2, sm: 2.5 },
-              py: 1.5,
-              borderBottom: 1,
-              borderColor: "divider",
-              flexShrink: 0,
-            }}
-          >
-            <Typography variant="h6" component="h2">
-              I/O settings
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Shared across performers
-            </Typography>
-          </Box>
+          <AppDialogHeader
+            title="I/O settings"
+            onClose={onClose}
+            subtitle={
+              <Typography variant="body2" color="text.secondary" noWrap sx={{ flexShrink: 0 }}>
+                Shared across performers
+              </Typography>
+            }
+          />
 
           <Box sx={{ flex: 1, minHeight: 0, display: "flex" }}>
             <IoSettingsPanel />

@@ -10,7 +10,11 @@ import {
   Typography,
 } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ARTNET_DEFAULT_PORT } from "../lib/artnet";
+import {
+  ARTNET_DEFAULT_PORT,
+  ARTNET_MAX_UNIVERSE,
+  ARTNET_MIN_UNIVERSE,
+} from "../lib/artnet";
 import {
   clearDebugLogFiltered,
   isArtNetDebugEntry,
@@ -76,6 +80,34 @@ function ArtNetChannelGrid({ channels }: { channels: Uint8Array }) {
   );
 }
 
+function getArtNetPayload(entry: { kind: string; payload?: ArtNetMonitorPayload }) {
+  if (entry.kind !== "artnet" || !entry.payload) {
+    return null;
+  }
+  return entry.payload;
+}
+
+function buildChannelsByUniverse(entries: ReturnType<typeof useDebugLog>) {
+  const map = new Map<number, Uint8Array>();
+
+  for (const entry of [...entries].reverse()) {
+    const payload = getArtNetPayload(entry);
+    if (!payload) {
+      continue;
+    }
+
+    const current = map.get(payload.universe) ?? createEmptyChannels();
+    const next = new Uint8Array(current);
+    const count = Math.min(payload.channels.length, DMX_CHANNEL_COUNT);
+    for (let index = 0; index < count; index += 1) {
+      next[index] = payload.channels[index] ?? 0;
+    }
+    map.set(payload.universe, next);
+  }
+
+  return map;
+}
+
 function formatTime(timestamp: number) {
   const date = new Date(timestamp);
   const base = date.toLocaleTimeString(undefined, {
@@ -95,7 +127,7 @@ export function ArtNetMonitor() {
   const [listeningEnabled, setListeningEnabled] = useState(false);
   const [listenerStatus, setListenerStatus] = useState<ListenerStatus>("stopped");
   const [listenerError, setListenerError] = useState<string | null>(null);
-  const [channels, setChannels] = useState(createEmptyChannels);
+  const [selectedUniverse, setSelectedUniverse] = useState(0);
 
   const refreshListenerStatus = useCallback(async () => {
     if (!native) {
@@ -122,28 +154,33 @@ export function ArtNetMonitor() {
     [allEntries],
   );
 
-  const latestEntry = entries[0];
-
-  useEffect(() => {
-    if (entries.length === 0) {
-      setChannels(createEmptyChannels());
-      return;
-    }
-
-    if (!latestEntry?.payload || latestEntry.kind !== "artnet") {
-      return;
-    }
-
-    const payload = latestEntry.payload as ArtNetMonitorPayload;
-    setChannels((current) => {
-      const next = new Uint8Array(current);
-      const count = Math.min(payload.channels.length, DMX_CHANNEL_COUNT);
-      for (let index = 0; index < count; index += 1) {
-        next[index] = payload.channels[index] ?? 0;
+  const discoveredUniverses = useMemo(() => {
+    const universes = new Set<number>();
+    for (const entry of entries) {
+      const payload = getArtNetPayload(entry);
+      if (payload) {
+        universes.add(payload.universe);
       }
-      return next;
-    });
-  }, [entries.length, latestEntry?.id, latestEntry?.payload, latestEntry?.kind]);
+    }
+    return Array.from(universes).sort((left, right) => left - right);
+  }, [entries]);
+
+  const channelsByUniverse = useMemo(
+    () => buildChannelsByUniverse(entries),
+    [entries],
+  );
+
+  const channels =
+    channelsByUniverse.get(selectedUniverse) ?? createEmptyChannels();
+
+  const filteredEntries = useMemo(
+    () =>
+      entries.filter((entry) => {
+        const payload = getArtNetPayload(entry);
+        return payload?.universe === selectedUniverse;
+      }),
+    [entries, selectedUniverse],
+  );
 
   useEffect(() => {
     void refreshListenerStatus();
@@ -288,11 +325,49 @@ export function ArtNetMonitor() {
       </Stack>
 
       <Box>
-        <Typography variant="subtitle2" sx={{ mb: 1 }}>
-          Live channels
-          {latestEntry?.payload && latestEntry.kind === "artnet"
-            ? ` · universe ${(latestEntry.payload as ArtNetMonitorPayload).universe}`
-            : ""}
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1.5}
+          sx={{ alignItems: { xs: "stretch", sm: "center" }, mb: 1, flexWrap: "wrap" }}
+        >
+          <Typography variant="subtitle2" sx={{ alignSelf: "center" }}>
+            Live channels
+          </Typography>
+          <TextField
+            label="Universe"
+            size="small"
+            type="number"
+            value={selectedUniverse}
+            onChange={(event) => {
+              const next = Number(event.target.value);
+              if (!Number.isNaN(next)) {
+                setSelectedUniverse(
+                  Math.min(ARTNET_MAX_UNIVERSE, Math.max(ARTNET_MIN_UNIVERSE, next)),
+                );
+              }
+            }}
+            slotProps={{
+              htmlInput: { min: ARTNET_MIN_UNIVERSE, max: ARTNET_MAX_UNIVERSE },
+            }}
+            sx={{ width: 120 }}
+          />
+          {discoveredUniverses.length > 0 && (
+            <Stack direction="row" spacing={0.75} sx={{ flexWrap: "wrap", gap: 0.75 }}>
+              {discoveredUniverses.map((universe) => (
+                <Chip
+                  key={universe}
+                  label={universe}
+                  size="small"
+                  color={universe === selectedUniverse ? "primary" : "default"}
+                  variant={universe === selectedUniverse ? "filled" : "outlined"}
+                  onClick={() => setSelectedUniverse(universe)}
+                />
+              ))}
+            </Stack>
+          )}
+        </Stack>
+        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
+          Art-Net supports 32,768 universes (0–32767), 512 channels each.
         </Typography>
         <ArtNetChannelGrid channels={channels} />
       </Box>
@@ -324,9 +399,17 @@ export function ArtNetMonitor() {
                 : "Enable Listen to monitor incoming Art-Net."
               : "Set a listen port to monitor incoming Art-Net."}
           </Typography>
+        ) : filteredEntries.length === 0 ? (
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ p: 2, textAlign: "center" }}
+          >
+            No packets for universe {selectedUniverse} yet.
+          </Typography>
         ) : (
           <Stack divider={<Divider />}>
-            {entries.map((entry) => (
+            {filteredEntries.map((entry) => (
               <Stack
                 key={entry.id}
                 direction="row"

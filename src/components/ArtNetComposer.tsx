@@ -2,21 +2,61 @@ import SendIcon from "@mui/icons-material/Send";
 import {
   Box,
   Button,
-  Slider,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
-import { ARTNET_DEFAULT_PORT, sendArtNetDmx } from "../lib/artnet";
+import { useEffect, useState } from "react";
+import {
+  ARTNET_DEFAULT_PORT,
+  ARTNET_MAX_CHANNEL,
+  ARTNET_MAX_UNIVERSE,
+  ARTNET_MAX_VALUE,
+  ARTNET_MIN_CHANNEL,
+  ARTNET_MIN_UNIVERSE,
+  ARTNET_MIN_VALUE,
+  buildArtNetChannels,
+  defaultArtNetComposerParams,
+  formatArtNetComposerSummary,
+  sendArtNetDmx,
+} from "../lib/artnet";
 import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
-import { NativeOnlyAlert } from "./NativeOnlyAlert";
 
-const CHANNEL_COUNT = 16;
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
 
-function createDefaultChannels() {
-  return Array.from({ length: CHANNEL_COUNT }, () => 0);
+function useNumberField(
+  value: number,
+  onChange: (value: number) => void,
+  min: number,
+  max: number,
+) {
+  const [input, setInput] = useState(String(value));
+
+  useEffect(() => {
+    setInput(String(value));
+  }, [value]);
+
+  const handleChange = (raw: string) => {
+    setInput(raw);
+    if (raw === "" || raw === "-") {
+      return;
+    }
+    const num = Number.parseInt(raw, 10);
+    if (!Number.isNaN(num)) {
+      onChange(clamp(num, min, max));
+    }
+  };
+
+  const handleBlur = () => {
+    const num = Number.parseInt(input, 10);
+    const clamped = Number.isNaN(num) ? min : clamp(num, min, max);
+    onChange(clamped);
+    setInput(String(clamped));
+  };
+
+  return { input, handleChange, handleBlur };
 }
 
 export function ArtNetComposer() {
@@ -25,28 +65,53 @@ export function ArtNetComposer() {
 
   const [host, setHost] = useState("255.255.255.255");
   const [port, setPort] = useState(ARTNET_DEFAULT_PORT);
-  const [universe, setUniverse] = useState(0);
   const [sequence, setSequence] = useState(0);
-  const [channels, setChannels] = useState(createDefaultChannels);
+  const [params, setParams] = useState(defaultArtNetComposerParams);
   const [sending, setSending] = useState(false);
 
-  const updateChannel = (index: number, value: number) => {
-    setChannels((current) =>
-      current.map((channel, channelIndex) =>
-        channelIndex === index ? value : channel,
-      ),
-    );
-  };
+  const universeField = useNumberField(
+    params.universe,
+    (value) => setParams((current) => ({ ...current, universe: value })),
+    ARTNET_MIN_UNIVERSE,
+    ARTNET_MAX_UNIVERSE,
+  );
+  const channelField = useNumberField(
+    params.channel,
+    (value) => setParams((current) => ({ ...current, channel: value })),
+    ARTNET_MIN_CHANNEL,
+    ARTNET_MAX_CHANNEL,
+  );
+  const valueField = useNumberField(
+    params.value,
+    (value) => setParams((current) => ({ ...current, value: value })),
+    ARTNET_MIN_VALUE,
+    ARTNET_MAX_VALUE,
+  );
+  const portField = useNumberField(
+    port,
+    setPort,
+    1,
+    65535,
+  );
 
   const handleSend = async () => {
+    if (!host.trim()) {
+      setLastError("Enter an Art-Net host");
+      return;
+    }
+
     setSending(true);
+
     try {
+      const channels = buildArtNetChannels(params.channel, params.value);
+      const summary = formatArtNetComposerSummary(params, sequence);
       await sendArtNetDmx(
         host.trim(),
         port,
-        universe,
+        params.universe,
         sequence,
         channels,
+        summary,
       );
       setSequence((current) => (current + 1) % 256);
       setLastError(null);
@@ -59,113 +124,70 @@ export function ArtNetComposer() {
 
   return (
     <Box>
-      <NativeOnlyAlert protocol="Art-Net" />
-
       <Typography variant="h6" sx={{ mb: 1.5 }}>
         Art-Net composer
       </Typography>
 
-      <Stack spacing={2}>
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          <TextField
-            label="Host"
-            size="small"
-            value={host}
-            onChange={(event) => setHost(event.target.value)}
-            sx={{ width: 180 }}
-          />
-          <TextField
-            label="Port"
-            size="small"
-            type="number"
-            value={port}
-            onChange={(event) =>
-              setPort(Number(event.target.value) || ARTNET_DEFAULT_PORT)
-            }
-            sx={{ width: 96 }}
-          />
-          <TextField
-            label="Universe"
-            size="small"
-            type="number"
-            value={universe}
-            onChange={(event) =>
-              setUniverse(Math.max(0, Number(event.target.value) || 0))
-            }
-            sx={{ width: 120 }}
-          />
-          <TextField
-            label="Sequence"
-            size="small"
-            type="number"
-            value={sequence}
-            onChange={(event) =>
-              setSequence(
-                Math.min(255, Math.max(0, Number(event.target.value) || 0)),
-              )
-            }
-            sx={{ width: 120 }}
-          />
-          <Box sx={{ flex: 1 }} />
-          <Button
-            variant="contained"
-            startIcon={<SendIcon />}
-            onClick={handleSend}
-            disabled={!native || sending || !host.trim()}
-            sx={{ flexShrink: 0 }}
-          >
-            Send
-          </Button>
-        </Stack>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+        <TextField
+          label="Universe"
+          value={universeField.input}
+          onChange={(event) => universeField.handleChange(event.target.value)}
+          onBlur={universeField.handleBlur}
+          inputMode="numeric"
+          size="small"
+          sx={{ width: 104 }}
+        />
 
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-            gap: 1.5,
-          }}
+        <TextField
+          label="Channel"
+          value={channelField.input}
+          onChange={(event) => channelField.handleChange(event.target.value)}
+          onBlur={channelField.handleBlur}
+          inputMode="numeric"
+          size="small"
+          sx={{ width: 104 }}
+        />
+
+        <TextField
+          label="Value"
+          value={valueField.input}
+          onChange={(event) => valueField.handleChange(event.target.value)}
+          onBlur={valueField.handleBlur}
+          inputMode="numeric"
+          size="small"
+          sx={{ width: 104 }}
+        />
+
+        <Box sx={{ flex: 1 }} />
+
+        <TextField
+          label="Host"
+          size="small"
+          value={host}
+          onChange={(event) => setHost(event.target.value)}
+          sx={{ minWidth: 180, maxWidth: 240 }}
+        />
+
+        <TextField
+          label="Port"
+          value={portField.input}
+          onChange={(event) => portField.handleChange(event.target.value)}
+          onBlur={portField.handleBlur}
+          inputMode="numeric"
+          size="small"
+          sx={{ width: 96 }}
+        />
+
+        <Button
+          variant="contained"
+          startIcon={<SendIcon />}
+          onClick={handleSend}
+          disabled={!native || sending || !host.trim()}
+          sx={{ flexShrink: 0 }}
         >
-          {channels.map((value, index) => (
-            <Stack key={index} spacing={0.5}>
-              <Stack direction="row" sx={{ alignItems: "center", gap: 1 }}>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ minWidth: 44 }}
-                >
-                  Ch {index + 1}
-                </Typography>
-                <TextField
-                  size="small"
-                  type="number"
-                  value={value}
-                  onChange={(event) =>
-                    updateChannel(
-                      index,
-                      Math.min(
-                        255,
-                        Math.max(0, Number(event.target.value) || 0),
-                      ),
-                    )
-                  }
-                  slotProps={{
-                    htmlInput: { min: 0, max: 255 },
-                  }}
-                  sx={{ width: 72 }}
-                />
-              </Stack>
-              <Slider
-                size="small"
-                min={0}
-                max={255}
-                value={value}
-                onChange={(_, next) =>
-                  updateChannel(index, Array.isArray(next) ? next[0] : next)
-                }
-              />
-            </Stack>
-          ))}
-        </Box>
+          Send
+        </Button>
       </Stack>
     </Box>
   );

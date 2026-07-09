@@ -7,10 +7,13 @@ import {
 import { useEffect } from "react";
 import { AppHeader } from "./components/AppHeader";
 import { ControlCanvas } from "./components/ControlCanvas";
+import { PlayModeBezelExit } from "./components/PlayModeBezelExit";
 import { ControlPerformerDialog } from "./components/ControlPerformer";
 import { DebuggerPanel } from "./components/DebuggerPanel";
 import { PerformerPanel } from "./components/PerformerPanel";
 import { useInputControl } from "./hooks/useInputControl";
+import { useControlClipboardShortcuts } from "./hooks/useControlClipboardShortcuts";
+import { isTextInputTarget } from "./lib/platform";
 import { useAppStore } from "./store/useAppStore";
 import { playTheme } from "./theme";
 
@@ -24,6 +27,9 @@ function App() {
   const isEditMode = mode === "edit";
 
   useInputControl();
+  useControlClipboardShortcuts(
+    isEditMode && activeView === "performer" && performerSubView === "ui",
+  );
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -35,12 +41,7 @@ function App() {
         return;
       }
 
-      const target = event.target as HTMLElement;
-      if (
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.isContentEditable
-      ) {
+      if (isTextInputTarget(event.target)) {
         return;
       }
 
@@ -65,6 +66,7 @@ function App() {
       <Box sx={{ display: "flex", flexDirection: "column", height: "100vh", width: "100%" }}>
         <ThemeProvider theme={playTheme}>
           <ControlCanvas editable={false} />
+          <PlayModeBezelExit onExit={() => setMode("edit")} />
         </ThemeProvider>
 
         <Snackbar

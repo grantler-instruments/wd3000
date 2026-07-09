@@ -7,13 +7,13 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
   Stack,
   Typography,
 } from "@mui/material";
 import { useRef, useState, type ChangeEvent } from "react";
 import { exportConfigToFile, parseConfigImport } from "../lib/config";
 import { useAppStore } from "../store/useAppStore";
+import { AppDialogTitle } from "./AppDialogHeader";
 
 export function ConfigImportExport({ compact = false }: { compact?: boolean }) {
   const controls = useAppStore((state) => state.controls);
@@ -125,7 +125,7 @@ export function ConfigImportExport({ compact = false }: { compact?: boolean }) {
       </Stack>
 
       <Dialog open={confirmOpen} onClose={handleCancelImport}>
-        <DialogTitle>Import config?</DialogTitle>
+        <AppDialogTitle onClose={handleCancelImport}>Import config?</AppDialogTitle>
         <DialogContent>
           <DialogContentText>
             This replaces your current layout, controls, and connection settings. Export first
