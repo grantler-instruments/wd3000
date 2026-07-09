@@ -184,6 +184,7 @@ pub fn run() {
             osc_listen::stop_osc_listener,
             artnet_listen::start_artnet_listener,
             artnet_listen::stop_artnet_listener,
+            artnet_listen::get_artnet_listener_status,
             send_artnet_dmx,
             tuio_listen::start_tuio_listener,
             tuio_listen::stop_tuio_listener,

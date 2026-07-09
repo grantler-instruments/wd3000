@@ -36,9 +36,11 @@ export function IoSettingsDialog({ open, onClose }: IoSettingsDialogProps) {
           <Box
             sx={{
               display: "flex",
-              alignItems: "center",
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: { xs: "flex-start", sm: "center" },
               justifyContent: "space-between",
-              px: 2.5,
+              gap: { xs: 0.25, sm: 2 },
+              px: { xs: 2, sm: 2.5 },
               py: 1.5,
               borderBottom: 1,
               borderColor: "divider",

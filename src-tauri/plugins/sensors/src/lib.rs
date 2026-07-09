@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tauri::{plugin::TauriPlugin, AppHandle, Manager, Runtime};
 
@@ -7,7 +7,7 @@ const PLUGIN_IDENTIFIER: &str = "com.grantler_instruments.wd3000.sensors";
 #[cfg(target_os = "ios")]
 tauri::ios_plugin_binding!(init_plugin_sensors);
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SensorDescriptor {
     pub id: String,
@@ -19,7 +19,7 @@ pub struct SensorDescriptor {
     pub axes: Option<Vec<String>>,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SensorReading {
     pub sensor_id: String,
@@ -97,7 +97,7 @@ impl<R: Runtime, T: Manager<R>> SensorsExt<R> for T {
 
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     tauri::plugin::Builder::<R>::new("sensors")
-        .setup(|app, _api| {
+        .setup(|app, api| {
             #[cfg(target_os = "android")]
             let handle = api.register_android_plugin(PLUGIN_IDENTIFIER, "SensorsPlugin")?;
             #[cfg(target_os = "ios")]

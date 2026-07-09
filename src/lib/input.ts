@@ -53,6 +53,15 @@ export async function stopArtNetListener(): Promise<void> {
   await invoke("stop_artnet_listener");
 }
 
+export interface ArtNetListenerStatus {
+  listening: boolean;
+  port: number | null;
+}
+
+export async function getArtNetListenerStatus(): Promise<ArtNetListenerStatus> {
+  return invoke<ArtNetListenerStatus>("get_artnet_listener_status");
+}
+
 export async function startInputListeners(output: OutputConfig): Promise<void> {
   if (isNativeApp()) {
     await invoke("start_input_listeners", {

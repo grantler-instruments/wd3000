@@ -6,8 +6,6 @@ import {
   FormControl,
   IconButton,
   InputLabel,
-  List,
-  ListItemButton,
   MenuItem,
   Paper,
   Select,
@@ -19,6 +17,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { listMidiInputs } from "../lib/input";
 import { listMidiOutputs } from "../lib/output";
 import { useAppStore } from "../store/useAppStore";
+import { SettingsSectionNav } from "./SettingsSectionNav";
 import type {
   MidiInputEndpoint,
   MidiOutputEndpoint,
@@ -33,58 +32,6 @@ const SECTIONS: { id: IoSettingsSection; label: string }[] = [
   { id: "midi", label: "MIDI" },
 ];
 
-function SettingsSidebar({
-  section,
-  onSelect,
-}: {
-  section: IoSettingsSection;
-  onSelect: (section: IoSettingsSection) => void;
-}) {
-  return (
-    <Box
-      component="nav"
-      sx={{
-        width: 168,
-        flexShrink: 0,
-        borderRight: 1,
-        borderColor: "divider",
-        bgcolor: "background.default",
-        py: 1,
-      }}
-    >
-      <List dense disablePadding>
-        {SECTIONS.map((item) => {
-          const selected = section === item.id;
-          return (
-            <ListItemButton
-              key={item.id}
-              selected={selected}
-              onClick={() => onSelect(item.id)}
-              sx={{
-                mx: 1,
-                my: 0.25,
-                borderRadius: 1,
-                py: 0.75,
-                "&.Mui-selected": {
-                  bgcolor: "action.selected",
-                  "&:hover": { bgcolor: "action.selected" },
-                },
-              }}
-            >
-              <Typography
-                variant="body2"
-                sx={{ fontWeight: selected ? 600 : 400 }}
-              >
-                {item.label}
-              </Typography>
-            </ListItemButton>
-          );
-        })}
-      </List>
-    </Box>
-  );
-}
-
 function SubsectionHeader({
   title,
   description,
@@ -98,9 +45,9 @@ function SubsectionHeader({
 }) {
   return (
     <Stack
-      direction="row"
-      spacing={2}
-      sx={{ alignItems: "flex-start", justifyContent: "space-between", mb: 1.5 }}
+      direction={{ xs: "column", sm: "row" }}
+      spacing={{ xs: 1, sm: 2 }}
+      sx={{ alignItems: { xs: "stretch", sm: "flex-start" }, justifyContent: "space-between", mb: 1.5 }}
     >
       <Box sx={{ minWidth: 0 }}>
         <Typography variant="subtitle2">{title}</Typography>
@@ -112,7 +59,7 @@ function SubsectionHeader({
         size="small"
         startIcon={<AddIcon />}
         onClick={onAdd}
-        sx={{ flexShrink: 0, mt: 0.25 }}
+        sx={{ flexShrink: 0, alignSelf: { xs: "flex-start", sm: "auto" }, mt: { xs: 0, sm: 0.25 } }}
       >
         {addLabel}
       </Button>
@@ -175,7 +122,7 @@ function OscSenderRow({ sender }: { sender: OscSender }) {
       onRemove={() => removeOscSender(sender.id)}
       removeLabel={`Remove ${sender.name}`}
     >
-      <Stack direction="row" spacing={1}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
         <TextField
           label="Name"
           size="small"
@@ -194,7 +141,7 @@ function OscSenderRow({ sender }: { sender: OscSender }) {
           label="Port"
           size="small"
           type="number"
-          sx={{ width: 100, flexShrink: 0 }}
+          sx={{ width: { xs: "100%", sm: 100 }, flexShrink: 0 }}
           slotProps={{ htmlInput: { min: 1, max: 65535 } }}
           value={sender.port}
           onChange={(event) =>
@@ -217,7 +164,7 @@ function OscReceiverRow({ receiver }: { receiver: OscReceiver }) {
       onRemove={() => removeOscReceiver(receiver.id)}
       removeLabel={`Remove ${receiver.name}`}
     >
-      <Stack direction="row" spacing={1}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
         <TextField
           label="Name"
           size="small"
@@ -229,7 +176,7 @@ function OscReceiverRow({ receiver }: { receiver: OscReceiver }) {
           label="Listen port"
           size="small"
           type="number"
-          sx={{ width: 140, flexShrink: 0 }}
+          sx={{ width: { xs: "100%", sm: 140 }, flexShrink: 0 }}
           slotProps={{ htmlInput: { min: 1, max: 65535 } }}
           value={receiver.port}
           onChange={(event) =>
@@ -258,7 +205,7 @@ function MidiOutputRow({
       onRemove={() => removeMidiOutput(endpoint.id)}
       removeLabel={`Remove ${endpoint.name}`}
     >
-      <Stack direction="row" spacing={1}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
         <TextField
           label="Name"
           size="small"
@@ -308,7 +255,7 @@ function MidiInputRow({
       onRemove={() => removeMidiInput(endpoint.id)}
       removeLabel={`Remove ${endpoint.name}`}
     >
-      <Stack direction="row" spacing={1}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
         <TextField
           label="Name"
           size="small"
@@ -503,15 +450,23 @@ export function IoSettingsPanel() {
   }, [setLastError, setMidiInputPorts, setMidiPorts]);
 
   return (
-    <Box sx={{ display: "flex", flex: 1, minHeight: 0, width: "100%" }}>
-      <SettingsSidebar section={section} onSelect={setSection} />
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: { xs: "column", sm: "row" },
+        flex: 1,
+        minHeight: 0,
+        width: "100%",
+      }}
+    >
+      <SettingsSectionNav sections={SECTIONS} section={section} onSelect={setSection} />
 
       <Box
         sx={{
           flex: 1,
           minWidth: 0,
           overflow: "auto",
-          px: 3,
+          px: { xs: 2, sm: 3 },
           py: 2.5,
         }}
       >

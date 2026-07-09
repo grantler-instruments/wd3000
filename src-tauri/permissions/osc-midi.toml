@@ -22,4 +22,8 @@ commands.allow = [
   "stop_midi_input",
   "start_input_listeners",
   "stop_input_listeners",
+  "start_artnet_listener",
+  "stop_artnet_listener",
+  "get_artnet_listener_status",
+  "send_artnet_dmx",
 ]

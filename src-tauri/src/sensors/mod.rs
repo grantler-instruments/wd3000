@@ -1,7 +1,7 @@
 use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Mutex;
-use tauri::{AppHandle, Emitter, Runtime, State};
+use tauri::{AppHandle, Emitter, Manager, Runtime, State};
 
 #[cfg(target_os = "macos")]
 mod macos_lid;
@@ -62,7 +62,13 @@ pub fn list_sensors<R: Runtime>(app: AppHandle<R>) -> Result<Vec<SensorDescripto
     #[cfg(mobile)]
     {
         if let Some(plugin) = app.try_state::<tauri_plugin_sensors::Sensors<R>>() {
-            sensors.extend(plugin.list_sensors()?);
+            sensors.extend(plugin.list_sensors()?.into_iter().map(|descriptor| SensorDescriptor {
+                id: descriptor.id,
+                label: descriptor.label,
+                description: descriptor.description,
+                unit: descriptor.unit,
+                axes: descriptor.axes,
+            }));
         }
     }
 

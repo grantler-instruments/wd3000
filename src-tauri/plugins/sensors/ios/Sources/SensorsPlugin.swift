@@ -7,6 +7,14 @@ struct StartWatchArgs: Decodable {
   let sensorIds: [String]
 }
 
+private struct SensorDescriptorResponse: Encodable {
+  let id: String
+  let label: String
+  let description: String
+  let unit: String?
+  let axes: [String]
+}
+
 private struct SensorCatalogEntry {
   let id: String
   let label: String
@@ -51,7 +59,7 @@ class SensorsPlugin: Plugin {
   ]
 
   @objc public func listSensors(_ invoke: Invoke) throws {
-    var available: [JSObject] = []
+    var available: [SensorDescriptorResponse] = []
 
     if motionManager.isAccelerometerAvailable {
       available.append(descriptor(for: catalog[0]))
@@ -151,26 +159,24 @@ class SensorsPlugin: Plugin {
     invoke.resolve()
   }
 
-  private func descriptor(for entry: SensorCatalogEntry) -> JSObject {
-    var object: JSObject = [
-      "id": entry.id,
-      "label": entry.label,
-      "description": entry.description,
-      "axes": entry.axes,
-    ]
-    if let unit = entry.unit {
-      object["unit"] = unit
-    }
-    return object
+  private func descriptor(for entry: SensorCatalogEntry) -> SensorDescriptorResponse {
+    SensorDescriptorResponse(
+      id: entry.id,
+      label: entry.label,
+      description: entry.description,
+      unit: entry.unit,
+      axes: entry.axes
+    )
   }
 
   private func emitReading(sensorId: String, values: [String: Double]) {
+    let jsValues: JSObject = Dictionary(uniqueKeysWithValues: values.map { ($0.key, $0.value) })
     trigger(
       "sensor-reading",
-      [
+      data: [
         "sensorId": sensorId,
         "timestamp": Int(Date().timeIntervalSince1970 * 1000),
-        "values": values,
+        "values": jsValues,
       ]
     )
   }

@@ -8,8 +8,6 @@ import {
   FormControl,
   IconButton,
   InputLabel,
-  List,
-  ListItemButton,
   MenuItem,
   Paper,
   Select,
@@ -21,6 +19,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import { useState } from "react";
 import { useViewportSize } from "../hooks/useViewportSize";
 import { useAppStore } from "../store/useAppStore";
+import { SettingsSectionNav } from "./SettingsSectionNav";
 import { settingsTheme } from "../theme";
 import {
   CONTROL_COLOR_PRESETS,
@@ -49,55 +48,6 @@ const SECTIONS: { id: InspectorSection; label: string }[] = [
   { id: "osc", label: "OSC" },
   { id: "midi", label: "MIDI" },
 ];
-
-function InspectorSidebar({
-  section,
-  onSelect,
-}: {
-  section: InspectorSection;
-  onSelect: (section: InspectorSection) => void;
-}) {
-  return (
-    <Box
-      component="nav"
-      sx={{
-        width: 148,
-        flexShrink: 0,
-        borderRight: 1,
-        borderColor: "divider",
-        bgcolor: "background.default",
-        py: 1,
-      }}
-    >
-      <List dense disablePadding>
-        {SECTIONS.map((item) => {
-          const selected = section === item.id;
-          return (
-            <ListItemButton
-              key={item.id}
-              selected={selected}
-              onClick={() => onSelect(item.id)}
-              sx={{
-                mx: 1,
-                my: 0.25,
-                borderRadius: 1,
-                py: 0.75,
-                "&.Mui-selected": {
-                  bgcolor: "action.selected",
-                  "&:hover": { bgcolor: "action.selected" },
-                },
-              }}
-            >
-              <Typography variant="body2" sx={{ fontWeight: selected ? 600 : 400 }}>
-                {item.label}
-              </Typography>
-            </ListItemButton>
-          );
-        })}
-      </List>
-    </Box>
-  );
-}
 
 function SectionIntro({ title, description }: { title: string; description: string }) {
   return (
@@ -188,7 +138,7 @@ function GeneralSection({ control }: { control: Control }) {
         onChange={(event) => updateControl(control.id, { label: event.target.value })}
       />
 
-      <Stack direction="row" spacing={1.5}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
         <FormControl fullWidth size="small">
           <InputLabel id="control-type-label">Type</InputLabel>
           <Select
@@ -422,7 +372,7 @@ function LayoutSection({ control }: { control: Control }) {
         description="Position and size on the canvas."
       />
 
-      <Stack direction="row" spacing={1.5}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
         <TextField
           label="Width"
           size="small"
@@ -461,7 +411,7 @@ function LayoutSection({ control }: { control: Control }) {
         />
       </Stack>
 
-      <Stack direction="row" spacing={1.5}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
         <TextField
           label="X"
           size="small"
@@ -619,7 +569,7 @@ function MidiMappingFields({ control }: { control: Control }) {
             })
           }
         />
-        <Stack direction="row" spacing={1.5}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
           <TextField
             label="Octaves"
             size="small"
@@ -670,7 +620,7 @@ function MidiMappingFields({ control }: { control: Control }) {
 
   if (control.type === "pad") {
     return (
-      <Stack direction="row" spacing={1.5}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
         <TextField
           label="CC X"
           size="small"
@@ -823,9 +773,22 @@ function ControlInspector({ control }: { control: Control }) {
   const [section, setSection] = useState<InspectorSection>("general");
 
   return (
-    <Box sx={{ display: "flex", flex: 1, minHeight: 0, width: "100%" }}>
-      <InspectorSidebar section={section} onSelect={setSection} />
-      <Box sx={{ flex: 1, minWidth: 0, overflow: "auto", px: 2.5, py: 2 }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: { xs: "column", sm: "row" },
+        flex: 1,
+        minHeight: 0,
+        width: "100%",
+      }}
+    >
+      <SettingsSectionNav
+        sections={SECTIONS}
+        section={section}
+        onSelect={setSection}
+        sidebarWidth={148}
+      />
+      <Box sx={{ flex: 1, minWidth: 0, overflow: "auto", px: { xs: 2, sm: 2.5 }, py: 2 }}>
         {section === "general" && <GeneralSection control={control} />}
         {section === "layout" && <LayoutSection control={control} />}
         {section === "osc" && <OscSection control={control} />}
@@ -878,21 +841,23 @@ export function ControlPerformerDialog() {
           <Box
             sx={{
               display: "flex",
-              alignItems: "baseline",
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: { xs: "flex-start", sm: "baseline" },
               justifyContent: "space-between",
-              gap: 2,
-              px: 2.5,
+              gap: { xs: 0.25, sm: 2 },
+              px: { xs: 2, sm: 2.5 },
               py: 1.5,
               borderBottom: 1,
               borderColor: "divider",
               flexShrink: 0,
+              minWidth: 0,
             }}
           >
-            <Typography variant="h6" component="h2" noWrap>
+            <Typography variant="h6" component="h2" noWrap sx={{ maxWidth: "100%" }}>
               {selectedControl?.label ?? "Widget"}
             </Typography>
             {selectedControl && (
-              <Typography variant="body2" color="text.secondary" noWrap>
+              <Typography variant="body2" color="text.secondary" noWrap sx={{ flexShrink: 0 }}>
                 {controlTypeLabel(selectedControl.type)}
               </Typography>
             )}

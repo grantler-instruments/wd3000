@@ -72,6 +72,7 @@ export function ControlWidget({
 
   const performance = !editable || layoutPreview;
   const showEditChrome = editable && !layoutPreview;
+  const hideHeadline = hideLabel || (control.type === "tabs" && !editable);
   const accentColor = control.color ?? undefined;
   const accentSx = accentColor
     ? {
@@ -97,7 +98,7 @@ export function ControlWidget({
       }}
     >
       <Stack spacing={performance ? 2 : 1.5} sx={{ height: "100%", minHeight: 0 }}>
-        {!hideLabel &&
+        {!hideHeadline &&
           (showEditChrome ? (
             <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
               <Typography variant="subtitle2" color="text.secondary" sx={{ flex: 1 }}>
