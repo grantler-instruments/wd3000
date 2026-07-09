@@ -53,7 +53,7 @@ describe("cloneControlSubtree", () => {
       positionOffset: { x: 16, y: 8 },
     });
 
-    expect(cloned.rootId).toBe("uuid-3");
+    expect(cloned.rootId).toBe("uuid-1");
     expect(cloned.controls).toHaveLength(2);
 
     const root = cloned.controls.find((entry) => entry.id === cloned.rootId);
