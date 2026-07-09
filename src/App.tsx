@@ -13,6 +13,7 @@ import { DebuggerPanel } from "./components/DebuggerPanel";
 import { PerformerPanel } from "./components/PerformerPanel";
 import { useInputControl } from "./hooks/useInputControl";
 import { useControlClipboardShortcuts } from "./hooks/useControlClipboardShortcuts";
+import { usePerformerHistory } from "./hooks/usePerformerHistory";
 import { isTextInputTarget } from "./lib/platform";
 import { useAppStore } from "./store/useAppStore";
 import { playTheme } from "./theme";
@@ -27,6 +28,7 @@ function App() {
   const isEditMode = mode === "edit";
 
   useInputControl();
+  usePerformerHistory();
   useControlClipboardShortcuts(
     isEditMode && activeView === "performer" && performerSubView === "ui",
   );

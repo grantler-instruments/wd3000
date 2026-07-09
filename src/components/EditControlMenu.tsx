@@ -1,7 +1,9 @@
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { Button, ButtonProps, Divider, Menu } from "@mui/material";
 import { useState } from "react";
-import { formatDeleteKey, formatShortcutKey } from "../lib/platform";
+import { usePerformerHistoryAvailability } from "../hooks/usePerformerHistory";
+import { redoPerformerEdit, undoPerformerEdit } from "../lib/performer-history";
+import { formatDeleteKey, formatRedoKey, formatShortcutKey } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import { ShortcutMenuItem } from "./ShortcutMenuItem";
 
@@ -21,6 +23,7 @@ export function EditControlMenu({
   const pasteControl = useAppStore((state) => state.pasteControl);
   const duplicateControl = useAppStore((state) => state.duplicateControl);
   const removeControl = useAppStore((state) => state.removeControl);
+  const { canUndo, canRedo } = usePerformerHistoryAvailability();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = anchorEl !== null;
 
@@ -57,6 +60,19 @@ export function EditControlMenu({
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         transformOrigin={{ vertical: "top", horizontal: "left" }}
       >
+        <ShortcutMenuItem
+          label="Undo"
+          shortcut={formatShortcutKey("z")}
+          disabled={!canUndo}
+          onClick={() => handleAction(() => undoPerformerEdit())}
+        />
+        <ShortcutMenuItem
+          label="Redo"
+          shortcut={formatRedoKey()}
+          disabled={!canRedo}
+          onClick={() => handleAction(() => redoPerformerEdit())}
+        />
+        <Divider />
         <ShortcutMenuItem
           label="Copy"
           shortcut={formatShortcutKey("c")}

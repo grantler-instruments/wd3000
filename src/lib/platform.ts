@@ -42,6 +42,14 @@ export function formatDeleteKey(): string {
   return usesMeta ? "⌫" : "Del";
 }
 
+export function formatRedoKey(): string {
+  const usesMeta =
+    typeof navigator !== "undefined" &&
+    /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+
+  return usesMeta ? "⇧⌘Z" : "Ctrl+Shift+Z";
+}
+
 export function isTextInputTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) {
     return false;

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { isTextInputTarget } from "../lib/platform";
+import { redoPerformerEdit, undoPerformerEdit } from "../lib/performer-history";
 import { useAppStore } from "../store/useAppStore";
 
 export function useControlClipboardShortcuts(enabled: boolean) {
@@ -10,6 +11,17 @@ export function useControlClipboardShortcuts(enabled: boolean) {
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (isTextInputTarget(event.target)) {
+        return;
+      }
+
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") {
+        if (event.shiftKey) {
+          if (redoPerformerEdit()) {
+            event.preventDefault();
+          }
+        } else if (undoPerformerEdit()) {
+          event.preventDefault();
+        }
         return;
       }
 

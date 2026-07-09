@@ -9,6 +9,7 @@ import {
   type SensorMidiMapping,
 } from "../lib/sensors/types";
 import { clearRemovedEndpointReferences } from "../lib/performerIo";
+import { replacePerformerWithoutHistory, clearPerformerHistory } from "../lib/performer-history";
 import {
   cloneControlSubtree,
   collectControlSubtree,
@@ -694,17 +695,19 @@ export const useAppStore = create<AppState>()(
       },
       setLastError: (message) => set({ lastError: message }),
       importConfig: (config) =>
-        set({
-          controls: reindexOrders(config.controls),
-          output: config.output,
-          performerIo: config.performerIo,
-          layoutSettings: config.layoutSettings,
-          selectedControlId: null,
-          inspectorControlId: null,
-          controlValues: {},
-          controlActiveNotes: {},
-          controlPadValues: {},
-          controlTabIndex: {},
+        replacePerformerWithoutHistory(() => {
+          set({
+            controls: reindexOrders(config.controls),
+            output: config.output,
+            performerIo: config.performerIo,
+            layoutSettings: config.layoutSettings,
+            selectedControlId: null,
+            inspectorControlId: null,
+            controlValues: {},
+            controlActiveNotes: {},
+            controlPadValues: {},
+            controlTabIndex: {},
+          });
         }),
     }),
     {
@@ -868,6 +871,9 @@ export const useAppStore = create<AppState>()(
         layoutSettings: state.layoutSettings,
         sensorMappings: state.sensorMappings,
       }),
+      onRehydrateStorage: () => () => {
+        clearPerformerHistory();
+      },
     },
   ),
 );
