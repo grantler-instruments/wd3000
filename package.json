@@ -1,7 +1,7 @@
 {
-  "name": "tauri-app",
+  "name": "wd3000",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,6 +15,8 @@
     "test:e2e:install": "cross-env PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium",
     "tauri": "tauri",
     "tauri:ios": "tauri ios dev \"iPhone 17\"",
+    "tauri:ios:sync-export-options": "cp src-tauri/ExportOptions.ios.plist src-tauri/gen/apple/ExportOptions.plist",
+    "tauri:ios:build": "npm run tauri:ios:sync-export-options && tauri ios build -- --export-method app-store-connect",
     "tauri:android": "tauri android dev"
   },
   "dependencies": {

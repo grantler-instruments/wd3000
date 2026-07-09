@@ -3396,23 +3396,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-app"
-version = "0.1.0"
-dependencies = [
- "core-foundation",
- "core-foundation-sys",
- "midir",
- "rosc",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-opener",
- "tauri-plugin-sensors",
- "tuioxide",
-]
-
-[[package]]
 name = "tauri-build"
 version = "2.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4252,6 +4235,23 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+]
+
+[[package]]
+name = "wd3000"
+version = "0.0.1"
+dependencies = [
+ "core-foundation",
+ "core-foundation-sys",
+ "midir",
+ "rosc",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-opener",
+ "tauri-plugin-sensors",
+ "tuioxide",
 ]
 
 [[package]]

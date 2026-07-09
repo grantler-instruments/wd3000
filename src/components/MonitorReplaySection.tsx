@@ -166,7 +166,7 @@ export function MonitorReplaySection({ log, incomingCount }: MonitorReplaySectio
         )
       ) : !native ? (
         <Alert severity="info" sx={{ mb: 2 }}>
-          OSC send is only available in the desktop app.
+          OSC send is only available in the native app.
         </Alert>
       ) : (
         <Stack direction="row" spacing={1} sx={{ mb: 2, maxWidth: 360 }}>

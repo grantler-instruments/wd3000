@@ -10,7 +10,7 @@ configs:
 settingGroups:
   app:
     base:
-      PRODUCT_NAME: tauri-app
+      PRODUCT_NAME: WD3000
       PRODUCT_BUNDLE_IDENTIFIER: com.grantler-instruments.wd3000
 targetTemplates:
   app:
@@ -51,9 +51,11 @@ targets:
           - UIInterfaceOrientationPortraitUpsideDown
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
-        CFBundleShortVersionString: 0.1.0
-        CFBundleVersion: "0.1.0"
+        CFBundleShortVersionString: 0.0.1
+        CFBundleVersion: "0.0.1"
         NSMotionUsageDescription: WD3000 uses motion sensors for performer input mapping.
+        NSLocalNetworkUsageDescription: WD3000 uses your local network to send and receive OSC, Art-Net, TUIO, and network MIDI messages.
+        NSBluetoothAlwaysUsageDescription: WD3000 uses Bluetooth to connect to MIDI controllers and interfaces.
     entitlements:
       path: tauri-app_iOS/tauri-app_iOS.entitlements
     scheme:
