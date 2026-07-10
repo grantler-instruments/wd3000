@@ -1,3 +1,5 @@
+import type { MonitorMidiPortFilterState } from "./monitorMidiPortFilter";
+import { isMidiPortFilterActive } from "./monitorMidiPortFilter";
 import type { MonitorMidiTypeFilterState } from "./monitorMidiFilter";
 import { isMidiTypeFilterActive } from "./monitorMidiFilter";
 
@@ -27,9 +29,11 @@ export function isDirectionFilterActive(filter: MonitorDirectionFilterState) {
 export function isMonitorFilterActive(
   directionFilter: MonitorDirectionFilterState,
   midiTypeFilter?: MonitorMidiTypeFilterState,
+  midiPortFilter?: MonitorMidiPortFilterState,
 ) {
   return (
     isDirectionFilterActive(directionFilter) ||
-    (midiTypeFilter !== undefined && isMidiTypeFilterActive(midiTypeFilter))
+    (midiTypeFilter !== undefined && isMidiTypeFilterActive(midiTypeFilter)) ||
+    (midiPortFilter !== undefined && isMidiPortFilterActive(midiPortFilter))
   );
 }

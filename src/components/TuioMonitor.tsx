@@ -511,7 +511,6 @@ export function TuioMonitor() {
       <NativeOnlyAlert protocol="TUIO" />
 
       <Box>
-        <Typography variant="h6">TUIO monitor</Typography>
         <Typography variant="body2" color="text.secondary">
           Plot incoming TUIO traffic and click or drag on the canvas to send TUIO 1.1 cursors.
         </Typography>

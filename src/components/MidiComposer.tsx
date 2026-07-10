@@ -163,9 +163,6 @@ export function MidiComposer() {
   if (!isNativeApp() && !isWebMidiSupported()) {
     return (
       <Box>
-        <Typography variant="h6" sx={{ mb: 1 }}>
-          MIDI composer
-        </Typography>
         <Alert severity="warning">Web MIDI is not supported in this browser.</Alert>
       </Box>
     );
@@ -174,9 +171,6 @@ export function MidiComposer() {
   if (midiPorts.length === 0) {
     return (
       <Box>
-        <Typography variant="h6" sx={{ mb: 1 }}>
-          MIDI composer
-        </Typography>
         <Alert severity="warning">No MIDI output ports found.</Alert>
       </Box>
     );
@@ -184,9 +178,6 @@ export function MidiComposer() {
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ mb: 1.5 }}>
-        MIDI composer
-      </Typography>
 
       <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
         {showChannel && (

@@ -14,12 +14,18 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { clearDebugLogFiltered, useDebugLog } from "../lib/debugLog";
 import { listMidiInputs, startMidiInput, stopMidiInput } from "../lib/input";
+import { listMidiOutputs } from "../lib/output";
 import { isMidiDebugKind } from "../lib/midiTypes";
 import { createMonitorLogEvents } from "../lib/monitorLog";
 import {
   defaultMonitorMidiTypeFilter,
   matchesMidiTypeFilter,
 } from "../lib/monitorMidiFilter";
+import {
+  collectMonitorMidiPorts,
+  defaultMonitorMidiPortFilter,
+  matchesMidiPortFilter,
+} from "../lib/monitorMidiPortFilter";
 import {
   defaultMonitorDirectionFilter,
   isMonitorFilterActive,
@@ -41,7 +47,9 @@ export function MidiMonitor() {
   const output = useAppStore((state) => state.output);
   const setOutput = useAppStore((state) => state.setOutput);
   const midiInputPorts = useAppStore((state) => state.midiInputPorts);
+  const midiPorts = useAppStore((state) => state.midiPorts);
   const setMidiInputPorts = useAppStore((state) => state.setMidiInputPorts);
+  const setMidiPorts = useAppStore((state) => state.setMidiPorts);
   const setLastError = useAppStore((state) => state.setLastError);
   const allEntries = useDebugLog();
   const replayProgress = useMonitorLogReplayProgress();
@@ -51,10 +59,16 @@ export function MidiMonitor() {
   const [inputPort, setInputPort] = useState(output.midiInputPortName ?? "");
   const [directionFilter, setDirectionFilter] = useState(defaultMonitorDirectionFilter);
   const [midiTypeFilter, setMidiTypeFilter] = useState(defaultMonitorMidiTypeFilter);
+  const [midiPortFilter, setMidiPortFilter] = useState(defaultMonitorMidiPortFilter);
 
   const entries = useMemo(
     () => allEntries.filter((entry) => isMidiDebugKind(entry.kind)),
     [allEntries],
+  );
+
+  const availablePorts = useMemo(
+    () => collectMonitorMidiPorts(entries, midiInputPorts, midiPorts),
+    [entries, midiInputPorts, midiPorts],
   );
 
   const filteredEntries = useMemo(
@@ -62,9 +76,10 @@ export function MidiMonitor() {
       entries.filter(
         (entry) =>
           matchesDirectionFilter(entry.direction, directionFilter) &&
-          matchesMidiTypeFilter(entry.kind, midiTypeFilter),
+          matchesMidiTypeFilter(entry.kind, midiTypeFilter) &&
+          matchesMidiPortFilter(entry.portName, midiPortFilter),
       ),
-    [directionFilter, entries, midiTypeFilter],
+    [directionFilter, entries, midiPortFilter, midiTypeFilter],
   );
 
   const incomingCount = useMemo(
@@ -98,7 +113,13 @@ export function MidiMonitor() {
       .catch((error) => {
         setLastError(error instanceof Error ? error.message : String(error));
       });
-  }, [output.midiInputPortName, setLastError, setMidiInputPorts]);
+
+    listMidiOutputs()
+      .then(setMidiPorts)
+      .catch((error) => {
+        setLastError(error instanceof Error ? error.message : String(error));
+      });
+  }, [output.midiInputPortName, setLastError, setMidiInputPorts, setMidiPorts]);
 
   useEffect(() => {
     let cancelled = false;
@@ -127,12 +148,11 @@ export function MidiMonitor() {
         direction="row"
         sx={{ alignItems: "flex-start", justifyContent: "space-between", gap: 2 }}
       >
-        <Box>
-          <Typography variant="h6">MIDI monitor</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Listen to incoming MIDI. Enable OUT to also see messages sent by WD3000.
-          </Typography>
-        </Box>
+      <Box>
+        <Typography variant="body2" color="text.secondary">
+          Listen to incoming MIDI. Enable OUT to also see messages sent by WD3000.
+        </Typography>
+      </Box>
       </Stack>
 
       <Tabs
@@ -196,6 +216,9 @@ export function MidiMonitor() {
             onDirectionFilterChange={setDirectionFilter}
             midiTypeFilter={midiTypeFilter}
             onMidiTypeFilterChange={setMidiTypeFilter}
+            midiPortFilter={midiPortFilter}
+            onMidiPortFilterChange={setMidiPortFilter}
+            midiPorts={availablePorts}
           />
 
           <MonitorReplaySection log={liveLog} incomingCount={incomingCount} />
@@ -221,7 +244,7 @@ export function MidiMonitor() {
                     : "Select an input port to monitor incoming MIDI."
                   : isReplayingLive
                     ? "Waiting for MIDI messages…"
-                  : isMonitorFilterActive(directionFilter, midiTypeFilter)
+                  : isMonitorFilterActive(directionFilter, midiTypeFilter, midiPortFilter)
                     ? "No messages match the current filter."
                     : "Waiting for MIDI messages…"
               }

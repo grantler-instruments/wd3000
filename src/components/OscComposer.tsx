@@ -335,10 +335,6 @@ export function OscComposer() {
     <Box>
       <NativeOnlyAlert protocol="OSC" />
 
-      <Typography variant="h6" sx={{ mb: 1.5 }}>
-        OSC composer
-      </Typography>
-
       <Stack spacing={1}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <TextField

@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import {
-  Alert,
   Box,
   Divider,
   FormControl,
@@ -13,13 +12,13 @@ import {
   Typography,
 } from "@mui/material";
 import { useMemo } from "react";
-import { isNativeApp, isWebMidiSupported } from "../../lib/platform";
 import {
   defaultSensorAxisMapping,
   normalizeSensorAxisMapping,
   sensorAxisKey,
 } from "../../lib/sensors/types";
 import { useAppStore } from "../../store/useAppStore";
+import { endpointLabel } from "../../types";
 import { SensorAxisRow } from "./SensorCard";
 
 function MappingProtocolSection({
@@ -73,15 +72,14 @@ export function SensorAxisMappingEditor({
 }) {
   const mappingKey = sensorAxisKey(sensorId, axis);
   const storedMapping = useAppStore((state) => state.sensorMappings[mappingKey]);
-  const output = useAppStore((state) => state.output);
-  const midiPorts = useAppStore((state) => state.midiPorts);
+  const performerIo = useAppStore((state) => state.performerIo);
   const updateSensorAxisMapping = useAppStore((state) => state.updateSensorAxisMapping);
   const mapping = useMemo(
     () =>
       storedMapping
-        ? normalizeSensorAxisMapping(storedMapping, output, sensorId, axis)
-        : defaultSensorAxisMapping(sensorId, axis, output),
-    [axis, output, sensorId, storedMapping],
+        ? normalizeSensorAxisMapping(storedMapping, performerIo, sensorId, axis)
+        : defaultSensorAxisMapping(sensorId, axis, performerIo),
+    [axis, performerIo, sensorId, storedMapping],
   );
 
   return (
@@ -108,31 +106,30 @@ export function SensorAxisMappingEditor({
           enabled={mapping.osc.enabled}
           onToggle={(enabled) => updateSensorAxisMapping(sensorId, axis, { osc: { enabled } })}
         >
-          <Stack direction="row" spacing={1}>
-            <TextField
-              label="Host"
-              size="small"
-              fullWidth
-              value={mapping.osc.host}
+          <FormControl fullWidth size="small">
+            <InputLabel id={`${sensorId}-${axis}-osc-sender-label`}>Sender</InputLabel>
+            <Select
+              labelId={`${sensorId}-${axis}-osc-sender-label`}
+              label="Sender"
+              value={mapping.osc.senderId ?? ""}
               onChange={(event) =>
                 updateSensorAxisMapping(sensorId, axis, {
-                  osc: { host: event.target.value },
+                  osc: { senderId: event.target.value || null },
                 })
               }
-            />
-            <TextField
-              label="Port"
-              size="small"
-              type="number"
-              sx={{ width: 120 }}
-              value={mapping.osc.port}
-              onChange={(event) =>
-                updateSensorAxisMapping(sensorId, axis, {
-                  osc: { port: Number(event.target.value) || 9000 },
-                })
-              }
-            />
-          </Stack>
+            >
+              {performerIo.oscSenders.length === 0 && (
+                <MenuItem value="" disabled>
+                  Add senders in I/O settings
+                </MenuItem>
+              )}
+              {performerIo.oscSenders.map((sender) => (
+                <MenuItem key={sender.id} value={sender.id}>
+                  {endpointLabel(sender.name, `${sender.host}:${sender.port}`)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             label="Address"
             size="small"
@@ -150,38 +147,30 @@ export function SensorAxisMappingEditor({
           enabled={mapping.midi.enabled}
           onToggle={(enabled) => updateSensorAxisMapping(sensorId, axis, { midi: { enabled } })}
         >
-          {!isNativeApp() && !isWebMidiSupported() ? (
-            <Alert severity="warning" sx={{ py: 0 }}>
-              Web MIDI is not supported in this browser.
-            </Alert>
-          ) : midiPorts.length === 0 ? (
-            <Alert severity="warning" sx={{ py: 0 }}>
-              No MIDI output ports found. Refresh ports in Preferences.
-            </Alert>
-          ) : (
-            <FormControl fullWidth size="small">
-              <InputLabel id={`${sensorId}-${axis}-midi-port-label`}>Output port</InputLabel>
-              <Select
-                labelId={`${sensorId}-${axis}-midi-port-label`}
-                label="Output port"
-                value={mapping.midi.portName ?? ""}
-                onChange={(event) =>
-                  updateSensorAxisMapping(sensorId, axis, {
-                    midi: { portName: event.target.value || null },
-                  })
-                }
-              >
-                <MenuItem value="">
-                  <em>None</em>
+          <FormControl fullWidth size="small">
+            <InputLabel id={`${sensorId}-${axis}-midi-output-label`}>Output</InputLabel>
+            <Select
+              labelId={`${sensorId}-${axis}-midi-output-label`}
+              label="Output"
+              value={mapping.midi.outputId ?? ""}
+              onChange={(event) =>
+                updateSensorAxisMapping(sensorId, axis, {
+                  midi: { outputId: event.target.value || null },
+                })
+              }
+            >
+              {performerIo.midiOutputs.length === 0 && (
+                <MenuItem value="" disabled>
+                  Add outputs in I/O settings
                 </MenuItem>
-                {midiPorts.map((port) => (
-                  <MenuItem key={port} value={port}>
-                    {port}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
+              )}
+              {performerIo.midiOutputs.map((endpoint) => (
+                <MenuItem key={endpoint.id} value={endpoint.id}>
+                  {endpointLabel(endpoint.name, endpoint.portName)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <Stack direction="row" spacing={1}>
             <TextField
               label="Channel"

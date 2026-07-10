@@ -60,6 +60,7 @@ async function sendMidiBytesToPort(
       kind,
       summary,
       payload: asMidiPayload(bytes),
+      portName,
     });
   }
 }

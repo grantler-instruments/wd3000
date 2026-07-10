@@ -5,8 +5,9 @@ import {
   ThemeProvider,
 } from "@mui/material";
 import { useEffect } from "react";
-import { AppHeader } from "./components/AppHeader";
+import { PageHeader } from "./components/PageHeader";
 import { ControlCanvas } from "./components/ControlCanvas";
+import { HomePage } from "./components/HomePage";
 import { PlayModeBezelExit } from "./components/PlayModeBezelExit";
 import { ControlPerformerDialog } from "./components/ControlPerformer";
 import { DebuggerPanel } from "./components/DebuggerPanel";
@@ -87,12 +88,18 @@ function App() {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      <AppHeader />
+      {activeView === "home" ? (
+        <HomePage />
+      ) : (
+        <>
+          <PageHeader />
 
-      <Box sx={{ flex: 1, minHeight: 0, display: "flex" }}>
-        {activeView === "performer" && <PerformerPanel />}
-        {activeView === "debugger" && <DebuggerPanel />}
-      </Box>
+          <Box sx={{ flex: 1, minHeight: 0, display: "flex" }}>
+            {activeView === "performer" && <PerformerPanel />}
+            {activeView === "debugger" && <DebuggerPanel />}
+          </Box>
+        </>
+      )}
 
       <ControlPerformerDialog />
 

@@ -16,7 +16,7 @@ const ORIENTATION_SENSOR_ID = "device_orientation";
 const MOTION_SENSOR_ID = "device_motion";
 
 export function BrowserSensorsPanel() {
-  const output = useAppStore((state) => state.output);
+  const performerIo = useAppStore((state) => state.performerIo);
   const sensorMappings = useAppStore((state) => state.sensorMappings);
   const {
     support,
@@ -62,7 +62,7 @@ export function BrowserSensorsPanel() {
     [motion, orientation],
   );
 
-  useBrowserSensorOutput(active, output, sensorMappings, browserReadings);
+  useBrowserSensorOutput(active, performerIo, sensorMappings, browserReadings);
 
   const needsPermission =
     permission === "unknown" ||
@@ -74,9 +74,6 @@ export function BrowserSensorsPanel() {
   return (
     <Stack spacing={3} sx={{ maxWidth: 720 }}>
       <Box>
-        <Typography variant="h6" sx={{ mb: 1 }}>
-          Browser sensors
-        </Typography>
         <Typography variant="body2" color="text.secondary">
           Uses Web APIs available in the current browser. On phones and tablets this
           typically includes device orientation and motion; on desktop browsers support

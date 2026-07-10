@@ -27,7 +27,7 @@ export type ControlProtocol = "osc" | "midi" | "both";
 
 export type AppMode = "edit" | "play";
 
-export type DashboardView = "performer" | "debugger";
+export type DashboardView = "home" | "performer" | "debugger";
 
 export type PerformerSubView = "ui" | "sensors" | "mediapipe";
 

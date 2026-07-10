@@ -11,7 +11,7 @@ export async function clearLayoutStorage(page: Page): Promise<void> {
 }
 
 export async function waitForAppReady(page: Page): Promise<void> {
-  await expect(page.getByRole("button", { name: "Performer" })).toBeVisible({
+  await expect(page.getByRole("button", { name: "UI" })).toBeVisible({
     timeout: 30_000,
   });
 }
@@ -26,6 +26,14 @@ export async function gotoApp(page: Page, options?: { resetStorage?: boolean }):
     await page.reload();
     await waitForAppReady(page);
   }
+}
+
+export async function openPerformerSubView(page: Page, label: string): Promise<void> {
+  await page.getByRole("button", { name: label }).click();
+}
+
+export async function openDebuggerSubView(page: Page, label: string): Promise<void> {
+  await page.getByRole("button", { name: label }).click();
 }
 
 /** Modifier key for shortcuts: Meta on macOS, Control in Linux CI. */
@@ -48,9 +56,4 @@ export async function closeControlInspector(page: Page): Promise<void> {
 export async function addWidget(page: Page, type: string): Promise<void> {
   await page.getByRole("button", { name: "Add widget" }).first().click();
   await page.getByRole("menuitem", { name: type }).click();
-}
-
-export async function openDebuggerSubView(page: Page, label: string): Promise<void> {
-  await page.getByRole("button", { name: "Debugger" }).click();
-  await page.getByRole("menuitem", { name: label }).click();
 }

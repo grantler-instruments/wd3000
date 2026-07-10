@@ -4,7 +4,6 @@ import {
   Button,
   Stack,
   TextField,
-  Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import {
@@ -124,10 +123,6 @@ export function ArtNetComposer() {
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ mb: 1.5 }}>
-        Art-Net composer
-      </Typography>
-
       <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
         <TextField
           label="Universe"

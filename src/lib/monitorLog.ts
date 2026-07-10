@@ -22,6 +22,7 @@ export interface MonitorLogEvent {
   kind: DebugLogKind;
   summary: string;
   payload?: MonitorEventPayload;
+  portName?: string | null;
 }
 
 export interface SavedMonitorLog {
@@ -76,6 +77,7 @@ function parseMonitorLogEvent(value: unknown, index: number): MonitorLogEvent {
     kind: value.kind as DebugLogKind,
     summary: value.summary,
     ...(value.payload !== undefined ? { payload: value.payload as MonitorEventPayload } : {}),
+    ...(value.portName !== undefined ? { portName: value.portName as string | null } : {}),
   };
 }
 
@@ -99,6 +101,7 @@ export function createMonitorLogEvents(entries: DebugLogEntry[]): MonitorLogEven
     kind: entry.kind,
     summary: entry.summary,
     payload: resolveMonitorEventPayload(entry) ?? undefined,
+    ...(entry.portName !== undefined ? { portName: entry.portName } : {}),
   }));
 }
 

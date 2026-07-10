@@ -11,6 +11,12 @@ import {
   stopWebMidiInput,
 } from "./webMidi";
 
+let activeMidiInputPort: string | null = null;
+
+export function getActiveMidiInputPort() {
+  return activeMidiInputPort;
+}
+
 export async function listMidiInputs(): Promise<string[]> {
   if (isNativeApp()) {
     return invoke<string[]>("list_midi_inputs");
@@ -20,6 +26,8 @@ export async function listMidiInputs(): Promise<string[]> {
 }
 
 export async function startMidiInput(portName: string | null): Promise<void> {
+  activeMidiInputPort = portName?.trim() || null;
+
   if (isNativeApp()) {
     await invoke("start_midi_input", { portName });
     return;
@@ -29,6 +37,8 @@ export async function startMidiInput(portName: string | null): Promise<void> {
 }
 
 export async function stopMidiInput(): Promise<void> {
+  activeMidiInputPort = null;
+
   if (isNativeApp()) {
     await invoke("stop_midi_input");
     return;

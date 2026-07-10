@@ -55,6 +55,7 @@ export interface DebugLogEntry {
   kind: DebugLogKind;
   summary: string;
   payload?: MonitorEventPayload;
+  portName?: string | null;
 }
 
 const MAX_ENTRIES = 200;

@@ -1,3 +1,5 @@
+import type { PerformerIoConfig } from "../../types";
+
 export interface SensorDescriptor {
   id: string;
   label: string;
@@ -15,13 +17,12 @@ export interface SensorReading {
 export interface SensorOscMapping {
   enabled: boolean;
   address: string;
-  host: string;
-  port: number;
+  senderId: string | null;
 }
 
 export interface SensorMidiMapping {
   enabled: boolean;
-  portName: string | null;
+  outputId: string | null;
   channel: number;
   cc: number;
   min: number;
@@ -33,14 +34,6 @@ export interface SensorAxisMapping {
   midi: SensorMidiMapping;
 }
 
-type LegacySensorOutputProtocol = "osc" | "midi" | "both";
-
-type StoredSensorAxisMapping = Partial<SensorAxisMapping> & {
-  protocol?: LegacySensorOutputProtocol;
-  osc?: Partial<SensorOscMapping>;
-  midi?: Partial<SensorMidiMapping>;
-};
-
 export function sensorAxisKey(sensorId: string, axis: string) {
   return `${sensorId}:${axis}`;
 }
@@ -48,18 +41,17 @@ export function sensorAxisKey(sensorId: string, axis: string) {
 export function defaultSensorAxisMapping(
   sensorId: string,
   axis: string,
-  output = { oscHost: "127.0.0.1", oscPort: 9000, midiPortName: null as string | null },
+  performerIo: Pick<PerformerIoConfig, "oscSenders" | "midiOutputs">,
 ): SensorAxisMapping {
   return {
     osc: {
       enabled: true,
       address: `/sensors/${sensorId}/${axis}`,
-      host: output.oscHost,
-      port: output.oscPort,
+      senderId: performerIo.oscSenders[0]?.id ?? null,
     },
     midi: {
       enabled: false,
-      portName: output.midiPortName,
+      outputId: performerIo.midiOutputs[0]?.id ?? null,
       channel: 1,
       cc: 0,
       min: 0,
@@ -68,44 +60,23 @@ export function defaultSensorAxisMapping(
   };
 }
 
-function legacyProtocolEnabled(
-  protocol: LegacySensorOutputProtocol | undefined,
-  target: "osc" | "midi",
-  fallback: boolean,
-) {
-  if (protocol === undefined) {
-    return fallback;
-  }
-
-  if (protocol === "both") {
-    return true;
-  }
-
-  return protocol === target;
-}
-
 export function normalizeSensorAxisMapping(
-  mapping: StoredSensorAxisMapping,
-  output = { oscHost: "127.0.0.1", oscPort: 9000, midiPortName: null as string | null },
+  mapping: Partial<SensorAxisMapping>,
+  performerIo: Pick<PerformerIoConfig, "oscSenders" | "midiOutputs">,
   sensorId = "sensor",
   axis = "axis",
 ): SensorAxisMapping {
-  const defaults = defaultSensorAxisMapping(sensorId, axis, output);
+  const defaults = defaultSensorAxisMapping(sensorId, axis, performerIo);
 
   return {
     osc: {
-      enabled:
-        mapping.osc?.enabled ??
-        legacyProtocolEnabled(mapping.protocol, "osc", defaults.osc.enabled),
+      enabled: mapping.osc?.enabled ?? defaults.osc.enabled,
       address: mapping.osc?.address ?? defaults.osc.address,
-      host: mapping.osc?.host || defaults.osc.host,
-      port: mapping.osc?.port ?? defaults.osc.port,
+      senderId: mapping.osc?.senderId ?? defaults.osc.senderId,
     },
     midi: {
-      enabled:
-        mapping.midi?.enabled ??
-        legacyProtocolEnabled(mapping.protocol, "midi", defaults.midi.enabled),
-      portName: mapping.midi?.portName ?? defaults.midi.portName,
+      enabled: mapping.midi?.enabled ?? defaults.midi.enabled,
+      outputId: mapping.midi?.outputId ?? defaults.midi.outputId,
       channel: mapping.midi?.channel ?? defaults.midi.channel,
       cc: mapping.midi?.cc ?? defaults.midi.cc,
       min: mapping.midi?.min ?? defaults.midi.min,

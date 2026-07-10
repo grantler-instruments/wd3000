@@ -5,12 +5,12 @@ import {
   normalizeSensorAxisMapping,
   sensorAxisKey,
 } from "./types";
-import type { OutputConfig } from "../../types";
+import type { PerformerIoConfig } from "../../types";
 import type { SensorAxisMapping } from "./types";
 
 export function useBrowserSensorOutput(
   enabled: boolean,
-  output: OutputConfig,
+  performerIo: PerformerIoConfig,
   sensorMappings: Record<string, SensorAxisMapping>,
   readings: Array<{
     sensorId: string;
@@ -18,10 +18,10 @@ export function useBrowserSensorOutput(
     value: number | null;
   }>,
 ) {
-  const outputRef = useRef(output);
+  const performerIoRef = useRef(performerIo);
   const sensorMappingsRef = useRef(sensorMappings);
   const lastSentRef = useRef<Record<string, number>>({});
-  outputRef.current = output;
+  performerIoRef.current = performerIo;
   sensorMappingsRef.current = sensorMappings;
 
   useEffect(() => {
@@ -45,12 +45,12 @@ export function useBrowserSensorOutput(
       lastSentRef.current[key] = value;
       const stored = sensorMappingsRef.current[key];
       const mapping = stored
-        ? normalizeSensorAxisMapping(stored, outputRef.current, sensorId, axis)
-        : defaultSensorAxisMapping(sensorId, axis, outputRef.current);
+        ? normalizeSensorAxisMapping(stored, performerIoRef.current, sensorId, axis)
+        : defaultSensorAxisMapping(sensorId, axis, performerIoRef.current);
 
-      void sendSensorAxisOutput(outputRef.current, mapping, value).catch(() => {
+      void sendSensorAxisOutput(performerIoRef.current, mapping, value).catch(() => {
         // Ignore transient send failures while sensors are streaming.
       });
     }
-  }, [enabled, readings, output, sensorMappings]);
+  }, [enabled, readings, performerIo, sensorMappings]);
 }

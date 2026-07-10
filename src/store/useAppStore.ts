@@ -8,7 +8,10 @@ import {
   type SensorAxisMapping,
   type SensorMidiMapping,
 } from "../lib/sensors/types";
-import { clearRemovedEndpointReferences } from "../lib/performerIo";
+import {
+  clearRemovedEndpointReferences,
+  clearRemovedSensorEndpointReferences,
+} from "../lib/performerIo";
 import { replacePerformerWithoutHistory, clearPerformerHistory } from "../lib/performer-history";
 import {
   cloneControlSubtree,
@@ -130,6 +133,7 @@ interface AppState {
   ) => void;
   setLastError: (message: string | null) => void;
   importConfig: (config: PersistedAppConfig) => void;
+  newProject: () => void;
 }
 
 function reindexTopLevelOrders(controls: Control[]): Control[] {
@@ -197,7 +201,7 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       mode: "edit",
-      activeView: "performer",
+      activeView: "home",
       performerSubView: "ui",
       debuggerSubView: "midi",
       controls: [],
@@ -221,6 +225,10 @@ export const useAppStore = create<AppState>()(
       setMode: (mode) => set({ mode }),
       setActiveView: (view, subView) =>
         set((state) => {
+          if (view === "home") {
+            return { activeView: "home" };
+          }
+
           if (view === "performer") {
             return {
               activeView: view,
@@ -522,6 +530,10 @@ export const useAppStore = create<AppState>()(
             oscSenders: state.performerIo.oscSenders.filter((sender) => sender.id !== id),
           },
           controls: clearRemovedEndpointReferences(state.controls, new Set([id])),
+          sensorMappings: clearRemovedSensorEndpointReferences(
+            state.sensorMappings,
+            new Set([id]),
+          ),
         })),
       addOscReceiver: (patch) =>
         set((state) => {
@@ -587,6 +599,10 @@ export const useAppStore = create<AppState>()(
             midiOutputs: state.performerIo.midiOutputs.filter((endpoint) => endpoint.id !== id),
           },
           controls: clearRemovedEndpointReferences(state.controls, new Set([id])),
+          sensorMappings: clearRemovedSensorEndpointReferences(
+            state.sensorMappings,
+            new Set([id]),
+          ),
         })),
       addMidiInput: (patch) =>
         set((state) => {
@@ -667,19 +683,19 @@ export const useAppStore = create<AppState>()(
       setTabDropPreview: (preview) => set({ tabDropPreview: preview }),
       getSensorAxisMapping: (sensorId, axis) => {
         const key = sensorAxisKey(sensorId, axis);
-        const output = get().output;
+        const { performerIo } = get();
         const stored = get().sensorMappings[key];
         return stored
-          ? normalizeSensorAxisMapping(stored, output, sensorId, axis)
-          : defaultSensorAxisMapping(sensorId, axis, output);
+          ? normalizeSensorAxisMapping(stored, performerIo, sensorId, axis)
+          : defaultSensorAxisMapping(sensorId, axis, performerIo);
       },
       updateSensorAxisMapping: (sensorId, axis, patch) => {
         const key = sensorAxisKey(sensorId, axis);
-        const output = get().output;
+        const { performerIo } = get();
         const stored = get().sensorMappings[key];
         const current = stored
-          ? normalizeSensorAxisMapping(stored, output, sensorId, axis)
-          : defaultSensorAxisMapping(sensorId, axis, output);
+          ? normalizeSensorAxisMapping(stored, performerIo, sensorId, axis)
+          : defaultSensorAxisMapping(sensorId, axis, performerIo);
 
         set((state) => ({
           sensorMappings: {
@@ -707,6 +723,23 @@ export const useAppStore = create<AppState>()(
             controlActiveNotes: {},
             controlPadValues: {},
             controlTabIndex: {},
+          });
+        }),
+      newProject: () =>
+        replacePerformerWithoutHistory(() => {
+          const output = defaultOutputConfig();
+          set({
+            controls: [],
+            output,
+            performerIo: defaultPerformerIoConfig(output),
+            layoutSettings: defaultLayoutSettings(),
+            selectedControlId: null,
+            inspectorControlId: null,
+            controlValues: {},
+            controlActiveNotes: {},
+            controlPadValues: {},
+            controlTabIndex: {},
+            controlClipboard: null,
           });
         }),
     }),
@@ -808,7 +841,7 @@ export const useAppStore = create<AppState>()(
             const [sensorId, axis] = key.split(":");
             return [
               key,
-              normalizeSensorAxisMapping(mapping, output, sensorId, axis),
+              normalizeSensorAxisMapping(mapping, performerIo, sensorId, axis),
             ];
           }),
         );
@@ -858,8 +891,7 @@ export const useAppStore = create<AppState>()(
           ...currentState,
           ...persisted,
           mode: "edit",
-          activeView: "performer",
-          performerSubView: "ui",
+          activeView: "home",
           selectedControlId: null,
           inspectorControlId: null,
         };

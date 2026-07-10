@@ -1,5 +1,6 @@
 import type { Control, PerformerIoConfig } from "../types";
 import { findMidiInputEndpoint, findOscReceiver } from "../types";
+import type { SensorAxisMapping } from "./sensors/types";
 
 export function collectPerformerListenPorts(
   performerIo: PerformerIoConfig,
@@ -72,4 +73,37 @@ export function clearRemovedEndpointReferences(
         ? null
         : control.midiInputId,
   }));
+}
+
+export function clearRemovedSensorEndpointReferences(
+  sensorMappings: Record<string, SensorAxisMapping>,
+  removedIds: Set<string>,
+): Record<string, SensorAxisMapping> {
+  if (removedIds.size === 0) {
+    return sensorMappings;
+  }
+
+  const next: Record<string, SensorAxisMapping> = {};
+
+  for (const [key, mapping] of Object.entries(sensorMappings)) {
+    next[key] = {
+      ...mapping,
+      osc: {
+        ...mapping.osc,
+        senderId:
+          mapping.osc.senderId && removedIds.has(mapping.osc.senderId)
+            ? null
+            : mapping.osc.senderId,
+      },
+      midi: {
+        ...mapping.midi,
+        outputId:
+          mapping.midi.outputId && removedIds.has(mapping.midi.outputId)
+            ? null
+            : mapping.midi.outputId,
+      },
+    };
+  }
+
+  return next;
 }

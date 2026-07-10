@@ -1,6 +1,6 @@
 import { listen } from "@tauri-apps/api/event";
 import { useEffect } from "react";
-import { isNativeApp } from "../lib/platform";
+import { getActiveMidiInputPort } from "../lib/input";
 import {
   isEchoOfRecentOutboundArtNet,
   isEchoOfRecentOutboundOsc,
@@ -8,6 +8,7 @@ import {
 } from "../lib/debugLog";
 import { isMidiDebugKind } from "../lib/midiTypes";
 import type { OscArgPayload } from "../lib/oscMessages";
+import { isNativeApp } from "../lib/platform";
 
 let listenerRefCount = 0;
 let registrationStarted = false;
@@ -49,6 +50,7 @@ async function registerListeners() {
             kind,
             summary,
             payload: bytes ? { bytes } : undefined,
+            portName: getActiveMidiInputPort(),
           });
         }
       },

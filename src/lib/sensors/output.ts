@@ -1,5 +1,6 @@
 import { sendMidiCc, sendOscMessage } from "../output";
-import type { OutputConfig } from "../../types";
+import type { PerformerIoConfig } from "../../types";
+import { findMidiOutputEndpoint, findOscSender } from "../../types";
 import type { SensorAxisMapping, SensorReading } from "./types";
 import {
   defaultSensorAxisMapping,
@@ -17,33 +18,38 @@ function scaleToMidi(value: number, min: number, max: number) {
 }
 
 export async function sendSensorAxisOutput(
-  output: OutputConfig,
+  performerIo: PerformerIoConfig,
   mapping: SensorAxisMapping,
   value: number,
 ) {
   const errors: string[] = [];
 
   if (mapping.osc.enabled) {
-    try {
-      await sendOscMessage(
-        mapping.osc.host,
-        mapping.osc.port,
-        mapping.osc.address,
-        [{ type: "float", value }],
-      );
-    } catch (error) {
-      errors.push(error instanceof Error ? error.message : String(error));
+    const sender = findOscSender(performerIo, mapping.osc.senderId);
+    if (!sender) {
+      errors.push("No OSC sender assigned");
+    } else {
+      try {
+        await sendOscMessage(
+          sender.host,
+          sender.port,
+          mapping.osc.address,
+          [{ type: "float", value }],
+        );
+      } catch (error) {
+        errors.push(error instanceof Error ? error.message : String(error));
+      }
     }
   }
 
   if (mapping.midi.enabled) {
-    const portName = mapping.midi.portName ?? output.midiPortName;
-    if (!portName) {
-      errors.push("No MIDI output port selected");
+    const midiOutput = findMidiOutputEndpoint(performerIo, mapping.midi.outputId);
+    if (!midiOutput?.portName) {
+      errors.push("No MIDI output assigned");
     } else {
       try {
         await sendMidiCc(
-          portName,
+          midiOutput.portName,
           mapping.midi.channel,
           mapping.midi.cc,
           scaleToMidi(value, mapping.midi.min, mapping.midi.max),
@@ -60,7 +66,7 @@ export async function sendSensorAxisOutput(
 }
 
 export async function sendSensorReadingOutput(
-  output: OutputConfig,
+  performerIo: PerformerIoConfig,
   mappings: Record<string, SensorAxisMapping>,
   reading: SensorReading,
 ) {
@@ -68,10 +74,10 @@ export async function sendSensorReadingOutput(
     const key = sensorAxisKey(reading.sensorId, axis);
     const stored = mappings[key];
     const mapping = stored
-      ? normalizeSensorAxisMapping(stored, output, reading.sensorId, axis)
-      : defaultSensorAxisMapping(reading.sensorId, axis, output);
+      ? normalizeSensorAxisMapping(stored, performerIo, reading.sensorId, axis)
+      : defaultSensorAxisMapping(reading.sensorId, axis, performerIo);
 
-    return sendSensorAxisOutput(output, mapping, value).catch(() => {
+    return sendSensorAxisOutput(performerIo, mapping, value).catch(() => {
       // Ignore transient send failures while sensors are streaming.
     });
   });

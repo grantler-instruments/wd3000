@@ -4,7 +4,6 @@ import { useAppStore } from "../store/useAppStore";
 import { settingsTheme } from "../theme";
 import { ControlCanvas } from "./ControlCanvas";
 import { MediaPipePerformerPanel } from "./MediaPipePerformerPanel";
-import { PerformerToolbar } from "./PerformerToolbar";
 import { SensorsPanel } from "./sensors/SensorsPanel";
 
 export function PerformerPanel() {
@@ -38,7 +37,6 @@ export function PerformerPanel() {
               flexDirection: "column",
             }}
           >
-            <PerformerToolbar />
             <ControlCanvas editable />
           </Box>
         </ThemeProvider>

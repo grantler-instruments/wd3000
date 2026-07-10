@@ -31,17 +31,17 @@ function platformDescription(platform: ReturnType<typeof getAppPlatform>) {
 
 export function NativeSensorsPanel() {
   const platform = getAppPlatform();
-  const output = useAppStore((state) => state.output);
+  const performerIo = useAppStore((state) => state.performerIo);
   const sensorMappings = useAppStore((state) => state.sensorMappings);
   const setLastError = useAppStore((state) => state.setLastError);
   const [sensors, setSensors] = useState<SensorDescriptor[]>([]);
   const [activeSensorIds, setActiveSensorIds] = useState<string[]>([]);
   const [readings, setReadings] = useState<Record<string, SensorReading>>({});
   const [loading, setLoading] = useState(true);
-  const outputRef = useRef(output);
+  const performerIoRef = useRef(performerIo);
   const activeSensorIdsRef = useRef(activeSensorIds);
   const sensorMappingsRef = useRef(sensorMappings);
-  outputRef.current = output;
+  performerIoRef.current = performerIo;
   activeSensorIdsRef.current = activeSensorIds;
   sensorMappingsRef.current = sensorMappings;
 
@@ -84,7 +84,7 @@ export function NativeSensorsPanel() {
       }));
 
       void sendSensorReadingOutput(
-        outputRef.current,
+        performerIoRef.current,
         sensorMappingsRef.current,
         reading,
       );
@@ -131,9 +131,6 @@ export function NativeSensorsPanel() {
   return (
     <Stack spacing={3} sx={{ maxWidth: 720 }}>
       <Box>
-        <Typography variant="h6" sx={{ mb: 1 }}>
-          {platform === "mobile" ? "Mobile sensors" : "Desktop sensors"}
-        </Typography>
         <Typography variant="body2" color="text.secondary">
           {platformDescription(platform)}
         </Typography>

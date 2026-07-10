@@ -56,6 +56,7 @@ function handleIncomingMidi(event: MIDIMessageEvent) {
     kind: parsed.debug.kind,
     summary: parsed.debug.summary,
     payload: asMidiPayload(parsed.debug.bytes),
+    portName: connectedInput?.name ?? null,
   });
 }
 

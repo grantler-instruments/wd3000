@@ -16,6 +16,7 @@ export interface MonitorLogListItem {
   direction: "in" | "out";
   kind: DebugLogKind;
   summary: string;
+  portName?: string | null;
 }
 
 function formatTime(timestamp: number) {
@@ -147,6 +148,7 @@ export function debugEntriesToListItems(
     direction: "in" | "out";
     kind: DebugLogKind;
     summary: string;
+    portName?: string | null;
   }>,
 ): MonitorLogListItem[] {
   return entries.map((entry) => ({
@@ -155,6 +157,7 @@ export function debugEntriesToListItems(
     direction: entry.direction,
     kind: entry.kind,
     summary: entry.summary,
+    portName: entry.portName,
   }));
 }
 
@@ -165,6 +168,7 @@ export function monitorEventsToListItems(
     direction: "in" | "out";
     kind: DebugLogKind;
     summary: string;
+    portName?: string | null;
   }>,
 ): MonitorLogListItem[] {
   return events.map((event, index) => ({
@@ -173,5 +177,6 @@ export function monitorEventsToListItems(
     direction: event.direction,
     kind: event.kind,
     summary: event.summary,
+    portName: event.portName,
   }));
 }

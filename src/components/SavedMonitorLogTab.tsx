@@ -24,6 +24,11 @@ import {
   matchesMidiTypeFilter,
 } from "../lib/monitorMidiFilter";
 import {
+  collectMonitorMidiPorts,
+  defaultMonitorMidiPortFilter,
+  matchesMidiPortFilter,
+} from "../lib/monitorMidiPortFilter";
+import {
   defaultMonitorDirectionFilter,
   isMonitorFilterActive,
   matchesDirectionFilter,
@@ -57,6 +62,7 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [directionFilter, setDirectionFilter] = useState(defaultMonitorDirectionFilter);
   const [midiTypeFilter, setMidiTypeFilter] = useState(defaultMonitorMidiTypeFilter);
+  const [midiPortFilter, setMidiPortFilter] = useState(defaultMonitorMidiPortFilter);
   const protocolLabel = protocol === "midi" ? "MIDI" : "OSC";
 
   useEffect(() => {
@@ -78,6 +84,14 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
     [selectedLog],
   );
 
+  const availablePorts = useMemo(
+    () =>
+      protocol === "midi"
+        ? collectMonitorMidiPorts(selectedLog?.events ?? [], [], [])
+        : [],
+    [protocol, selectedLog],
+  );
+
   const isReplayingSelected =
     replayProgress.active &&
     selectedLog !== null &&
@@ -91,9 +105,17 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
     return allPreviewEntries.filter(
       (entry) =>
         matchesDirectionFilter(entry.direction, directionFilter) &&
-        (protocol !== "midi" || matchesMidiTypeFilter(entry.kind, midiTypeFilter)),
+        (protocol !== "midi" || matchesMidiTypeFilter(entry.kind, midiTypeFilter)) &&
+        (protocol !== "midi" || matchesMidiPortFilter(entry.portName, midiPortFilter)),
     );
-  }, [allPreviewEntries, directionFilter, isReplayingSelected, midiTypeFilter, protocol]);
+  }, [
+    allPreviewEntries,
+    directionFilter,
+    isReplayingSelected,
+    midiPortFilter,
+    midiTypeFilter,
+    protocol,
+  ]);
 
   const handleDelete = () => {
     if (!selectedLog) {
@@ -223,6 +245,9 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
         onDirectionFilterChange={setDirectionFilter}
         midiTypeFilter={protocol === "midi" ? midiTypeFilter : undefined}
         onMidiTypeFilterChange={protocol === "midi" ? setMidiTypeFilter : undefined}
+        midiPortFilter={protocol === "midi" ? midiPortFilter : undefined}
+        onMidiPortFilterChange={protocol === "midi" ? setMidiPortFilter : undefined}
+        midiPorts={availablePorts}
       />
 
       <Box
@@ -247,6 +272,7 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
               : isMonitorFilterActive(
                   directionFilter,
                   protocol === "midi" ? midiTypeFilter : undefined,
+                  protocol === "midi" ? midiPortFilter : undefined,
                 )
                 ? "No messages match the current filter."
                 : "This saved log has no messages."

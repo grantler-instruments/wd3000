@@ -9,12 +9,14 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import type { MonitorLogProtocol } from "../lib/monitorLog";
+import type { MonitorMidiPortFilterState } from "../lib/monitorMidiPortFilter";
 import type { MonitorMidiTypeFilterState } from "../lib/monitorMidiFilter";
 import {
   isMonitorFilterActive,
   type MonitorDirectionFilterState,
 } from "../lib/monitorLogFilter";
 import { MonitorDirectionFilter } from "./MonitorDirectionFilter";
+import { MonitorMidiPortFilter } from "./MonitorMidiPortFilter";
 import { MonitorMidiTypeFilter } from "./MonitorMidiTypeFilter";
 
 interface MonitorFilterAccordionProps {
@@ -23,6 +25,9 @@ interface MonitorFilterAccordionProps {
   onDirectionFilterChange: (value: MonitorDirectionFilterState) => void;
   midiTypeFilter?: MonitorMidiTypeFilterState;
   onMidiTypeFilterChange?: (value: MonitorMidiTypeFilterState) => void;
+  midiPortFilter?: MonitorMidiPortFilterState;
+  onMidiPortFilterChange?: (value: MonitorMidiPortFilterState) => void;
+  midiPorts?: string[];
 }
 
 export function MonitorFilterAccordion({
@@ -31,9 +36,16 @@ export function MonitorFilterAccordion({
   onDirectionFilterChange,
   midiTypeFilter,
   onMidiTypeFilterChange,
+  midiPortFilter,
+  onMidiPortFilterChange,
+  midiPorts = [],
 }: MonitorFilterAccordionProps) {
   const [expanded, setExpanded] = useState(false);
-  const filtersActive = isMonitorFilterActive(directionFilter, midiTypeFilter);
+  const filtersActive = isMonitorFilterActive(
+    directionFilter,
+    midiTypeFilter,
+    midiPortFilter,
+  );
 
   return (
     <Accordion
@@ -78,6 +90,19 @@ export function MonitorFilterAccordion({
               <MonitorMidiTypeFilter
                 value={midiTypeFilter}
                 onChange={onMidiTypeFilterChange}
+              />
+            </Stack>
+          )}
+
+          {protocol === "midi" && midiPortFilter !== undefined && onMidiPortFilterChange && (
+            <Stack spacing={0.5}>
+              <Typography variant="caption" color="text.secondary">
+                Device
+              </Typography>
+              <MonitorMidiPortFilter
+                ports={midiPorts}
+                value={midiPortFilter}
+                onChange={onMidiPortFilterChange}
               />
             </Stack>
           )}

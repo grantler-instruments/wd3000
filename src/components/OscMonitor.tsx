@@ -106,7 +106,6 @@ export function OscMonitor() {
       <NativeOnlyAlert protocol="OSC" />
 
       <Box>
-        <Typography variant="h6">OSC monitor</Typography>
         <Typography variant="body2" color="text.secondary">
           Listen to incoming OSC. Enable OUT to also see messages sent by WD3000.
         </Typography>

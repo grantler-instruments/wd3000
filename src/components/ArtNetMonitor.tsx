@@ -274,7 +274,6 @@ export function ArtNetMonitor() {
         sx={{ alignItems: "flex-start", justifyContent: "space-between", gap: 2 }}
       >
         <Box>
-          <Typography variant="h6">Art-Net monitor</Typography>
           <Typography variant="body2" color="text.secondary">
             Incoming and outgoing ArtDMX packets.
           </Typography>
