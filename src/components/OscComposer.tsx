@@ -31,7 +31,7 @@ import {
   oscArgTypeRequiresValue,
 } from "../lib/oscTypes";
 import { useAppStore } from "../store/useAppStore";
-import { NativeOnlyAlert } from "./NativeOnlyAlert";
+import { DebuggerSection } from "./DebuggerSection";
 
 interface OscComposerArgRow extends OscComposerArg {
   id: string;
@@ -332,9 +332,7 @@ export function OscComposer() {
   };
 
   return (
-    <Box>
-      <NativeOnlyAlert protocol="OSC" />
-
+    <DebuggerSection title="Composer">
       <Stack spacing={1}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <TextField
@@ -415,6 +413,6 @@ export function OscComposer() {
           </Button>
         </Box>
       </Stack>
-    </Box>
+    </DebuggerSection>
   );
 }

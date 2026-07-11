@@ -26,6 +26,7 @@ import {
 import { listMidiOutputs } from "../lib/output";
 import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
+import { stackedAccordionSx } from "./stackedAccordionSx";
 
 interface MonitorReplaySectionProps {
   log: SavedMonitorLog | null;
@@ -124,13 +125,7 @@ export function MonitorReplaySection({ log, incomingCount }: MonitorReplaySectio
       onChange={(_, isExpanded) => setExpanded(isExpanded)}
       disableGutters
       elevation={0}
-      sx={{
-        border: 1,
-        borderColor: "divider",
-        borderRadius: 1,
-        bgcolor: "action.hover",
-        "&:before": { display: "none" },
-      }}
+      sx={stackedAccordionSx}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography variant="subtitle2">Replay</Typography>

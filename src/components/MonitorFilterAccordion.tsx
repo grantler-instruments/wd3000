@@ -18,6 +18,7 @@ import {
 import { MonitorDirectionFilter } from "./MonitorDirectionFilter";
 import { MonitorMidiPortFilter } from "./MonitorMidiPortFilter";
 import { MonitorMidiTypeFilter } from "./MonitorMidiTypeFilter";
+import { stackedAccordionSx } from "./stackedAccordionSx";
 
 interface MonitorFilterAccordionProps {
   protocol: MonitorLogProtocol;
@@ -53,13 +54,7 @@ export function MonitorFilterAccordion({
       onChange={(_, isExpanded) => setExpanded(isExpanded)}
       disableGutters
       elevation={0}
-      sx={{
-        border: 1,
-        borderColor: "divider",
-        borderRadius: 1,
-        bgcolor: "action.hover",
-        "&:before": { display: "none" },
-      }}
+      sx={stackedAccordionSx}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>

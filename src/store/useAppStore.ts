@@ -46,6 +46,7 @@ import {
   defaultControlIoAssignments,
   defaultLayoutSettings,
   defaultOutputConfig,
+  normalizeOutputConfig,
   defaultPerformerIoConfig,
   isTopLevelControl,
   pruneOrphanTabChildren,
@@ -765,18 +766,7 @@ export const useAppStore = create<AppState>()(
         const { protocol: _legacyProtocol, ...connectionSettings } = rawOutput as OutputConfig & {
           protocol?: Control["protocol"];
         };
-        const output: OutputConfig = {
-          ...defaultOutputConfig(),
-          ...connectionSettings,
-          oscListenPort:
-            typeof connectionSettings.oscListenPort === "number"
-              ? connectionSettings.oscListenPort
-              : defaultOutputConfig().oscListenPort,
-          midiInputPortName:
-            connectionSettings.midiInputPortName === undefined
-              ? null
-              : connectionSettings.midiInputPortName,
-        };
+        const output = normalizeOutputConfig(connectionSettings);
 
         const performerIo =
           state.performerIo && version >= 8
@@ -890,6 +880,7 @@ export const useAppStore = create<AppState>()(
         return {
           ...currentState,
           ...persisted,
+          output: normalizeOutputConfig(persisted.output),
           mode: "edit",
           activeView: "home",
           selectedControlId: null,

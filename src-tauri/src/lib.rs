@@ -2,6 +2,8 @@ mod artnet;
 mod artnet_listen;
 mod midi;
 mod midi_input;
+mod mqtt;
+mod network;
 mod osc;
 mod osc_listen;
 mod sensors;
@@ -11,6 +13,7 @@ mod tuio_send;
 use artnet_listen::ArtNetListenerState;
 use midi::MidiState;
 use midi_input::MidiInputState;
+use mqtt::MqttState;
 use osc_listen::OscListenerState;
 use tuio_listen::TuioListenerState;
 use tuio_send::TuioSenderState;
@@ -167,6 +170,7 @@ pub fn run() {
         .manage(ArtNetListenerState::new())
         .manage(TuioListenerState::new())
         .manage(TuioSenderState::new())
+        .manage(MqttState::new())
         .manage(sensors::SensorsState::new())
         .invoke_handler(tauri::generate_handler![
             send_osc,
@@ -186,6 +190,13 @@ pub fn run() {
             artnet_listen::stop_artnet_listener,
             artnet_listen::get_artnet_listener_status,
             send_artnet_dmx,
+            mqtt::start_mqtt_broker,
+            mqtt::stop_mqtt_broker,
+            mqtt::start_mqtt_listener,
+            mqtt::stop_mqtt_listener,
+            mqtt::get_mqtt_broker_status,
+            mqtt::mqtt_publish,
+            network::get_local_ip,
             tuio_listen::start_tuio_listener,
             tuio_listen::stop_tuio_listener,
             tuio_send::send_tuio_cursors,

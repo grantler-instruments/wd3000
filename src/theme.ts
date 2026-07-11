@@ -1,7 +1,27 @@
 import { darkTheme } from "@grantler-instruments/mui-theme";
 import { createTheme } from "@mui/material/styles";
 
-export const settingsTheme = darkTheme;
+export const settingsTheme = createTheme(darkTheme, {
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+        },
+        label: {
+          textTransform: "none",
+        },
+      },
+    },
+  },
+});
 
 export const playTheme = createTheme(darkTheme, {
   typography: {

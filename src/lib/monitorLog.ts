@@ -4,7 +4,7 @@ import type {
   DebugLogKind,
   MonitorEventPayload,
 } from "./debugLog";
-import { isOscDebugEntry } from "./debugLog";
+import { isOscDebugEntry, isMqttDebugEntry } from "./debugLog";
 import { isMidiDebugKind } from "./midiTypes";
 import { resolveMonitorEventPayload } from "./monitorLogParse";
 
@@ -13,7 +13,7 @@ export const MONITOR_LOG_APP_ID = "wd3000";
 export const MONITOR_LOG_KIND = "monitor-log";
 export const MAX_SAVED_MONITOR_LOGS = 50;
 
-export type MonitorLogProtocol = "midi" | "osc";
+export type MonitorLogProtocol = "midi" | "osc" | "mqtt";
 
 export interface MonitorLogEvent {
   timestamp: number;
@@ -48,7 +48,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isMonitorLogProtocol(value: unknown): value is MonitorLogProtocol {
-  return value === "midi" || value === "osc";
+  return value === "midi" || value === "osc" || value === "mqtt";
 }
 
 function isDebugLogDirection(value: unknown): value is DebugLogDirection {
@@ -85,9 +85,15 @@ export function filterDebugEntriesByProtocol(
   entries: DebugLogEntry[],
   protocol: MonitorLogProtocol,
 ): DebugLogEntry[] {
-  return entries.filter((entry) =>
-    protocol === "osc" ? isOscDebugEntry(entry) : isMidiDebugKind(entry.kind),
-  );
+  return entries.filter((entry) => {
+    if (protocol === "osc") {
+      return isOscDebugEntry(entry);
+    }
+    if (protocol === "mqtt") {
+      return isMqttDebugEntry(entry);
+    }
+    return isMidiDebugKind(entry.kind);
+  });
 }
 
 export function createMonitorLogEvents(entries: DebugLogEntry[]): MonitorLogEvent[] {

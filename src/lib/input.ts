@@ -5,6 +5,7 @@ import {
 } from "./performerIo";
 import type { Control, OutputConfig, PerformerIoConfig } from "../types";
 import { isNativeApp } from "./platform";
+import type { MqttListenerOptions } from "./mqtt";
 import {
   listWebMidiInputs,
   startWebMidiInput,
@@ -70,6 +71,31 @@ export interface ArtNetListenerStatus {
 
 export async function getArtNetListenerStatus(): Promise<ArtNetListenerStatus> {
   return invoke<ArtNetListenerStatus>("get_artnet_listener_status");
+}
+
+export async function startMqttBroker(tcpPort: number, wsPort: number): Promise<void> {
+  await invoke("start_mqtt_broker", { tcpPort, wsPort });
+}
+
+export async function stopMqttBroker(): Promise<void> {
+  await invoke("stop_mqtt_broker");
+}
+
+export async function startMqttListener(options: MqttListenerOptions): Promise<void> {
+  const topics = options.topics
+    .map((topic) => topic.trim())
+    .filter((topic) => topic.length > 0);
+
+  await invoke("start_mqtt_listener", {
+    host: options.host,
+    port: options.port,
+    protocol: options.protocol,
+    subscribeTopics: topics,
+  });
+}
+
+export async function stopMqttListener(): Promise<void> {
+  await invoke("stop_mqtt_listener");
 }
 
 export async function startInputListeners(output: OutputConfig): Promise<void> {

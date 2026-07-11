@@ -6,6 +6,7 @@ export type DebugLogDirection = "in" | "out";
 export type DebugLogKind =
   | "osc"
   | "artnet"
+  | "mqtt"
   | "midi-note"
   | "midi-cc"
   | "midi-pc"
@@ -43,10 +44,18 @@ export interface ArtNetMonitorPayload {
   channels: number[];
 }
 
+export interface MqttMonitorPayload {
+  topic: string;
+  payload: number[];
+  qos: number;
+  retain: boolean;
+}
+
 export type MonitorEventPayload =
   | OscMonitorPayload
   | MidiMonitorPayload
-  | ArtNetMonitorPayload;
+  | ArtNetMonitorPayload
+  | MqttMonitorPayload;
 
 export interface DebugLogEntry {
   id: string;
@@ -65,6 +74,7 @@ let entries: DebugLogEntry[] = [];
 const listeners = new Set<() => void>();
 let recentOutboundOsc: { key: string; at: number } | null = null;
 let recentOutboundArtNet: { key: string; at: number } | null = null;
+let recentOutboundMqtt: { key: string; at: number } | null = null;
 
 function notify() {
   for (const listener of listeners) {
@@ -142,6 +152,25 @@ export function isEchoOfRecentOutboundArtNet(summary: string) {
   return summary.trim() === recentOutboundArtNet.key;
 }
 
+export function recordOutboundMqttDebug(summary: string) {
+  recentOutboundMqtt = {
+    key: summary.trim(),
+    at: Date.now(),
+  };
+}
+
+export function isEchoOfRecentOutboundMqtt(summary: string) {
+  if (!recentOutboundMqtt) {
+    return false;
+  }
+
+  if (Date.now() - recentOutboundMqtt.at > OUTBOUND_ECHO_MS) {
+    return false;
+  }
+
+  return summary.trim() === recentOutboundMqtt.key;
+}
+
 export function pushDebugLog(
   entry: Omit<DebugLogEntry, "id" | "timestamp">,
 ) {
@@ -170,6 +199,10 @@ export function clearDebugLogFiltered(
 
 export function isArtNetDebugEntry(entry: DebugLogEntry) {
   return entry.kind === "artnet";
+}
+
+export function isMqttDebugEntry(entry: DebugLogEntry) {
+  return entry.kind === "mqtt";
 }
 
 export function isOscDebugEntry(entry: DebugLogEntry) {

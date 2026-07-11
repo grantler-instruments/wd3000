@@ -31,7 +31,7 @@ export type DashboardView = "home" | "performer" | "debugger";
 
 export type PerformerSubView = "ui" | "sensors" | "mediapipe";
 
-export type DebuggerSubView = "midi" | "osc" | "tuio" | "artnet";
+export type DebuggerSubView = "midi" | "osc" | "tuio" | "artnet" | "mqtt";
 
 export interface OscMapping {
   address: string;
@@ -111,6 +111,13 @@ export interface OutputConfig {
   oscHost: string;
   oscPort: number;
   oscListenPort: number;
+  mqttBrokerPort: number;
+  mqttBrokerWsPort: number;
+  mqttBrokerEnabled: boolean;
+  mqttSubscribeTopics: string[];
+  mqttComposerHost: string;
+  mqttComposerPort: number;
+  mqttComposerProtocol: "tcp" | "ws";
   midiPortName: string | null;
   midiInputPortName: string | null;
 }
@@ -271,9 +278,37 @@ export const defaultOutputConfig = (): OutputConfig => ({
   oscHost: "127.0.0.1",
   oscPort: 9000,
   oscListenPort: 9001,
+  mqttBrokerPort: 1883,
+  mqttBrokerWsPort: 9001,
+  mqttBrokerEnabled: false,
+  mqttSubscribeTopics: [],
+  mqttComposerHost: "localhost",
+  mqttComposerPort: 1883,
+  mqttComposerProtocol: "tcp",
   midiPortName: null,
   midiInputPortName: null,
 });
+
+export function normalizeOutputConfig(
+  value?: Partial<OutputConfig> & { mqttSubscribeFilter?: string },
+): OutputConfig {
+  const defaults = defaultOutputConfig();
+  if (!value) {
+    return defaults;
+  }
+
+  const subscribeTopics = Array.isArray(value.mqttSubscribeTopics)
+    ? value.mqttSubscribeTopics.filter((topic): topic is string => typeof topic === "string")
+    : typeof value.mqttSubscribeFilter === "string" && value.mqttSubscribeFilter.trim()
+      ? [value.mqttSubscribeFilter]
+      : defaults.mqttSubscribeTopics;
+
+  return {
+    ...defaults,
+    ...value,
+    mqttSubscribeTopics: subscribeTopics,
+  };
+}
 
 export function createOscSender(
   patch: Partial<OscSender> & Pick<OscSender, "name">,

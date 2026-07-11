@@ -63,7 +63,8 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
   const [directionFilter, setDirectionFilter] = useState(defaultMonitorDirectionFilter);
   const [midiTypeFilter, setMidiTypeFilter] = useState(defaultMonitorMidiTypeFilter);
   const [midiPortFilter, setMidiPortFilter] = useState(defaultMonitorMidiPortFilter);
-  const protocolLabel = protocol === "midi" ? "MIDI" : "OSC";
+  const protocolLabel =
+    protocol === "midi" ? "MIDI" : protocol === "mqtt" ? "MQTT" : "OSC";
 
   useEffect(() => {
     if (pendingSelection?.protocol !== protocol) {

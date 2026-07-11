@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import type { DebugLogKind } from "./debugLog";
 import {
   pushDebugLog,
+  recordOutboundMqttDebug,
   recordOutboundOscDebug,
 } from "./debugLog";
 import {
@@ -17,6 +18,13 @@ import {
 import type { OscArgPayload } from "./oscMessages";
 import { formatOscMonitorSummary } from "./oscMessages";
 import { isNativeApp } from "./platform";
+import {
+  encodeMqttPayload,
+  formatMqttSummary,
+  publishMqttMessage,
+  type MqttQoS,
+  type MqttTransportProtocol,
+} from "./mqtt";
 import { listWebMidiOutputs, sendWebMidiRaw } from "./webMidi";
 import type { Control, PerformerIoConfig } from "../types";
 import {
@@ -32,6 +40,56 @@ export async function listMidiOutputs(): Promise<string[]> {
   }
 
   return listWebMidiOutputs();
+}
+
+export async function sendMqttMessage(
+  host: string,
+  port: number,
+  protocol: MqttTransportProtocol,
+  topic: string,
+  payload: string,
+  qos: MqttQoS,
+  retain: boolean,
+  summary?: string,
+  options?: { logToDebug?: boolean },
+) {
+  const trimmedTopic = topic.trim();
+  if (!trimmedTopic) {
+    throw new Error("MQTT topic cannot be empty");
+  }
+
+  const trimmedHost = host.trim();
+  if (!trimmedHost) {
+    throw new Error("MQTT broker host cannot be empty");
+  }
+
+  await publishMqttMessage({
+    host: trimmedHost,
+    port,
+    protocol,
+    topic: trimmedTopic,
+    payload,
+    qos,
+    retain,
+  });
+
+  const logSummary =
+    summary ?? formatMqttSummary(trimmedTopic, payload, qos, retain);
+
+  if (options?.logToDebug !== false) {
+    recordOutboundMqttDebug(logSummary);
+    pushDebugLog({
+      direction: "out",
+      kind: "mqtt",
+      summary: logSummary,
+      payload: {
+        topic: trimmedTopic,
+        payload: encodeMqttPayload(payload),
+        qos,
+        retain,
+      },
+    });
+  }
 }
 
 async function sendMidiBytesToPort(

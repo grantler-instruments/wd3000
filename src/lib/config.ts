@@ -366,6 +366,31 @@ function parseOutputConfig(value: unknown): OutputConfig {
     oscPort: typeof value.oscPort === "number" ? value.oscPort : defaults.oscPort,
     oscListenPort:
       typeof value.oscListenPort === "number" ? value.oscListenPort : defaults.oscListenPort,
+    mqttBrokerPort:
+      typeof value.mqttBrokerPort === "number" ? value.mqttBrokerPort : defaults.mqttBrokerPort,
+    mqttBrokerWsPort:
+      typeof value.mqttBrokerWsPort === "number" ? value.mqttBrokerWsPort : defaults.mqttBrokerWsPort,
+    mqttBrokerEnabled:
+      typeof value.mqttBrokerEnabled === "boolean"
+        ? value.mqttBrokerEnabled
+        : defaults.mqttBrokerEnabled,
+    mqttSubscribeTopics: Array.isArray(value.mqttSubscribeTopics)
+      ? value.mqttSubscribeTopics.filter((topic): topic is string => typeof topic === "string")
+      : typeof value.mqttSubscribeFilter === "string" && value.mqttSubscribeFilter.trim()
+        ? [value.mqttSubscribeFilter]
+        : defaults.mqttSubscribeTopics,
+    mqttComposerHost:
+      typeof value.mqttComposerHost === "string"
+        ? value.mqttComposerHost
+        : defaults.mqttComposerHost,
+    mqttComposerPort:
+      typeof value.mqttComposerPort === "number"
+        ? value.mqttComposerPort
+        : defaults.mqttComposerPort,
+    mqttComposerProtocol:
+      value.mqttComposerProtocol === "tcp" || value.mqttComposerProtocol === "ws"
+        ? value.mqttComposerProtocol
+        : defaults.mqttComposerProtocol,
     midiPortName:
       typeof value.midiPortName === "string"
         ? value.midiPortName

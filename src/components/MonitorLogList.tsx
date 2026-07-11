@@ -35,6 +35,10 @@ function kindLabel(kind: DebugLogKind) {
     return "OSC";
   }
 
+  if (kind === "mqtt") {
+    return "MQTT";
+  }
+
   if (isMidiDebugKind(kind)) {
     return midiKindLabel(kind);
   }

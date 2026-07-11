@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { getActiveMidiInputPort } from "../lib/input";
 import {
   isEchoOfRecentOutboundArtNet,
+  isEchoOfRecentOutboundMqtt,
   isEchoOfRecentOutboundOsc,
   pushDebugLog,
 } from "../lib/debugLog";
@@ -15,7 +16,7 @@ let registrationStarted = false;
 let unregisterListeners: (() => void) | null = null;
 
 async function registerListeners() {
-  const [unlistenOsc, unlistenMidi, unlistenArtNet] = await Promise.all([
+  const [unlistenOsc, unlistenMidi, unlistenArtNet, unlistenMqtt] = await Promise.all([
     listen<{
       summary: string;
       address?: string;
@@ -80,12 +81,36 @@ async function registerListeners() {
         },
       });
     }),
+    listen<{
+      summary: string;
+      topic: string;
+      payload: number[];
+      qos: number;
+      retain: boolean;
+    }>("mqtt-debug-message", (event) => {
+      if (isEchoOfRecentOutboundMqtt(event.payload.summary)) {
+        return;
+      }
+
+      pushDebugLog({
+        direction: "in",
+        kind: "mqtt",
+        summary: event.payload.summary,
+        payload: {
+          topic: event.payload.topic,
+          payload: event.payload.payload,
+          qos: event.payload.qos,
+          retain: event.payload.retain,
+        },
+      });
+    }),
   ]);
 
   return () => {
     unlistenOsc();
     unlistenMidi();
     unlistenArtNet();
+    unlistenMqtt();
   };
 }
 

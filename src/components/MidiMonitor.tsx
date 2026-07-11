@@ -9,7 +9,6 @@ import {
   Stack,
   Tab,
   Tabs,
-  Typography,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { clearDebugLogFiltered, useDebugLog } from "../lib/debugLog";
@@ -40,6 +39,7 @@ import { MonitorLogToolbar } from "./MonitorLogToolbar";
 import { MonitorReplaySection } from "./MonitorReplaySection";
 import { SavedMonitorLogTab } from "./SavedMonitorLogTab";
 import { useOpenSavedLogOnReplay } from "./useOpenSavedLogOnReplay";
+import { DebuggerSection } from "./DebuggerSection";
 
 type MonitorTab = "live" | "saved";
 
@@ -137,123 +137,146 @@ export function MidiMonitor() {
   }, [inputPort, setLastError]);
 
   return (
-    <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
-      {!isNativeApp() && !isWebMidiSupported() && (
-        <Alert severity="warning">
-          Web MIDI is not supported in this browser.
-        </Alert>
-      )}
-
+    <DebuggerSection title="Monitor" flexGrow>
       <Stack
-        direction="row"
-        sx={{ alignItems: "flex-start", justifyContent: "space-between", gap: 2 }}
+        spacing={2}
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+        }}
       >
-      <Box>
-        <Typography variant="body2" color="text.secondary">
-          Listen to incoming MIDI. Enable OUT to also see messages sent by WD3000.
-        </Typography>
-      </Box>
-      </Stack>
+        {!isNativeApp() && !isWebMidiSupported() && (
+          <Alert severity="warning">
+            Web MIDI is not supported in this browser.
+          </Alert>
+        )}
 
-      <Tabs
-        value={tab}
-        onChange={(_, value: MonitorTab) => setTab(value)}
-        sx={{ minHeight: 36, borderBottom: 1, borderColor: "divider" }}
-      >
-        <Tab label="Live" value="live" sx={{ minHeight: 36 }} />
-        <Tab label="Saved" value="saved" sx={{ minHeight: 36 }} />
-      </Tabs>
+        <Tabs
+          value={tab}
+          onChange={(_, value: MonitorTab) => setTab(value)}
+          sx={{
+            flexShrink: 0,
+            minHeight: 36,
+            borderBottom: 1,
+            borderColor: "divider",
+          }}
+        >
+          <Tab label="Live" value="live" sx={{ minHeight: 36 }} />
+          <Tab label="Saved" value="saved" sx={{ minHeight: 36 }} />
+        </Tabs>
 
-      {tab === "live" ? (
-        <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
+        {tab === "live" ? (
           <Stack
-            direction="row"
-            spacing={1}
-            sx={{ alignItems: "flex-start", justifyContent: "flex-end", flexWrap: "wrap" }}
-          >
-            <Button
-              size="small"
-              onClick={() =>
-                clearDebugLogFiltered((entry) => isMidiDebugKind(entry.kind))
-              }
-              disabled={entries.length === 0}
-            >
-              Clear
-            </Button>
-            <MonitorLogToolbar protocol="midi" entries={entries} />
-          </Stack>
-
-          {midiInputPorts.length === 0 ? (
-            <Alert severity="info">No MIDI input ports found.</Alert>
-          ) : (
-            <FormControl fullWidth size="small" sx={{ maxWidth: 480 }}>
-              <InputLabel id="midi-monitor-port-label">Input port</InputLabel>
-              <Select
-                labelId="midi-monitor-port-label"
-                label="Input port"
-                value={inputPort}
-                onChange={(event) => {
-                  const nextPort = event.target.value;
-                  setInputPort(nextPort);
-                  setOutput({ midiInputPortName: nextPort || null });
-                }}
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {midiInputPorts.map((port) => (
-                  <MenuItem key={port} value={port}>
-                    {port}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
-
-          <MonitorFilterAccordion
-            protocol="midi"
-            directionFilter={directionFilter}
-            onDirectionFilterChange={setDirectionFilter}
-            midiTypeFilter={midiTypeFilter}
-            onMidiTypeFilterChange={setMidiTypeFilter}
-            midiPortFilter={midiPortFilter}
-            onMidiPortFilterChange={setMidiPortFilter}
-            midiPorts={availablePorts}
-          />
-
-          <MonitorReplaySection log={liveLog} incomingCount={incomingCount} />
-
-          <Box
+            spacing={2}
             sx={{
               flex: 1,
-              minHeight: 200,
-              overflow: "auto",
-              border: 1,
-              borderColor: "divider",
-              borderRadius: 1,
-              bgcolor: "background.paper",
+              minHeight: 0,
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
             }}
           >
-            <MonitorLogList
-              logId={liveLog.id}
-              entries={listEntries}
-              emptyMessage={
-                entries.length === 0
-                  ? inputPort
-                    ? "Waiting for MIDI messages…"
-                    : "Select an input port to monitor incoming MIDI."
-                  : isReplayingLive
-                    ? "Waiting for MIDI messages…"
-                  : isMonitorFilterActive(directionFilter, midiTypeFilter, midiPortFilter)
-                    ? "No messages match the current filter."
-                    : "Waiting for MIDI messages…"
-              }
-            />
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                flexShrink: 0,
+                alignItems: "flex-start",
+                justifyContent: "flex-end",
+                flexWrap: "wrap",
+              }}
+            >
+              <Button
+                size="small"
+                onClick={() =>
+                  clearDebugLogFiltered((entry) => isMidiDebugKind(entry.kind))
+                }
+                disabled={entries.length === 0}
+              >
+                Clear
+              </Button>
+              <MonitorLogToolbar protocol="midi" entries={entries} />
+            </Stack>
+
+            {midiInputPorts.length === 0 ? (
+              <Alert severity="info">No MIDI input ports found.</Alert>
+            ) : (
+              <FormControl fullWidth size="small" sx={{ maxWidth: 480, flexShrink: 0 }}>
+                <InputLabel id="midi-monitor-port-label">Input port</InputLabel>
+                <Select
+                  labelId="midi-monitor-port-label"
+                  label="Input port"
+                  value={inputPort}
+                  onChange={(event) => {
+                    const nextPort = event.target.value;
+                    setInputPort(nextPort);
+                    setOutput({ midiInputPortName: nextPort || null });
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>None</em>
+                  </MenuItem>
+                  {midiInputPorts.map((port) => (
+                    <MenuItem key={port} value={port}>
+                      {port}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+
+            <Stack spacing={1} sx={{ flexShrink: 0 }}>
+              <MonitorFilterAccordion
+                protocol="midi"
+                directionFilter={directionFilter}
+                onDirectionFilterChange={setDirectionFilter}
+                midiTypeFilter={midiTypeFilter}
+                onMidiTypeFilterChange={setMidiTypeFilter}
+                midiPortFilter={midiPortFilter}
+                onMidiPortFilterChange={setMidiPortFilter}
+                midiPorts={availablePorts}
+              />
+
+              <MonitorReplaySection log={liveLog} incomingCount={incomingCount} />
+            </Stack>
+
+            <Box
+              sx={{
+                flex: 1,
+                minHeight: 0,
+                overflow: "auto",
+                border: 1,
+                borderColor: "divider",
+                borderRadius: 1,
+                bgcolor: "background.paper",
+              }}
+            >
+              <MonitorLogList
+                logId={liveLog.id}
+                entries={listEntries}
+                emptyMessage={
+                  entries.length === 0
+                    ? inputPort
+                      ? "Waiting for MIDI messages…"
+                      : "Select an input port to monitor incoming MIDI."
+                    : isReplayingLive
+                      ? "Waiting for MIDI messages…"
+                      : isMonitorFilterActive(directionFilter, midiTypeFilter, midiPortFilter)
+                        ? "No messages match the current filter."
+                        : "Waiting for MIDI messages…"
+                }
+              />
+            </Box>
+          </Stack>
+        ) : (
+          <Box sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+            <SavedMonitorLogTab protocol="midi" />
           </Box>
-        </Stack>
-      ) : (
-        <SavedMonitorLogTab protocol="midi" />
-      )}
-    </Stack>
+        )}
+      </Stack>
+    </DebuggerSection>
   );
 }

@@ -7,6 +7,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { useAppStore } from "../store/useAppStore";
 import type { DebuggerSubView, PerformerSubView } from "../types";
@@ -22,9 +23,78 @@ const PERFORMER_ITEMS: { value: PerformerSubView; label: string }[] = [
 const DEBUGGER_ITEMS: { value: DebuggerSubView; label: string }[] = [
   { value: "midi", label: "MIDI" },
   { value: "osc", label: "OSC" },
-  { value: "artnet", label: "Art-Net" },
   { value: "tuio", label: "TUIO" },
+  { value: "artnet", label: "Art-Net" },
+  { value: "mqtt", label: "MQTT" },
 ];
+
+function HomeSection({
+  icon,
+  title,
+  children,
+}: {
+  icon: ReactNode;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <Box>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 1.5 }}>
+        {icon}
+        <Typography variant="overline" color="text.secondary">
+          {title}
+        </Typography>
+      </Stack>
+      {children}
+    </Box>
+  );
+}
+
+function HomeNavGrid({
+  columns,
+  children,
+}: {
+  columns: { xs?: number; sm?: number };
+  children: ReactNode;
+}) {
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: `repeat(${columns.xs ?? columns.sm ?? 1}, minmax(0, 1fr))`,
+          sm: `repeat(${columns.sm ?? columns.xs ?? 1}, minmax(0, 1fr))`,
+        },
+        gap: 1.5,
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function HomeNavButton({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      variant="outlined"
+      onClick={onClick}
+      fullWidth
+      sx={{
+        minWidth: 0,
+        px: 1.5,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {label}
+    </Button>
+  );
+}
 
 export function HomePage() {
   const setActiveView = useAppStore((state) => state.setActiveView);
@@ -44,68 +114,68 @@ export function HomePage() {
           overflow: "auto",
         }}
       >
-        <Stack spacing={5} sx={{ width: "100%", maxWidth: 560, alignItems: "center" }}>
+        <Stack
+          spacing={5}
+          sx={{
+            width: "100%",
+            maxWidth: 720,
+            alignItems: "center",
+          }}
+        >
           <GrantlerLogo height={56} />
 
           <Stack spacing={4} sx={{ width: "100%" }}>
-            <Box>
-              <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 1.5 }}>
-                <DashboardIcon fontSize="small" color="action" />
-                <Typography variant="overline" color="text.secondary">
-                  Performer
-                </Typography>
-              </Stack>
-              <Stack direction="row" spacing={1.5} sx={{ flexWrap: "wrap", gap: 1.5 }}>
+            <HomeSection
+              icon={<DashboardIcon fontSize="small" color="action" />}
+              title="Performer"
+            >
+              <HomeNavGrid columns={{ xs: 1, sm: 3 }}>
                 {PERFORMER_ITEMS.map((item) => (
-                  <Button
+                  <HomeNavButton
                     key={item.value}
-                    variant="outlined"
+                    label={item.label}
                     onClick={() => setActiveView("performer", item.value)}
-                    sx={{ minWidth: 120 }}
-                  >
-                    {item.label}
-                  </Button>
+                  />
                 ))}
-              </Stack>
-            </Box>
+              </HomeNavGrid>
+            </HomeSection>
 
-            <Box>
-              <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 1.5 }}>
-                <BugReportIcon fontSize="small" color="action" />
-                <Typography variant="overline" color="text.secondary">
-                  Debugger
-                </Typography>
-              </Stack>
-              <Stack direction="row" spacing={1.5} sx={{ flexWrap: "wrap", gap: 1.5 }}>
+            <HomeSection
+              icon={<BugReportIcon fontSize="small" color="action" />}
+              title="Debugger"
+            >
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${DEBUGGER_ITEMS.length}, minmax(0, 1fr))`,
+                  gap: 1.5,
+                  overflowX: "auto",
+                  pb: 0.5,
+                }}
+              >
                 {DEBUGGER_ITEMS.map((item) => (
-                  <Button
+                  <HomeNavButton
                     key={item.value}
-                    variant="outlined"
+                    label={item.label}
                     onClick={() => setActiveView("debugger", item.value)}
-                    sx={{ minWidth: 120 }}
-                  >
-                    {item.label}
-                  </Button>
+                  />
                 ))}
-              </Stack>
-            </Box>
+              </Box>
+            </HomeSection>
 
-            <Box>
-              <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 1.5 }}>
-                <SettingsIcon fontSize="small" color="action" />
-                <Typography variant="overline" color="text.secondary">
-                  Settings
-                </Typography>
-              </Stack>
+            <HomeSection
+              icon={<SettingsIcon fontSize="small" color="action" />}
+              title="Settings"
+            >
               <Button
                 variant="outlined"
                 startIcon={<SettingsIcon />}
                 onClick={() => setIoSettingsOpen(true)}
-                sx={{ minWidth: 120 }}
+                sx={{ minWidth: 160 }}
               >
                 I/O settings
               </Button>
-            </Box>
+            </HomeSection>
           </Stack>
         </Stack>
       </Box>

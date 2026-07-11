@@ -4,15 +4,18 @@ import {
   Stack,
   Tab,
   Tabs,
-  TextField,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import {
   clearDebugLogFiltered,
-  isOscDebugEntry,
+  isMqttDebugEntry,
   useDebugLog,
 } from "../lib/debugLog";
-import { startOscListener, stopOscListener } from "../lib/input";
+import { startMqttListener, stopMqttListener } from "../lib/input";
+import {
+  MQTT_DEFAULT_COMPOSER_HOST,
+  MQTT_DEFAULT_TCP_PORT,
+} from "../lib/mqtt";
 import { createMonitorLogEvents } from "../lib/monitorLog";
 import {
   defaultMonitorDirectionFilter,
@@ -26,27 +29,41 @@ import { debugEntriesToListItems, MonitorLogList } from "./MonitorLogList";
 import { MonitorFilterAccordion } from "./MonitorFilterAccordion";
 import { MonitorLogToolbar } from "./MonitorLogToolbar";
 import { MonitorReplaySection } from "./MonitorReplaySection";
+import { DebuggerSection } from "./DebuggerSection";
+import { MqttSubscriber } from "./MqttSubscriber";
 import { SavedMonitorLogTab } from "./SavedMonitorLogTab";
 import { useOpenSavedLogOnReplay } from "./useOpenSavedLogOnReplay";
-import { DebuggerSection } from "./DebuggerSection";
 
 type MonitorTab = "live" | "saved";
 
-export function OscMonitor() {
+function formatTopicsLabel(topics: string[]) {
+  if (topics.length === 0) {
+    return "";
+  }
+  if (topics.length === 1) {
+    return topics[0];
+  }
+  return `${topics.length} topics`;
+}
+
+export function MqttMonitor() {
   const output = useAppStore((state) => state.output);
-  const setOutput = useAppStore((state) => state.setOutput);
   const setLastError = useAppStore((state) => state.setLastError);
   const allEntries = useDebugLog();
   const replayProgress = useMonitorLogReplayProgress();
   const native = isNativeApp();
 
+  const subscribeTopics = output.mqttSubscribeTopics ?? [];
+  const brokerHost = output.mqttComposerHost || MQTT_DEFAULT_COMPOSER_HOST;
+  const brokerPort = output.mqttComposerPort || MQTT_DEFAULT_TCP_PORT;
+  const brokerProtocol = output.mqttComposerProtocol || "tcp";
+
   const [tab, setTab] = useState<MonitorTab>("live");
-  useOpenSavedLogOnReplay("osc", setTab);
-  const [listenPort, setListenPort] = useState(output.oscListenPort);
+  useOpenSavedLogOnReplay("mqtt", setTab);
   const [directionFilter, setDirectionFilter] = useState(defaultMonitorDirectionFilter);
 
   const entries = useMemo(
-    () => allEntries.filter(isOscDebugEntry),
+    () => allEntries.filter(isMqttDebugEntry),
     [allEntries],
   );
 
@@ -64,7 +81,7 @@ export function OscMonitor() {
     () => ({
       id: "live-monitor",
       name: "Live monitor",
-      protocol: "osc" as const,
+      protocol: "mqtt" as const,
       savedAt: new Date().toISOString(),
       events: createMonitorLogEvents(entries),
     }),
@@ -77,9 +94,7 @@ export function OscMonitor() {
     ? debugEntriesToListItems(entries)
     : debugEntriesToListItems(filteredEntries);
 
-  useEffect(() => {
-    setListenPort(output.oscListenPort);
-  }, [output.oscListenPort]);
+  const topicsLabel = formatTopicsLabel(subscribeTopics);
 
   useEffect(() => {
     if (!native) {
@@ -88,35 +103,50 @@ export function OscMonitor() {
 
     let cancelled = false;
 
-    void startOscListener(listenPort > 0 ? listenPort : null).catch((error) => {
-      if (!cancelled) {
-        setLastError(error instanceof Error ? error.message : String(error));
+    const syncListener = async () => {
+      try {
+        if (subscribeTopics.length > 0) {
+          await startMqttListener({
+            host: brokerHost,
+            port: brokerPort,
+            protocol: brokerProtocol,
+            topics: subscribeTopics,
+          });
+        } else {
+          await stopMqttListener();
+        }
+        if (!cancelled) {
+          setLastError(null);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setLastError(error instanceof Error ? error.message : String(error));
+        }
       }
-    });
+    };
+
+    void syncListener();
 
     return () => {
       cancelled = true;
-      void stopOscListener();
+      void stopMqttListener();
     };
-  }, [listenPort, native, setLastError]);
+  }, [
+    brokerHost,
+    brokerPort,
+    brokerProtocol,
+    native,
+    setLastError,
+    subscribeTopics,
+  ]);
 
   return (
-    <DebuggerSection title="Monitor" flexGrow>
-      <Stack
-        spacing={2}
-        sx={{
-          flex: 1,
-          minHeight: 0,
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+    <DebuggerSection title="Monitor" defaultExpanded>
+      <Stack spacing={2}>
         <Tabs
           value={tab}
           onChange={(_, value: MonitorTab) => setTab(value)}
           sx={{
-            flexShrink: 0,
             minHeight: 36,
             borderBottom: 1,
             borderColor: "divider",
@@ -127,21 +157,11 @@ export function OscMonitor() {
         </Tabs>
 
         {tab === "live" ? (
-          <Stack
-            spacing={2}
-            sx={{
-              flex: 1,
-              minHeight: 0,
-              overflow: "hidden",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
+          <Stack spacing={2}>
             <Stack
               direction="row"
               spacing={1}
               sx={{
-                flexShrink: 0,
                 alignItems: "flex-start",
                 justifyContent: "flex-end",
                 flexWrap: "wrap",
@@ -149,35 +169,19 @@ export function OscMonitor() {
             >
               <Button
                 size="small"
-                onClick={() => clearDebugLogFiltered(isOscDebugEntry)}
+                onClick={() => clearDebugLogFiltered(isMqttDebugEntry)}
                 disabled={!native || entries.length === 0}
               >
                 Clear
               </Button>
-              <MonitorLogToolbar protocol="osc" entries={entries} />
+              <MonitorLogToolbar protocol="mqtt" entries={entries} />
             </Stack>
 
-            <TextField
-              label="Listen port"
-              size="small"
-              type="number"
-              value={listenPort}
-              onChange={(event) => {
-                const nextPort = Number(event.target.value) || 0;
-                setListenPort(nextPort);
-                setOutput({ oscListenPort: nextPort });
-              }}
-              helperText="Set to 0 to disable listening."
-              disabled={!native}
-              sx={{ maxWidth: 200, flexShrink: 0 }}
-              slotProps={{
-                formHelperText: { sx: { mx: 0 } },
-              }}
-            />
+            <MqttSubscriber />
 
-            <Stack spacing={1} sx={{ flexShrink: 0 }}>
+            <Stack spacing={1}>
               <MonitorFilterAccordion
-                protocol="osc"
+                protocol="mqtt"
                 directionFilter={directionFilter}
                 onDirectionFilterChange={setDirectionFilter}
               />
@@ -187,8 +191,8 @@ export function OscMonitor() {
 
             <Box
               sx={{
-                flex: 1,
-                minHeight: 0,
+                minHeight: 200,
+                maxHeight: 360,
                 overflow: "auto",
                 border: 1,
                 borderColor: "divider",
@@ -201,22 +205,20 @@ export function OscMonitor() {
                 entries={listEntries}
                 emptyMessage={
                   entries.length === 0
-                    ? listenPort > 0
-                      ? `Waiting for OSC on port ${listenPort}…`
-                      : "Set a listen port to monitor incoming OSC."
+                    ? subscribeTopics.length > 0
+                      ? `Waiting for MQTT on ${topicsLabel}…`
+                      : "Add a topic to monitor incoming MQTT."
                     : isReplayingLive
-                      ? `Waiting for OSC on port ${listenPort}…`
+                      ? `Waiting for MQTT on ${topicsLabel}…`
                       : isMonitorFilterActive(directionFilter)
                         ? "No messages match the current filter."
-                        : `Waiting for OSC on port ${listenPort}…`
+                        : `Waiting for MQTT on ${topicsLabel}…`
                 }
               />
             </Box>
           </Stack>
         ) : (
-          <Box sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
-            <SavedMonitorLogTab protocol="osc" />
-          </Box>
+          <SavedMonitorLogTab protocol="mqtt" />
         )}
       </Stack>
     </DebuggerSection>

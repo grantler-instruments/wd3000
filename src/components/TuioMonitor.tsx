@@ -22,7 +22,7 @@ import {
 } from "../lib/tuio";
 import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
-import { NativeOnlyAlert } from "./NativeOnlyAlert";
+import { DebuggerSection } from "./DebuggerSection";
 
 const DEFAULT_TUIO_PORT = 3333;
 
@@ -507,81 +507,96 @@ export function TuioMonitor() {
   const symbolEntities = frame?.entities.filter((entity) => entity.kind === "symbol") ?? [];
 
   return (
-    <Stack spacing={2} sx={{ flex: 1, minHeight: 0, height: "100%", overflow: "hidden" }}>
-      <NativeOnlyAlert protocol="TUIO" />
-
-      <Box>
-        <Typography variant="body2" color="text.secondary">
-          Plot incoming TUIO traffic and click or drag on the canvas to send TUIO 1.1 cursors.
-        </Typography>
-      </Box>
-
-      <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ alignItems: "flex-start" }}>
-        <TextField
-          label="Listen port"
-          size="small"
-          type="number"
-          value={listenPort}
-          onChange={(event) => setListenPort(Number(event.target.value) || 0)}
-          helperText="Set to 0 to disable listening."
-          disabled={!native}
-          sx={{ maxWidth: 160 }}
-          slotProps={{
-            formHelperText: { sx: { mx: 0 } },
-          }}
-        />
-        <TextField
-          label="Send host"
-          size="small"
-          value={sendHost}
-          onChange={(event) => setSendHost(event.target.value)}
-          disabled={!native}
-          sx={{ maxWidth: 180 }}
-        />
-        <TextField
-          label="Send port"
-          size="small"
-          type="number"
-          value={sendPort}
-          onChange={(event) => setSendPort(Number(event.target.value) || 0)}
-          helperText="TUIO default is 3333."
-          disabled={!native}
-          sx={{ maxWidth: 160 }}
-          slotProps={{
-            formHelperText: { sx: { mx: 0 } },
-          }}
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={sendEnabled}
-              onChange={(event) => setSendEnabled(event.target.checked)}
-              disabled={!native}
-            />
-          }
-          label="Send from canvas"
-        />
-        <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
-          {Object.entries(TUIO_ENTITY_LABELS).map(([kind, label]) => (
-            <Chip
-              key={kind}
-              label={label}
-              size="small"
-              sx={{
-                bgcolor: `${TUIO_ENTITY_COLORS[kind]}33`,
-                borderColor: TUIO_ENTITY_COLORS[kind],
-              }}
-              variant="outlined"
-            />
-          ))}
+    <>
+      <DebuggerSection title="Composer">
+        <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ alignItems: "flex-start", flexWrap: "wrap" }}>
+          <TextField
+            label="Send host"
+            size="small"
+            value={sendHost}
+            onChange={(event) => setSendHost(event.target.value)}
+            disabled={!native}
+            sx={{ maxWidth: 180 }}
+          />
+          <TextField
+            label="Send port"
+            size="small"
+            type="number"
+            value={sendPort}
+            onChange={(event) => setSendPort(Number(event.target.value) || 0)}
+            helperText="TUIO default is 3333."
+            disabled={!native}
+            sx={{ maxWidth: 160 }}
+            slotProps={{
+              formHelperText: { sx: { mx: 0 } },
+            }}
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={sendEnabled}
+                onChange={(event) => setSendEnabled(event.target.checked)}
+                disabled={!native}
+              />
+            }
+            label="Send from canvas"
+          />
+          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
+            {Object.entries(TUIO_ENTITY_LABELS).map(([kind, label]) => (
+              <Chip
+                key={kind}
+                label={label}
+                size="small"
+                sx={{
+                  bgcolor: `${TUIO_ENTITY_COLORS[kind]}33`,
+                  borderColor: TUIO_ENTITY_COLORS[kind],
+                }}
+                variant="outlined"
+              />
+            ))}
+          </Stack>
         </Stack>
-      </Stack>
+      </DebuggerSection>
 
-      <Stack
-        direction={{ xs: "column", lg: "row" }}
-        spacing={2}
-        sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+        }}
       >
+        <DebuggerSection title="Monitor" flexGrow>
+          <Stack
+            spacing={2}
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <TextField
+              label="Listen port"
+              size="small"
+              type="number"
+              value={listenPort}
+              onChange={(event) => setListenPort(Number(event.target.value) || 0)}
+              helperText="Set to 0 to disable listening."
+              disabled={!native}
+              sx={{ maxWidth: 160, flexShrink: 0 }}
+              slotProps={{
+                formHelperText: { sx: { mx: 0 } },
+              }}
+            />
+
+            <Stack
+              direction={{ xs: "column", lg: "row" }}
+              spacing={2}
+              sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}
+            >
         <Box
           ref={surfaceRef}
           sx={{
@@ -790,7 +805,10 @@ export function TuioMonitor() {
             )}
           </Box>
         </Stack>
-      </Stack>
-    </Stack>
+            </Stack>
+          </Stack>
+        </DebuggerSection>
+      </Box>
+    </>
   );
 }

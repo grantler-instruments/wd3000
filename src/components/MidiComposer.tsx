@@ -30,6 +30,7 @@ import {
 import { listMidiOutputs, sendMidiRaw } from "../lib/output";
 import { isNativeApp, isWebMidiSupported } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
+import { DebuggerSection } from "./DebuggerSection";
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
@@ -162,23 +163,22 @@ export function MidiComposer() {
 
   if (!isNativeApp() && !isWebMidiSupported()) {
     return (
-      <Box>
+      <DebuggerSection title="Composer">
         <Alert severity="warning">Web MIDI is not supported in this browser.</Alert>
-      </Box>
+      </DebuggerSection>
     );
   }
 
   if (midiPorts.length === 0) {
     return (
-      <Box>
+      <DebuggerSection title="Composer">
         <Alert severity="warning">No MIDI output ports found.</Alert>
-      </Box>
+      </DebuggerSection>
     );
   }
 
   return (
-    <Box>
-
+    <DebuggerSection title="Composer">
       <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
         {showChannel && (
           <FormControl size="small" sx={{ width: 96 }}>
@@ -351,6 +351,6 @@ export function MidiComposer() {
           Send
         </Button>
       </Stack>
-    </Box>
+    </DebuggerSection>
   );
 }

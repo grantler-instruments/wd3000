@@ -20,6 +20,7 @@ import {
   isArtNetDebugEntry,
   useDebugLog,
   type ArtNetMonitorPayload,
+  type DebugLogEntry,
 } from "../lib/debugLog";
 import {
   getArtNetListenerStatus,
@@ -27,7 +28,7 @@ import {
   stopArtNetListener,
 } from "../lib/input";
 import { isNativeApp } from "../lib/platform";
-import { NativeOnlyAlert } from "./NativeOnlyAlert";
+import { DebuggerSection } from "./DebuggerSection";
 
 const DMX_CHANNEL_COUNT = 512;
 const GRID_COLUMNS = 32;
@@ -80,8 +81,8 @@ function ArtNetChannelGrid({ channels }: { channels: Uint8Array }) {
   );
 }
 
-function getArtNetPayload(entry: { kind: string; payload?: ArtNetMonitorPayload }) {
-  if (entry.kind !== "artnet" || !entry.payload) {
+function getArtNetPayload(entry: DebugLogEntry): ArtNetMonitorPayload | null {
+  if (!isArtNetDebugEntry(entry) || !entry.payload || !("universe" in entry.payload)) {
     return null;
   }
   return entry.payload;
@@ -266,32 +267,41 @@ export function ArtNetMonitor() {
   }, [listenerStatus]);
 
   return (
-    <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
-      <NativeOnlyAlert protocol="Art-Net" />
-
+    <DebuggerSection title="Monitor" flexGrow>
       <Stack
-        direction="row"
-        sx={{ alignItems: "flex-start", justifyContent: "space-between", gap: 2 }}
-      >
-        <Box>
-          <Typography variant="body2" color="text.secondary">
-            Incoming and outgoing ArtDMX packets.
-          </Typography>
-        </Box>
-        <Button
-          size="small"
-          onClick={() => clearDebugLogFiltered(isArtNetDebugEntry)}
-          disabled={!native || entries.length === 0}
-        >
-          Clear
-        </Button>
-      </Stack>
-
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
         spacing={2}
-        sx={{ alignItems: { xs: "stretch", sm: "center" }, flexWrap: "wrap" }}
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+        }}
       >
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            flexShrink: 0,
+            alignItems: "flex-start",
+            justifyContent: "flex-end",
+            flexWrap: "wrap",
+          }}
+        >
+          <Button
+            size="small"
+            onClick={() => clearDebugLogFiltered(isArtNetDebugEntry)}
+            disabled={!native || entries.length === 0}
+          >
+            Clear
+          </Button>
+        </Stack>
+
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          sx={{ alignItems: { xs: "stretch", sm: "center" }, flexWrap: "wrap", flexShrink: 0 }}
+        >
         <FormControlLabel
           control={
             <Switch
@@ -323,7 +333,7 @@ export function ArtNetMonitor() {
         />
       </Stack>
 
-      <Box>
+      <Box sx={{ flexShrink: 0 }}>
         <Stack
           direction={{ xs: "column", sm: "row" }}
           spacing={1.5}
@@ -374,7 +384,7 @@ export function ArtNetMonitor() {
       <Box
         sx={{
           flex: 1,
-          minHeight: 200,
+          minHeight: 0,
           overflow: "auto",
           border: 1,
           borderColor: "divider",
@@ -448,6 +458,7 @@ export function ArtNetMonitor() {
           </Stack>
         )}
       </Box>
-    </Stack>
+      </Stack>
+    </DebuggerSection>
   );
 }

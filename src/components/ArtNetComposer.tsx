@@ -21,6 +21,7 @@ import {
 } from "../lib/artnet";
 import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
+import { DebuggerSection } from "./DebuggerSection";
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
@@ -122,7 +123,7 @@ export function ArtNetComposer() {
   };
 
   return (
-    <Box>
+    <DebuggerSection title="Composer">
       <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
         <TextField
           label="Universe"
@@ -184,6 +185,6 @@ export function ArtNetComposer() {
           Send
         </Button>
       </Stack>
-    </Box>
+    </DebuggerSection>
   );
 }

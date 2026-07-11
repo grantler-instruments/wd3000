@@ -34,7 +34,8 @@ export function MonitorLogToolbar({ protocol, entries }: MonitorLogToolbarProps)
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const disabled = entries.length === 0;
-  const protocolLabel = protocol === "midi" ? "MIDI" : "OSC";
+  const protocolLabel =
+    protocol === "midi" ? "MIDI" : protocol === "mqtt" ? "MQTT" : "OSC";
 
   const handleSave = () => {
     try {

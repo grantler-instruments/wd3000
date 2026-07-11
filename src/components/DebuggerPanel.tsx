@@ -1,4 +1,4 @@
-import { Box, Divider, Stack } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import { useDebuggerEvents } from "../hooks/useDebuggerEvents";
 import { useAppStore } from "../store/useAppStore";
 import { ArtNetComposer } from "./ArtNetComposer";
@@ -6,9 +6,29 @@ import { ArtNetMonitor } from "./ArtNetMonitor";
 import { DebuggerErrorBoundary } from "./DebuggerErrorBoundary";
 import { MidiComposer } from "./MidiComposer";
 import { MidiMonitor } from "./MidiMonitor";
+import { MqttBroker } from "./MqttBroker";
+import { MqttComposer } from "./MqttComposer";
+import { MqttMonitor } from "./MqttMonitor";
+import { NativeOnlyAlert } from "./NativeOnlyAlert";
 import { OscComposer } from "./OscComposer";
 import { OscMonitor } from "./OscMonitor";
 import { TuioMonitor } from "./TuioMonitor";
+
+const debuggerStackSx = {
+  height: "100%",
+  minHeight: 0,
+  display: "flex",
+  flexDirection: "column",
+  overflow: "hidden",
+} as const;
+
+const debuggerMonitorSx = {
+  flex: 1,
+  minHeight: 0,
+  overflow: "hidden",
+  display: "flex",
+  flexDirection: "column",
+} as const;
 
 export function DebuggerPanel() {
   const tab = useAppStore((state) => state.debuggerSubView);
@@ -34,42 +54,42 @@ export function DebuggerPanel() {
           }}
         >
           {tab === "midi" ? (
-            <Stack spacing={0} sx={{ minHeight: 0, height: "100%" }}>
+            <Stack spacing={1} sx={debuggerStackSx}>
+              <NativeOnlyAlert protocol="MIDI" />
               <MidiComposer />
-              <Divider sx={{ my: 3 }} />
-              <Box sx={{ flex: 1, minHeight: 280, display: "flex", flexDirection: "column" }}>
+              <Box sx={debuggerMonitorSx}>
                 <MidiMonitor />
               </Box>
             </Stack>
           ) : tab === "osc" ? (
-            <Stack spacing={0} sx={{ minHeight: 0, height: "100%" }}>
+            <Stack spacing={1} sx={debuggerStackSx}>
+              <NativeOnlyAlert protocol="OSC" />
               <OscComposer />
-              <Divider sx={{ my: 3 }} />
-              <Box sx={{ flex: 1, minHeight: 280, display: "flex", flexDirection: "column" }}>
+              <Box sx={debuggerMonitorSx}>
                 <OscMonitor />
               </Box>
             </Stack>
           ) : tab === "artnet" ? (
-            <Stack spacing={0} sx={{ minHeight: 0, height: "100%" }}>
+            <Stack spacing={1} sx={debuggerStackSx}>
+              <NativeOnlyAlert protocol="Art-Net" />
               <ArtNetComposer />
-              <Divider sx={{ my: 3 }} />
-              <Box sx={{ flex: 1, minHeight: 280, display: "flex", flexDirection: "column" }}>
+              <Box sx={debuggerMonitorSx}>
                 <ArtNetMonitor />
               </Box>
             </Stack>
-          ) : (
-            <Box
-              sx={{
-                height: "100%",
-                minHeight: 280,
-                display: "flex",
-                flexDirection: "column",
-                overflow: "hidden",
-              }}
-            >
+          ) : tab === "mqtt" ? (
+            <Stack spacing={1}>
+              <NativeOnlyAlert protocol="MQTT" />
+              <MqttComposer />
+              <MqttMonitor />
+              <MqttBroker />
+            </Stack>
+          ) : tab === "tuio" ? (
+            <Stack spacing={1} sx={debuggerStackSx}>
+              <NativeOnlyAlert protocol="TUIO" />
               <TuioMonitor />
-            </Box>
-          )}
+            </Stack>
+          ) : null}
         </Box>
       </Box>
     </DebuggerErrorBoundary>
