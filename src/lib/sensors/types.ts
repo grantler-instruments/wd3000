@@ -38,11 +38,21 @@ export function sensorAxisKey(sensorId: string, axis: string) {
   return `${sensorId}:${axis}`;
 }
 
+function defaultSensorMidiInputRange(sensorId: string, axis: string) {
+  if (sensorId === "lid_angle" && axis === "angle") {
+    return { min: 0, max: 180 };
+  }
+
+  return { min: 0, max: 127 };
+}
+
 export function defaultSensorAxisMapping(
   sensorId: string,
   axis: string,
   performerIo: Pick<PerformerIoConfig, "oscSenders" | "midiOutputs">,
 ): SensorAxisMapping {
+  const midiRange = defaultSensorMidiInputRange(sensorId, axis);
+
   return {
     osc: {
       enabled: true,
@@ -54,8 +64,8 @@ export function defaultSensorAxisMapping(
       outputId: performerIo.midiOutputs[0]?.id ?? null,
       channel: 1,
       cc: 0,
-      min: 0,
-      max: 127,
+      min: midiRange.min,
+      max: midiRange.max,
     },
   };
 }
@@ -67,6 +77,14 @@ export function normalizeSensorAxisMapping(
   axis = "axis",
 ): SensorAxisMapping {
   const defaults = defaultSensorAxisMapping(sensorId, axis, performerIo);
+  const midiRange = defaultSensorMidiInputRange(sensorId, axis);
+  const storedMidiMin = mapping.midi?.min;
+  const storedMidiMax = mapping.midi?.max;
+  const usesLegacyLidAngleMidiRange =
+    sensorId === "lid_angle" &&
+    axis === "angle" &&
+    storedMidiMin === 0 &&
+    storedMidiMax === 127;
 
   return {
     osc: {
@@ -79,8 +97,12 @@ export function normalizeSensorAxisMapping(
       outputId: mapping.midi?.outputId ?? defaults.midi.outputId,
       channel: mapping.midi?.channel ?? defaults.midi.channel,
       cc: mapping.midi?.cc ?? defaults.midi.cc,
-      min: mapping.midi?.min ?? defaults.midi.min,
-      max: mapping.midi?.max ?? defaults.midi.max,
+      min: usesLegacyLidAngleMidiRange
+        ? midiRange.min
+        : (storedMidiMin ?? defaults.midi.min),
+      max: usesLegacyLidAngleMidiRange
+        ? midiRange.max
+        : (storedMidiMax ?? defaults.midi.max),
     },
   };
 }

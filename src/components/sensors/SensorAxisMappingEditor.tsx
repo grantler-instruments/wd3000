@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import {
-  Box,
   Divider,
   FormControl,
   InputLabel,
@@ -33,14 +32,7 @@ function MappingProtocolSection({
   children: ReactNode;
 }) {
   return (
-    <Box
-      sx={{
-        border: 1,
-        borderColor: enabled ? "primary.main" : "divider",
-        borderRadius: 1,
-        p: 1.5,
-      }}
-    >
+    <Stack spacing={enabled ? 1.5 : 0}>
       <Stack
         direction="row"
         spacing={2}
@@ -54,8 +46,8 @@ function MappingProtocolSection({
           aria-label={`${enabled ? "Disable" : "Enable"} ${label}`}
         />
       </Stack>
-      {enabled ? <Stack spacing={1} sx={{ mt: 1.5 }}>{children}</Stack> : null}
-    </Box>
+      {enabled ? <Stack spacing={1}>{children}</Stack> : null}
+    </Stack>
   );
 }
 

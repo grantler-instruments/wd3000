@@ -21,15 +21,17 @@ import { SettingsSectionNav } from "./SettingsSectionNav";
 import type {
   MidiInputEndpoint,
   MidiOutputEndpoint,
+  MqttConnection,
   OscReceiver,
   OscSender,
 } from "../types";
 
-type IoSettingsSection = "osc" | "midi";
+type IoSettingsSection = "osc" | "midi" | "mqtt";
 
 const SECTIONS: { id: IoSettingsSection; label: string }[] = [
   { id: "osc", label: "OSC" },
   { id: "midi", label: "MIDI" },
+  { id: "mqtt", label: "MQTT" },
 ];
 
 function SubsectionHeader({
@@ -110,6 +112,68 @@ function EndpointCard({
         <DeleteOutlinedIcon fontSize="small" />
       </IconButton>
     </Paper>
+  );
+}
+
+function MqttConnectionRow({ connection }: { connection: MqttConnection }) {
+  const updateMqttConnection = useAppStore((state) => state.updateMqttConnection);
+  const removeMqttConnection = useAppStore((state) => state.removeMqttConnection);
+
+  return (
+    <EndpointCard
+      onRemove={() => removeMqttConnection(connection.id)}
+      removeLabel={`Remove ${connection.name}`}
+    >
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ flexWrap: "wrap" }}>
+        <TextField
+          label="Name"
+          size="small"
+          fullWidth
+          value={connection.name}
+          onChange={(event) =>
+            updateMqttConnection(connection.id, { name: event.target.value })
+          }
+        />
+        <FormControl size="small" sx={{ minWidth: 100 }}>
+          <InputLabel id={`mqtt-protocol-${connection.id}`}>Protocol</InputLabel>
+          <Select
+            labelId={`mqtt-protocol-${connection.id}`}
+            label="Protocol"
+            value={connection.protocol}
+            onChange={(event) =>
+              updateMqttConnection(connection.id, {
+                protocol: event.target.value as MqttConnection["protocol"],
+              })
+            }
+          >
+            <MenuItem value="tcp">TCP</MenuItem>
+            <MenuItem value="ws">WS</MenuItem>
+          </Select>
+        </FormControl>
+        <TextField
+          label="Host"
+          size="small"
+          fullWidth
+          value={connection.host}
+          onChange={(event) =>
+            updateMqttConnection(connection.id, { host: event.target.value })
+          }
+        />
+        <TextField
+          label="Port"
+          size="small"
+          type="number"
+          sx={{ width: { xs: "100%", sm: 100 }, flexShrink: 0 }}
+          slotProps={{ htmlInput: { min: 1, max: 65535 } }}
+          value={connection.port}
+          onChange={(event) =>
+            updateMqttConnection(connection.id, {
+              port: Math.min(65535, Math.max(1, Number(event.target.value) || 1)),
+            })
+          }
+        />
+      </Stack>
+    </EndpointCard>
   );
 }
 
@@ -420,6 +484,50 @@ function MidiSettingsPanel() {
   );
 }
 
+function MqttSettingsPanel() {
+  const performerIo = useAppStore((state) => state.performerIo);
+  const output = useAppStore((state) => state.output);
+  const addMqttConnection = useAppStore((state) => state.addMqttConnection);
+
+  return (
+    <Stack spacing={3}>
+      <Box>
+        <Typography variant="h6" sx={{ mb: 0.5 }}>
+          MQTT
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Named broker connections. Assign them to widgets in the editor.
+        </Typography>
+      </Box>
+
+      <Box>
+        <SubsectionHeader
+          title="Brokers"
+          description="Where widgets publish messages."
+          addLabel="Add broker"
+          onAdd={() =>
+            addMqttConnection({
+              name: `MQTT ${performerIo.mqttConnections.length + 1}`,
+              host: output.mqttComposerHost,
+              port: output.mqttComposerPort,
+              protocol: output.mqttComposerProtocol,
+            })
+          }
+        />
+        <Stack spacing={1}>
+          {performerIo.mqttConnections.length === 0 ? (
+            <EmptyState message="No broker connections yet." />
+          ) : (
+            performerIo.mqttConnections.map((connection) => (
+              <MqttConnectionRow key={connection.id} connection={connection} />
+            ))
+          )}
+        </Stack>
+      </Box>
+    </Stack>
+  );
+}
+
 export function IoSettingsPanel() {
   const [section, setSection] = useState<IoSettingsSection>("osc");
   const setMidiPorts = useAppStore((state) => state.setMidiPorts);
@@ -472,6 +580,7 @@ export function IoSettingsPanel() {
       >
         {section === "osc" && <OscSettingsPanel />}
         {section === "midi" && <MidiSettingsPanel />}
+        {section === "mqtt" && <MqttSettingsPanel />}
       </Box>
     </Box>
   );

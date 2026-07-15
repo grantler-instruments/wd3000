@@ -1,9 +1,17 @@
 import {
   Box,
   Button,
+  Chip,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   Stack,
   Tab,
   Tabs,
+  TextField,
+  Tooltip,
+  Typography,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -15,8 +23,14 @@ import { startMqttListener, stopMqttListener } from "../lib/input";
 import {
   MQTT_DEFAULT_COMPOSER_HOST,
   MQTT_DEFAULT_TCP_PORT,
+  type MqttTransportProtocol,
 } from "../lib/mqtt";
 import { createMonitorLogEvents } from "../lib/monitorLog";
+import {
+  resetMqttMonitorStatus,
+  useMqttMonitorStatus,
+  type MqttMonitorConnectionStatus,
+} from "../lib/mqttMonitorStatus";
 import {
   defaultMonitorDirectionFilter,
   isMonitorFilterActive,
@@ -36,6 +50,34 @@ import { useOpenSavedLogOnReplay } from "./useOpenSavedLogOnReplay";
 
 type MonitorTab = "live" | "saved";
 
+const PROTOCOL_OPTIONS: MqttTransportProtocol[] = ["tcp", "ws"];
+
+function clampPort(value: number, fallback: number) {
+  if (!Number.isFinite(value) || value < 1 || value > 65535) {
+    return fallback;
+  }
+  return Math.round(value);
+}
+
+type StatusChipColor = "default" | "success" | "warning" | "error";
+
+function describeMonitorStatus(status: MqttMonitorConnectionStatus): {
+  label: string;
+  color: StatusChipColor;
+} {
+  switch (status) {
+    case "connected":
+      return { label: "Connected", color: "success" };
+    case "connecting":
+      return { label: "Connecting…", color: "warning" };
+    case "disconnected":
+      return { label: "Disconnected", color: "error" };
+    case "idle":
+    default:
+      return { label: "Not connected", color: "default" };
+  }
+}
+
 function formatTopicsLabel(topics: string[]) {
   if (topics.length === 0) {
     return "";
@@ -48,17 +90,22 @@ function formatTopicsLabel(topics: string[]) {
 
 export function MqttMonitor() {
   const output = useAppStore((state) => state.output);
+  const setOutput = useAppStore((state) => state.setOutput);
   const setLastError = useAppStore((state) => state.setLastError);
   const allEntries = useDebugLog();
   const replayProgress = useMonitorLogReplayProgress();
+  const monitorStatus = useMqttMonitorStatus();
   const native = isNativeApp();
 
   const subscribeTopics = output.mqttSubscribeTopics ?? [];
-  const brokerHost = output.mqttComposerHost || MQTT_DEFAULT_COMPOSER_HOST;
-  const brokerPort = output.mqttComposerPort || MQTT_DEFAULT_TCP_PORT;
-  const brokerProtocol = output.mqttComposerProtocol || "tcp";
+  const brokerHost = output.mqttMonitorHost || MQTT_DEFAULT_COMPOSER_HOST;
+  const brokerPort = output.mqttMonitorPort || MQTT_DEFAULT_TCP_PORT;
+  const brokerProtocol = output.mqttMonitorProtocol || "tcp";
 
   const [tab, setTab] = useState<MonitorTab>("live");
+  const [host, setHost] = useState(brokerHost);
+  const [port, setPort] = useState(brokerPort);
+  const [protocol, setProtocol] = useState<MqttTransportProtocol>(brokerProtocol);
   useOpenSavedLogOnReplay("mqtt", setTab);
   const [directionFilter, setDirectionFilter] = useState(defaultMonitorDirectionFilter);
 
@@ -97,6 +144,12 @@ export function MqttMonitor() {
   const topicsLabel = formatTopicsLabel(subscribeTopics);
 
   useEffect(() => {
+    setHost(brokerHost);
+    setPort(brokerPort);
+    setProtocol(brokerProtocol);
+  }, [brokerHost, brokerPort, brokerProtocol]);
+
+  useEffect(() => {
     if (!native) {
       return;
     }
@@ -114,6 +167,7 @@ export function MqttMonitor() {
           });
         } else {
           await stopMqttListener();
+          resetMqttMonitorStatus();
         }
         if (!cancelled) {
           setLastError(null);
@@ -130,6 +184,7 @@ export function MqttMonitor() {
     return () => {
       cancelled = true;
       void stopMqttListener();
+      resetMqttMonitorStatus();
     };
   }, [
     brokerHost,
@@ -175,6 +230,87 @@ export function MqttMonitor() {
                 Clear
               </Button>
               <MonitorLogToolbar protocol="mqtt" entries={entries} />
+            </Stack>
+
+            <Stack spacing={1.5}>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ alignItems: "center", justifyContent: "space-between" }}
+              >
+                <Typography variant="subtitle2">Broker</Typography>
+                {(() => {
+                  const effectiveStatus: MqttMonitorConnectionStatus =
+                    subscribeTopics.length === 0 ? "idle" : monitorStatus.status;
+                  const { label, color } = describeMonitorStatus(effectiveStatus);
+                  const chip = (
+                    <Chip
+                      size="small"
+                      variant="outlined"
+                      color={color}
+                      label={label}
+                      sx={{ textTransform: "none" }}
+                    />
+                  );
+                  return monitorStatus.detail ? (
+                    <Tooltip title={monitorStatus.detail}>{chip}</Tooltip>
+                  ) : (
+                    chip
+                  );
+                })()}
+              </Stack>
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
+                <FormControl size="small" sx={{ minWidth: 100 }}>
+                  <InputLabel id="mqtt-monitor-protocol-label">Protocol</InputLabel>
+                  <Select
+                    labelId="mqtt-monitor-protocol-label"
+                    label="Protocol"
+                    value={protocol}
+                    onChange={(event) => {
+                      const nextProtocol = event.target.value as MqttTransportProtocol;
+                      setProtocol(nextProtocol);
+                      setOutput({ mqttMonitorProtocol: nextProtocol });
+                    }}
+                    disabled={!native}
+                  >
+                    {PROTOCOL_OPTIONS.map((value) => (
+                      <MenuItem key={value} value={value}>
+                        {value.toUpperCase()}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <TextField
+                  label="Host"
+                  size="small"
+                  value={host}
+                  onChange={(event) => {
+                    const nextHost = event.target.value;
+                    setHost(nextHost);
+                    setOutput({ mqttMonitorHost: nextHost });
+                  }}
+                  disabled={!native}
+                  sx={{ minWidth: 180, flex: 1 }}
+                />
+
+                <TextField
+                  label="Port"
+                  size="small"
+                  type="number"
+                  value={port}
+                  onChange={(event) => {
+                    const nextPort = clampPort(Number(event.target.value), MQTT_DEFAULT_TCP_PORT);
+                    setPort(nextPort);
+                    setOutput({ mqttMonitorPort: nextPort });
+                  }}
+                  disabled={!native}
+                  sx={{ width: 120 }}
+                  slotProps={{
+                    htmlInput: { min: 1, max: 65535 },
+                  }}
+                />
+              </Stack>
             </Stack>
 
             <MqttSubscriber />

@@ -21,6 +21,24 @@ pub struct MqttDebugMessage {
     pub retain: bool,
 }
 
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MqttMonitorStatus {
+    /// One of: "connecting", "connected", "disconnected".
+    pub status: String,
+    pub detail: Option<String>,
+}
+
+fn emit_monitor_status(app: &AppHandle, status: &str, detail: Option<String>) {
+    let _ = app.emit(
+        "mqtt-monitor-status",
+        MqttMonitorStatus {
+            status: status.to_string(),
+            detail,
+        },
+    );
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct BrokerEndpoints {
     tcp: u16,
@@ -291,9 +309,21 @@ fn build_broker_config(tcp_port: u16, ws_port: u16) -> Config {
         },
     );
 
+    // NOTE: `RouterConfig::default()` derives all-zero fields (max_connections = 0,
+    // max_segment_size = 0, …), which makes the router refuse every connection and
+    // store nothing — the listeners bind but no client can actually use the broker.
+    // These are the working values from rumqttd's own reference `rumqttd.toml`.
+    let router = RouterConfig {
+        max_connections: 10_010,
+        max_outgoing_packet_count: 200,
+        max_segment_size: 104_857_600,
+        max_segment_count: 10,
+        ..RouterConfig::default()
+    };
+
     Config {
         id: 0,
-        router: RouterConfig::default(),
+        router,
         v4: Some(v4),
         v5: None,
         ws: Some(ws),
@@ -469,33 +499,6 @@ fn run_publish_sync(
     Err(format!("MQTT publish timed out ({endpoint_label})."))
 }
 
-async fn wait_for_mqtt_connection(
-    eventloop: &mut rumqttc::EventLoop,
-    timeout: Duration,
-) -> Result<(), String> {
-    use rumqttc::mqttbytes::v4::ConnectReturnCode;
-
-    let deadline = tokio::time::Instant::now() + timeout;
-    while tokio::time::Instant::now() < deadline {
-        match tokio::time::timeout(Duration::from_millis(250), eventloop.poll()).await {
-            Ok(Ok(Event::Incoming(Incoming::ConnAck(connack)))) => {
-                if connack.code == ConnectReturnCode::Success {
-                    return Ok(());
-                }
-                return Err(format!(
-                    "MQTT broker refused connection: {:?}",
-                    connack.code
-                ));
-            }
-            Ok(Ok(_)) => continue,
-            Ok(Err(error)) => return Err(format!("MQTT connect failed: {error}")),
-            Err(_) => continue,
-        }
-    }
-
-    Err("MQTT connect timed out.".to_string())
-}
-
 fn run_monitor(
     app: AppHandle,
     host: String,
@@ -521,45 +524,57 @@ fn run_monitor(
     };
 
     runtime.block_on(async {
+        use rumqttc::mqttbytes::v4::ConnectReturnCode;
+
         let endpoint = match parse_broker_endpoint(&host, port, &protocol) {
             Ok(endpoint) => endpoint,
             Err(error) => {
+                emit_monitor_status(&app, "disconnected", Some(error.clone()));
                 let _ = app.emit("control-input-error", error);
                 return;
             }
         };
         let mqttoptions = build_client_options(MONITOR_CLIENT_ID, &endpoint);
 
-        let (client, mut eventloop) = AsyncClient::new(mqttoptions, 100);
-        if let Err(error) = wait_for_mqtt_connection(&mut eventloop, Duration::from_secs(5)).await {
-            let _ = app.emit(
-                "control-input-error",
-                format!(
-                    "MQTT monitor connect failed ({}): {error}",
-                    endpoint.label
-                ),
-            );
-            return;
-        }
-
         let filters: Vec<SubscribeFilter> = subscribe_topics
             .iter()
             .map(|topic| SubscribeFilter::new(topic.clone(), QoS::AtMostOnce))
             .collect();
 
-        if let Err(error) = client.subscribe_many(filters).await {
-            let _ = app.emit(
-                "control-input-error",
-                format!(
-                    "MQTT subscribe failed ({}): {error}",
-                    endpoint.label
-                ),
-            );
-            return;
-        }
+        emit_monitor_status(&app, "connecting", Some(endpoint.label.clone()));
+
+        // `AsyncClient`'s event loop reconnects automatically as long as we keep
+        // polling it. We resubscribe on every fresh `ConnAck`, and we never break
+        // out of the loop on a connection error — that way, closing and reopening
+        // the broker transparently re-establishes the monitor connection.
+        let (client, mut eventloop) = AsyncClient::new(mqttoptions, 100);
+        let mut connected = false;
 
         while !stop_flag.load(Ordering::Relaxed) {
             match tokio::time::timeout(Duration::from_millis(250), eventloop.poll()).await {
+                Ok(Ok(Event::Incoming(Incoming::ConnAck(connack)))) => {
+                    if connack.code != ConnectReturnCode::Success {
+                        connected = false;
+                        let detail = format!(
+                            "MQTT broker refused connection ({}): {:?}",
+                            endpoint.label, connack.code
+                        );
+                        emit_monitor_status(&app, "disconnected", Some(detail.clone()));
+                        let _ = app.emit("control-input-error", detail);
+                        continue;
+                    }
+
+                    if let Err(error) = client.subscribe_many(filters.clone()).await {
+                        let detail =
+                            format!("MQTT subscribe failed ({}): {error}", endpoint.label);
+                        emit_monitor_status(&app, "disconnected", Some(detail.clone()));
+                        let _ = app.emit("control-input-error", detail);
+                        continue;
+                    }
+
+                    connected = true;
+                    emit_monitor_status(&app, "connected", Some(endpoint.label.clone()));
+                }
                 Ok(Ok(Event::Incoming(Incoming::Publish(publish)))) => {
                     emit_mqtt_publish(
                         &app,
@@ -571,15 +586,28 @@ fn run_monitor(
                 }
                 Ok(Ok(_)) => {}
                 Ok(Err(error)) => {
-                    let _ = app.emit(
-                        "control-input-error",
-                        format!("MQTT monitor error ({}): {error}", endpoint.label),
-                    );
-                    break;
+                    // The connection dropped (or never came up). Report the state
+                    // change once, then keep looping so the event loop retries.
+                    if connected {
+                        let _ = app.emit(
+                            "control-input-error",
+                            format!("MQTT monitor error ({}): {error}", endpoint.label),
+                        );
+                        // Fall back to "connecting" to show the event loop is
+                        // actively retrying while the broker is unreachable.
+                        emit_monitor_status(&app, "connecting", Some(endpoint.label.clone()));
+                    }
+                    connected = false;
+                    // Back off briefly so we don't busy-spin while the broker is down.
+                    tokio::time::sleep(Duration::from_secs(1)).await;
                 }
                 Err(_) => continue,
             }
         }
+
+        // The listener was stopped: tear the connection down and report it.
+        let _ = client.disconnect().await;
+        emit_monitor_status(&app, "disconnected", None);
     });
 }
 

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Control } from "../types";
+import { Control, defaultMqttMapping } from "../types";
 import { collectControlSubtree, cloneControlSubtree } from "./controlClipboard";
 
 function control(
@@ -11,6 +11,7 @@ function control(
     label: id,
     protocol: "osc",
     osc: { address: `/${id}` },
+    mqtt: defaultMqttMapping(overrides.type, 1),
     midi: { channel: 1, note: 60, cc: 0 },
     layout: { x: 0, y: 0, width: 120, height: 80, order: 0 },
     ...overrides,

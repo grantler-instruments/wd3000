@@ -8,6 +8,10 @@ import {
   pushDebugLog,
 } from "../lib/debugLog";
 import { isMidiDebugKind } from "../lib/midiTypes";
+import {
+  setMqttMonitorStatus,
+  type MqttMonitorConnectionStatus,
+} from "../lib/mqttMonitorStatus";
 import type { OscArgPayload } from "../lib/oscMessages";
 import { isNativeApp } from "../lib/platform";
 
@@ -15,8 +19,27 @@ let listenerRefCount = 0;
 let registrationStarted = false;
 let unregisterListeners: (() => void) | null = null;
 
+const MQTT_MONITOR_STATUSES: MqttMonitorConnectionStatus[] = [
+  "idle",
+  "connecting",
+  "connected",
+  "disconnected",
+];
+
+function isMqttMonitorStatus(
+  value: string,
+): value is MqttMonitorConnectionStatus {
+  return (MQTT_MONITOR_STATUSES as string[]).includes(value);
+}
+
 async function registerListeners() {
-  const [unlistenOsc, unlistenMidi, unlistenArtNet, unlistenMqtt] = await Promise.all([
+  const [
+    unlistenOsc,
+    unlistenMidi,
+    unlistenArtNet,
+    unlistenMqtt,
+    unlistenMqttStatus,
+  ] = await Promise.all([
     listen<{
       summary: string;
       address?: string;
@@ -104,6 +127,15 @@ async function registerListeners() {
         },
       });
     }),
+    listen<{ status: string; detail?: string | null }>(
+      "mqtt-monitor-status",
+      (event) => {
+        const { status, detail } = event.payload;
+        if (isMqttMonitorStatus(status)) {
+          setMqttMonitorStatus(status, detail ?? null);
+        }
+      },
+    ),
   ]);
 
   return () => {
@@ -111,6 +143,7 @@ async function registerListeners() {
     unlistenMidi();
     unlistenArtNet();
     unlistenMqtt();
+    unlistenMqttStatus();
   };
 }
 

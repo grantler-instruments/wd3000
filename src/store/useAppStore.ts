@@ -32,6 +32,7 @@ import {
   PerformerIoConfig,
   MidiInputEndpoint,
   MidiOutputEndpoint,
+  MqttConnection,
   OscReceiver,
   OscSender,
   TabDropPreview,
@@ -41,12 +42,15 @@ import {
   createTabChildLayout,
   createMidiInputEndpoint,
   createMidiOutputEndpoint,
+  createMqttConnection,
   createOscReceiver,
   createOscSender,
   defaultControlIoAssignments,
   defaultLayoutSettings,
+  defaultMqttMapping,
   defaultOutputConfig,
   normalizeOutputConfig,
+  normalizePerformerIoConfig,
   defaultPerformerIoConfig,
   isTopLevelControl,
   pruneOrphanTabChildren,
@@ -114,6 +118,9 @@ interface AppState {
   addMidiInput: (patch?: Partial<MidiInputEndpoint> & { name?: string }) => void;
   updateMidiInput: (id: string, patch: Partial<Omit<MidiInputEndpoint, "id">>) => void;
   removeMidiInput: (id: string) => void;
+  addMqttConnection: (patch?: Partial<MqttConnection> & { name?: string }) => void;
+  updateMqttConnection: (id: string, patch: Partial<Omit<MqttConnection, "id">>) => void;
+  removeMqttConnection: (id: string) => void;
   setMidiPorts: (ports: string[]) => void;
   setMidiInputPorts: (ports: string[]) => void;
   setControlValue: (id: string, value: number) => void;
@@ -637,6 +644,43 @@ export const useAppStore = create<AppState>()(
           },
           controls: clearRemovedEndpointReferences(state.controls, new Set([id])),
         })),
+      addMqttConnection: (patch) =>
+        set((state) => {
+          const output = state.output;
+          const connection = createMqttConnection({
+            name: patch?.name ?? `MQTT ${state.performerIo.mqttConnections.length + 1}`,
+            host: patch?.host ?? output.mqttComposerHost,
+            port: patch?.port ?? output.mqttComposerPort,
+            protocol: patch?.protocol ?? output.mqttComposerProtocol,
+            ...patch,
+          });
+
+          return {
+            performerIo: {
+              ...state.performerIo,
+              mqttConnections: [...state.performerIo.mqttConnections, connection],
+            },
+          };
+        }),
+      updateMqttConnection: (id, patch) =>
+        set((state) => ({
+          performerIo: {
+            ...state.performerIo,
+            mqttConnections: state.performerIo.mqttConnections.map((connection) =>
+              connection.id === id ? { ...connection, ...patch } : connection,
+            ),
+          },
+        })),
+      removeMqttConnection: (id) =>
+        set((state) => ({
+          performerIo: {
+            ...state.performerIo,
+            mqttConnections: state.performerIo.mqttConnections.filter(
+              (connection) => connection.id !== id,
+            ),
+          },
+          controls: clearRemovedEndpointReferences(state.controls, new Set([id])),
+        })),
       setMidiPorts: (ports) => set({ midiPorts: ports }),
       setMidiInputPorts: (ports) => set({ midiInputPorts: ports }),
       setControlValue: (id, value) =>
@@ -746,17 +790,19 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "wd3000-layout",
-      version: 8,
+      version: 9,
       migrate: (persistedState, version) => {
         const state = persistedState as {
           controls?: Array<
             Control & {
               protocol?: Control["protocol"];
               layout?: Partial<ControlLayout>;
+              mqtt?: Control["mqtt"];
+              mqttConnectionId?: string | null;
             }
           >;
           output?: OutputConfig & { protocol?: Control["protocol"] };
-          performerIo?: PerformerIoConfig;
+          performerIo?: Partial<PerformerIoConfig>;
           layoutSettings?: LayoutSettings & { mode?: string };
           sensorMappings?: Record<string, SensorAxisMapping>;
         };
@@ -768,10 +814,14 @@ export const useAppStore = create<AppState>()(
         };
         const output = normalizeOutputConfig(connectionSettings);
 
-        const performerIo =
-          state.performerIo && version >= 8
-            ? state.performerIo
-            : defaultPerformerIoConfig(output);
+        let performerIo = normalizePerformerIoConfig(
+          version >= 9 ? (state.performerIo as PerformerIoConfig | undefined) : state.performerIo,
+          output,
+        );
+
+        if (version < 8) {
+          performerIo = defaultPerformerIoConfig(output);
+        }
 
         const controls = (state.controls ?? []).map((control, index) => {
           const protocol = control.protocol ?? legacyProtocol;
@@ -782,6 +832,7 @@ export const useAppStore = create<AppState>()(
                   midiOutputId: control.midiOutputId ?? null,
                   oscReceiverId: control.oscReceiverId ?? null,
                   midiInputId: control.midiInputId ?? null,
+                  mqttConnectionId: control.mqttConnectionId ?? null,
                 }
               : defaultControlIoAssignments(performerIo, protocol);
 
@@ -789,6 +840,7 @@ export const useAppStore = create<AppState>()(
             ...control,
             protocol,
             ...ioAssignments,
+            mqtt: control.mqtt ?? defaultMqttMapping(control.type, index + 1),
             layout: {
               ...createControlLayout(index),
               ...control.layout,
@@ -881,6 +933,7 @@ export const useAppStore = create<AppState>()(
           ...currentState,
           ...persisted,
           output: normalizeOutputConfig(persisted.output),
+          performerIo: normalizePerformerIoConfig(persisted.performerIo, persisted.output),
           mode: "edit",
           activeView: "home",
           selectedControlId: null,

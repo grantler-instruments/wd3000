@@ -23,7 +23,7 @@ export function controlTypeLabel(type: ControlType): string {
   }
 }
 
-export type ControlProtocol = "osc" | "midi" | "both";
+export type ControlProtocol = "osc" | "midi" | "mqtt" | "both";
 
 export type AppMode = "edit" | "play";
 
@@ -32,6 +32,12 @@ export type DashboardView = "home" | "performer" | "debugger";
 export type PerformerSubView = "ui" | "sensors" | "mediapipe";
 
 export type DebuggerSubView = "midi" | "osc" | "tuio" | "artnet" | "mqtt";
+
+export interface MqttMapping {
+  topic: string;
+  qos: 0 | 1 | 2;
+  retain: boolean;
+}
 
 export interface OscMapping {
   address: string;
@@ -87,8 +93,10 @@ export interface Control {
   midiOutputId?: string | null;
   oscReceiverId?: string | null;
   midiInputId?: string | null;
+  mqttConnectionId?: string | null;
   osc: OscMapping;
   midi: MidiMapping;
+  mqtt: MqttMapping;
   layout: ControlLayout;
 }
 
@@ -115,6 +123,9 @@ export interface OutputConfig {
   mqttBrokerWsPort: number;
   mqttBrokerEnabled: boolean;
   mqttSubscribeTopics: string[];
+  mqttMonitorHost: string;
+  mqttMonitorPort: number;
+  mqttMonitorProtocol: "tcp" | "ws";
   mqttComposerHost: string;
   mqttComposerPort: number;
   mqttComposerProtocol: "tcp" | "ws";
@@ -147,11 +158,20 @@ export interface MidiInputEndpoint {
   portName: string;
 }
 
+export interface MqttConnection {
+  id: string;
+  name: string;
+  host: string;
+  port: number;
+  protocol: "tcp" | "ws";
+}
+
 export interface PerformerIoConfig {
   oscSenders: OscSender[];
   oscReceivers: OscReceiver[];
   midiOutputs: MidiOutputEndpoint[];
   midiInputs: MidiInputEndpoint[];
+  mqttConnections: MqttConnection[];
 }
 
 export const CONTROL_MIN_WIDTH = 180;
@@ -282,6 +302,9 @@ export const defaultOutputConfig = (): OutputConfig => ({
   mqttBrokerWsPort: 9001,
   mqttBrokerEnabled: false,
   mqttSubscribeTopics: [],
+  mqttMonitorHost: "localhost",
+  mqttMonitorPort: 1883,
+  mqttMonitorProtocol: "tcp",
   mqttComposerHost: "localhost",
   mqttComposerPort: 1883,
   mqttComposerProtocol: "tcp",
@@ -307,6 +330,36 @@ export function normalizeOutputConfig(
     ...defaults,
     ...value,
     mqttSubscribeTopics: subscribeTopics,
+    mqttMonitorHost:
+      typeof value.mqttMonitorHost === "string"
+        ? value.mqttMonitorHost
+        : typeof value.mqttComposerHost === "string"
+          ? value.mqttComposerHost
+          : defaults.mqttMonitorHost,
+    mqttMonitorPort:
+      typeof value.mqttMonitorPort === "number"
+        ? value.mqttMonitorPort
+        : typeof value.mqttComposerPort === "number"
+          ? value.mqttComposerPort
+          : defaults.mqttMonitorPort,
+    mqttMonitorProtocol:
+      value.mqttMonitorProtocol === "tcp" || value.mqttMonitorProtocol === "ws"
+        ? value.mqttMonitorProtocol
+        : value.mqttComposerProtocol === "tcp" || value.mqttComposerProtocol === "ws"
+          ? value.mqttComposerProtocol
+          : defaults.mqttMonitorProtocol,
+  };
+}
+
+export function createMqttConnection(
+  patch: Partial<MqttConnection> & Pick<MqttConnection, "name">,
+): MqttConnection {
+  return {
+    id: crypto.randomUUID(),
+    host: "localhost",
+    port: 1883,
+    protocol: "tcp",
+    ...patch,
   };
 }
 
@@ -363,6 +416,13 @@ export function defaultPerformerIoConfig(output?: OutputConfig): PerformerIoConf
     port: connection.oscListenPort,
   });
 
+  const mqttConnection = createMqttConnection({
+    name: "MQTT 1",
+    host: connection.mqttComposerHost,
+    port: connection.mqttComposerPort,
+    protocol: connection.mqttComposerProtocol,
+  });
+
   return {
     oscSenders: [oscSender],
     oscReceivers: connection.oscListenPort > 0 ? [oscReceiver] : [],
@@ -382,13 +442,39 @@ export function defaultPerformerIoConfig(output?: OutputConfig): PerformerIoConf
           }),
         ]
       : [],
+    mqttConnections: [mqttConnection],
+  };
+}
+
+export function normalizePerformerIoConfig(
+  value?: Partial<PerformerIoConfig>,
+  output?: OutputConfig,
+): PerformerIoConfig {
+  const defaults = defaultPerformerIoConfig(output);
+  if (!value) {
+    return defaults;
+  }
+
+  return {
+    oscSenders: Array.isArray(value.oscSenders) ? value.oscSenders : defaults.oscSenders,
+    oscReceivers: Array.isArray(value.oscReceivers)
+      ? value.oscReceivers
+      : defaults.oscReceivers,
+    midiOutputs: Array.isArray(value.midiOutputs) ? value.midiOutputs : defaults.midiOutputs,
+    midiInputs: Array.isArray(value.midiInputs) ? value.midiInputs : defaults.midiInputs,
+    mqttConnections: Array.isArray(value.mqttConnections)
+      ? value.mqttConnections
+      : defaults.mqttConnections,
   };
 }
 
 export function defaultControlIoAssignments(
   performerIo: PerformerIoConfig,
   protocol: ControlProtocol,
-): Pick<Control, "oscSenderId" | "midiOutputId" | "oscReceiverId" | "midiInputId"> {
+): Pick<
+  Control,
+  "oscSenderId" | "midiOutputId" | "oscReceiverId" | "midiInputId" | "mqttConnectionId"
+> {
   return {
     oscSenderId:
       protocol === "osc" || protocol === "both"
@@ -398,9 +484,22 @@ export function defaultControlIoAssignments(
       protocol === "midi" || protocol === "both"
         ? (performerIo.midiOutputs[0]?.id ?? null)
         : null,
+    mqttConnectionId:
+      protocol === "mqtt" ? (performerIo.mqttConnections[0]?.id ?? null) : null,
     oscReceiverId: performerIo.oscReceivers[0]?.id ?? null,
     midiInputId: performerIo.midiInputs[0]?.id ?? null,
   };
+}
+
+export function findMqttConnection(
+  performerIo: PerformerIoConfig,
+  id: string | null | undefined,
+): MqttConnection | null {
+  if (!id) {
+    return null;
+  }
+
+  return performerIo.mqttConnections.find((connection) => connection.id === id) ?? null;
 }
 
 export function findOscSender(
@@ -445,6 +544,10 @@ export function findMidiInputEndpoint(
   }
 
   return performerIo.midiInputs.find((endpoint) => endpoint.id === id) ?? null;
+}
+
+export function controlUsesMqttOutput(control: Control): boolean {
+  return control.protocol === "mqtt" && !!control.mqttConnectionId;
 }
 
 export function controlUsesOscOutput(control: Control): boolean {
@@ -625,6 +728,29 @@ function controlLabel(type: ControlType, index: number): string {
   }
 }
 
+function controlMqttTopic(type: ControlType, index: number): string {
+  switch (type) {
+    case "button":
+      return `button/${index}`;
+    case "slider":
+      return `slider/${index}`;
+    case "keyboard":
+      return `keyboard/${index}`;
+    case "pad":
+      return `pad/${index}`;
+    case "tabs":
+      return `tabs/${index}`;
+  }
+}
+
+export function defaultMqttMapping(type: ControlType, index: number): MqttMapping {
+  return {
+    topic: controlMqttTopic(type, index),
+    qos: 0,
+    retain: false,
+  };
+}
+
 function controlOscAddress(type: ControlType, index: number): string {
   switch (type) {
     case "button":
@@ -659,6 +785,7 @@ export const createControl = (
     osc: {
       address: controlOscAddress(type, index),
     },
+    mqtt: defaultMqttMapping(type, index),
     midi: {
       channel: 1,
       note: type === "keyboard" ? 48 : 60 + index,
@@ -704,6 +831,17 @@ export function controlMappingLabel(
 ): string {
   const parts: string[] = [];
 
+  if (control.protocol === "mqtt") {
+    const connection = performerIo
+      ? findMqttConnection(performerIo, control.mqttConnectionId)
+      : null;
+    if (connection) {
+      parts.push(`${connection.name}: ${control.mqtt.topic}`);
+    } else {
+      parts.push(control.mqtt.topic);
+    }
+  }
+
   if (control.protocol === "osc" || control.protocol === "both") {
     const sender = performerIo
       ? findOscSender(performerIo, control.oscSenderId)
@@ -746,6 +884,8 @@ export function controlProtocolLabel(protocol: ControlProtocol): string {
       return "OSC";
     case "midi":
       return "MIDI";
+    case "mqtt":
+      return "MQTT";
     case "both":
       return "OSC + MIDI";
   }

@@ -15,6 +15,7 @@ import {
   createControlLayout,
   createDefaultTabs,
   defaultLayoutSettings,
+  defaultMqttMapping,
   defaultOutputConfig,
   defaultPerformerIoConfig,
   isValidControlColor,
@@ -85,7 +86,7 @@ function parseControlTabs(value: unknown): ControlTab[] | undefined {
 }
 
 function isControlProtocol(value: unknown): value is ControlProtocol {
-  return value === "osc" || value === "midi" || value === "both";
+  return value === "osc" || value === "midi" || value === "mqtt" || value === "both";
 }
 
 function parseLayoutSettings(value: unknown): LayoutSettings {
@@ -121,6 +122,7 @@ function parseControl(value: unknown, index: number, legacyProtocol: ControlProt
 
   const osc = isRecord(value.osc) ? value.osc : {};
   const midi = isRecord(value.midi) ? value.midi : {};
+  const mqtt = isRecord(value.mqtt) ? value.mqtt : {};
 
   const color =
     value.color === null
@@ -165,6 +167,8 @@ function parseControl(value: unknown, index: number, legacyProtocol: ControlProt
     ...(value.midiOutputId === null ? { midiOutputId: null } : {}),
     ...(value.oscReceiverId === null ? { oscReceiverId: null } : {}),
     ...(value.midiInputId === null ? { midiInputId: null } : {}),
+    ...(typeof value.mqttConnectionId === "string" ? { mqttConnectionId: value.mqttConnectionId } : {}),
+    ...(value.mqttConnectionId === null ? { mqttConnectionId: null } : {}),
     protocol: isControlProtocol(value.protocol) ? value.protocol : legacyProtocol,
     osc: {
       address:
@@ -207,6 +211,17 @@ function parseControl(value: unknown, index: number, legacyProtocol: ControlProt
                 : (typeof midi.cc === "number" ? midi.cc : index) + 1,
           }
         : {}),
+    },
+    mqtt: {
+      topic:
+        typeof mqtt.topic === "string" && mqtt.topic.trim()
+          ? mqtt.topic
+          : defaultMqttMapping(value.type, index + 1).topic,
+      qos:
+        mqtt.qos === 0 || mqtt.qos === 1 || mqtt.qos === 2
+          ? mqtt.qos
+          : 0,
+      retain: typeof mqtt.retain === "boolean" ? mqtt.retain : false,
     },
     layout: parseControlLayout(value.layout, index),
   };
@@ -336,18 +351,54 @@ function parsePerformerIoConfig(value: unknown, output: OutputConfig): Performer
       );
   };
 
+  const parseMqttConnections = (): PerformerIoConfig["mqttConnections"] => {
+    if (!Array.isArray(value.mqttConnections)) {
+      return defaultPerformerIoConfig(output).mqttConnections;
+    }
+
+    return value.mqttConnections
+      .map((entry) => {
+        if (!isRecord(entry)) {
+          return null;
+        }
+
+        const name = typeof entry.name === "string" ? entry.name.trim() : "";
+        if (!name) {
+          return null;
+        }
+
+        return {
+          id:
+            typeof entry.id === "string" && entry.id.length > 0
+              ? entry.id
+              : crypto.randomUUID(),
+          name,
+          host: typeof entry.host === "string" ? entry.host : "localhost",
+          port: typeof entry.port === "number" ? entry.port : 1883,
+          protocol:
+            entry.protocol === "tcp" || entry.protocol === "ws" ? entry.protocol : "tcp",
+        };
+      })
+      .filter(
+        (connection): connection is PerformerIoConfig["mqttConnections"][number] =>
+          connection !== null,
+      );
+  };
+
   const performerIo: PerformerIoConfig = {
     oscSenders: parseOscSenders(),
     oscReceivers: parseOscReceivers(),
     midiOutputs: parseMidiOutputs(),
     midiInputs: parseMidiInputs(),
+    mqttConnections: parseMqttConnections(),
   };
 
   if (
     performerIo.oscSenders.length === 0 &&
     performerIo.oscReceivers.length === 0 &&
     performerIo.midiOutputs.length === 0 &&
-    performerIo.midiInputs.length === 0
+    performerIo.midiInputs.length === 0 &&
+    performerIo.mqttConnections.length === 0
   ) {
     return defaultPerformerIoConfig(output);
   }
@@ -379,6 +430,24 @@ function parseOutputConfig(value: unknown): OutputConfig {
       : typeof value.mqttSubscribeFilter === "string" && value.mqttSubscribeFilter.trim()
         ? [value.mqttSubscribeFilter]
         : defaults.mqttSubscribeTopics,
+    mqttMonitorHost:
+      typeof value.mqttMonitorHost === "string"
+        ? value.mqttMonitorHost
+        : typeof value.mqttComposerHost === "string"
+          ? value.mqttComposerHost
+          : defaults.mqttMonitorHost,
+    mqttMonitorPort:
+      typeof value.mqttMonitorPort === "number"
+        ? value.mqttMonitorPort
+        : typeof value.mqttComposerPort === "number"
+          ? value.mqttComposerPort
+          : defaults.mqttMonitorPort,
+    mqttMonitorProtocol:
+      value.mqttMonitorProtocol === "tcp" || value.mqttMonitorProtocol === "ws"
+        ? value.mqttMonitorProtocol
+        : value.mqttComposerProtocol === "tcp" || value.mqttComposerProtocol === "ws"
+          ? value.mqttComposerProtocol
+          : defaults.mqttMonitorProtocol,
     mqttComposerHost:
       typeof value.mqttComposerHost === "string"
         ? value.mqttComposerHost

@@ -8,7 +8,7 @@ import {
   sensorAxisKey,
 } from "./types";
 
-function scaleToMidi(value: number, min: number, max: number) {
+export function scaleSensorValueToMidi(value: number, min: number, max: number) {
   if (max === min) {
     return 0;
   }
@@ -52,7 +52,7 @@ export async function sendSensorAxisOutput(
           midiOutput.portName,
           mapping.midi.channel,
           mapping.midi.cc,
-          scaleToMidi(value, mapping.midi.min, mapping.midi.max),
+          scaleSensorValueToMidi(value, mapping.midi.min, mapping.midi.max),
         );
       } catch (error) {
         errors.push(error instanceof Error ? error.message : String(error));

@@ -29,8 +29,10 @@ import { listWebMidiOutputs, sendWebMidiRaw } from "./webMidi";
 import type { Control, PerformerIoConfig } from "../types";
 import {
   controlUsesMidiOutput,
+  controlUsesMqttOutput,
   controlUsesOscOutput,
   findMidiOutputEndpoint,
+  findMqttConnection,
   findOscSender,
 } from "../types";
 
@@ -273,7 +275,56 @@ export async function sendMidiRaw(
 function resolveControlEndpoints(control: Control, performerIo: PerformerIoConfig) {
   const oscSender = findOscSender(performerIo, control.oscSenderId);
   const midiOutput = findMidiOutputEndpoint(performerIo, control.midiOutputId);
-  return { oscSender, midiOutput };
+  const mqttConnection = findMqttConnection(performerIo, control.mqttConnectionId);
+  return { oscSender, midiOutput, mqttConnection };
+}
+
+async function sendMqttForControl(
+  connection: { host: string; port: number; protocol: MqttTransportProtocol },
+  topic: string,
+  payload: string,
+  qos: MqttQoS,
+  retain: boolean,
+) {
+  await sendMqttMessage(
+    connection.host,
+    connection.port,
+    connection.protocol,
+    topic,
+    payload,
+    qos,
+    retain,
+  );
+}
+
+async function sendMqttValue(
+  control: Control,
+  performerIo: PerformerIoConfig,
+  topic: string,
+  payload: string,
+  errors: string[],
+) {
+  if (!controlUsesMqttOutput(control)) {
+    return;
+  }
+
+  const { mqttConnection } = resolveControlEndpoints(control, performerIo);
+  if (!mqttConnection) {
+    errors.push("No MQTT broker assigned");
+    return;
+  }
+
+  try {
+    await sendMqttForControl(
+      mqttConnection,
+      topic,
+      payload,
+      control.mqtt.qos,
+      control.mqtt.retain,
+    );
+  } catch (error) {
+    errors.push(error instanceof Error ? error.message : String(error));
+  }
 }
 
 export async function sendSliderValue(
@@ -284,6 +335,14 @@ export async function sendSliderValue(
   const normalized = Math.min(1, Math.max(0, value));
   const { oscSender, midiOutput } = resolveControlEndpoints(control, performerIo);
   const errors: string[] = [];
+
+  await sendMqttValue(
+    control,
+    performerIo,
+    control.mqtt.topic,
+    String(normalized),
+    errors,
+  );
 
   if (controlUsesOscOutput(control)) {
     if (!oscSender) {
@@ -330,6 +389,23 @@ export async function sendPadValue(
   const ccY = control.midi.ccY ?? control.midi.cc + 1;
   const { oscSender, midiOutput } = resolveControlEndpoints(control, performerIo);
   const errors: string[] = [];
+
+  if (controlUsesMqttOutput(control)) {
+    await sendMqttValue(
+      control,
+      performerIo,
+      `${control.mqtt.topic}/x`,
+      String(normalizedX),
+      errors,
+    );
+    await sendMqttValue(
+      control,
+      performerIo,
+      `${control.mqtt.topic}/y`,
+      String(normalizedY),
+      errors,
+    );
+  }
 
   if (controlUsesOscOutput(control)) {
     if (!oscSender) {
@@ -382,6 +458,14 @@ export async function sendKeyboardNote(
   const { oscSender, midiOutput } = resolveControlEndpoints(control, performerIo);
   const errors: string[] = [];
 
+  await sendMqttValue(
+    control,
+    performerIo,
+    `${control.mqtt.topic}/${note}`,
+    pressed ? "1" : "0",
+    errors,
+  );
+
   if (controlUsesOscOutput(control)) {
     if (!oscSender) {
       errors.push("No OSC sender assigned");
@@ -428,6 +512,8 @@ export async function sendTabsValue(
   const { oscSender, midiOutput } = resolveControlEndpoints(control, performerIo);
   const errors: string[] = [];
 
+  await sendMqttValue(control, performerIo, control.mqtt.topic, String(index), errors);
+
   if (controlUsesOscOutput(control)) {
     if (!oscSender) {
       errors.push("No OSC sender assigned");
@@ -466,6 +552,8 @@ export async function sendButtonValue(
   const velocity = pressed ? 127 : 0;
   const { oscSender, midiOutput } = resolveControlEndpoints(control, performerIo);
   const errors: string[] = [];
+
+  await sendMqttValue(control, performerIo, control.mqtt.topic, String(value), errors);
 
   if (controlUsesOscOutput(control)) {
     if (!oscSender) {

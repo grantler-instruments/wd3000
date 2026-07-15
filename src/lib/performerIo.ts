@@ -68,10 +68,10 @@ export function clearRemovedEndpointReferences(
       control.oscReceiverId && removedIds.has(control.oscReceiverId)
         ? null
         : control.oscReceiverId,
-    midiInputId:
-      control.midiInputId && removedIds.has(control.midiInputId)
+    mqttConnectionId:
+      control.mqttConnectionId && removedIds.has(control.mqttConnectionId)
         ? null
-        : control.midiInputId,
+        : control.mqttConnectionId,
   }));
 }
 

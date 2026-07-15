@@ -1,7 +1,10 @@
 use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Mutex;
-use tauri::{AppHandle, Emitter, Manager, Runtime, State};
+use tauri::{AppHandle, Emitter, Runtime, State};
+
+#[cfg(mobile)]
+use tauri::Manager;
 
 #[cfg(target_os = "macos")]
 mod macos_lid;

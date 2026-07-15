@@ -41,13 +41,14 @@ import {
   isValidControlColor,
 } from "../types";
 
-type InspectorSection = "general" | "layout" | "osc" | "midi";
+type InspectorSection = "general" | "layout" | "osc" | "midi" | "mqtt";
 
 const SECTIONS: { id: InspectorSection; label: string }[] = [
   { id: "general", label: "General" },
   { id: "layout", label: "Layout" },
   { id: "osc", label: "OSC" },
   { id: "midi", label: "MIDI" },
+  { id: "mqtt", label: "MQTT" },
 ];
 
 function SectionIntro({ title, description }: { title: string; description: string }) {
@@ -176,11 +177,16 @@ function GeneralSection({ control }: { control: Control }) {
                   protocol === "midi" || protocol === "both"
                     ? (control.midiOutputId ?? performerIo.midiOutputs[0]?.id ?? null)
                     : null,
+                mqttConnectionId:
+                  protocol === "mqtt"
+                    ? (control.mqttConnectionId ?? performerIo.mqttConnections[0]?.id ?? null)
+                    : null,
               });
             }}
           >
             <MenuItem value="osc">OSC</MenuItem>
             <MenuItem value="midi">MIDI</MenuItem>
+            <MenuItem value="mqtt">MQTT</MenuItem>
             <MenuItem value="both">OSC + MIDI</MenuItem>
           </Select>
         </FormControl>
@@ -770,6 +776,123 @@ function MidiSection({ control }: { control: Control }) {
   );
 }
 
+function MqttSection({ control }: { control: Control }) {
+  const performerIo = useAppStore((state) => state.performerIo);
+  const updateControl = useAppStore((state) => state.updateControl);
+  const usesMqtt = control.protocol === "mqtt";
+
+  if (!usesMqtt) {
+    return (
+      <Stack spacing={2}>
+        <SectionIntro
+          title="MQTT"
+          description="Assign broker connections from I/O settings."
+        />
+        <UnusedSection message="This widget is not configured for MQTT output. Change output to MQTT in General." />
+      </Stack>
+    );
+  }
+
+  return (
+    <Stack spacing={2.5}>
+      <SectionIntro
+        title="MQTT"
+        description="Pick a broker and set the publish topic."
+      />
+
+      <FormControl fullWidth size="small">
+        <InputLabel id="control-mqtt-connection-label">Broker</InputLabel>
+        <Select
+          labelId="control-mqtt-connection-label"
+          label="Broker"
+          value={control.mqttConnectionId ?? ""}
+          onChange={(event) =>
+            updateControl(control.id, {
+              mqttConnectionId: event.target.value || null,
+            })
+          }
+        >
+          {performerIo.mqttConnections.length === 0 && (
+            <MenuItem value="" disabled>
+              Add brokers in I/O settings
+            </MenuItem>
+          )}
+          {performerIo.mqttConnections.map((connection) => (
+            <MenuItem key={connection.id} value={connection.id}>
+              {endpointLabel(
+                connection.name,
+                `${connection.protocol.toUpperCase()} ${connection.host}:${connection.port}`,
+              )}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <TextField
+        label="Topic"
+        size="small"
+        fullWidth
+        value={control.mqtt.topic}
+        onChange={(event) =>
+          updateControl(control.id, {
+            mqtt: { ...control.mqtt, topic: event.target.value },
+          })
+        }
+        slotProps={{
+          htmlInput: {
+            autoCapitalize: "off",
+            autoCorrect: "off",
+            spellCheck: "false",
+          },
+        }}
+      />
+
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+        <FormControl fullWidth size="small">
+          <InputLabel id="control-mqtt-qos-label">QoS</InputLabel>
+          <Select
+            labelId="control-mqtt-qos-label"
+            label="QoS"
+            value={control.mqtt.qos}
+            onChange={(event) =>
+              updateControl(control.id, {
+                mqtt: {
+                  ...control.mqtt,
+                  qos: Number(event.target.value) as Control["mqtt"]["qos"],
+                },
+              })
+            }
+          >
+            <MenuItem value={0}>0</MenuItem>
+            <MenuItem value={1}>1</MenuItem>
+            <MenuItem value={2}>2</MenuItem>
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth size="small">
+          <InputLabel id="control-mqtt-retain-label">Retain</InputLabel>
+          <Select
+            labelId="control-mqtt-retain-label"
+            label="Retain"
+            value={control.mqtt.retain ? "yes" : "no"}
+            onChange={(event) =>
+              updateControl(control.id, {
+                mqtt: {
+                  ...control.mqtt,
+                  retain: event.target.value === "yes",
+                },
+              })
+            }
+          >
+            <MenuItem value="no">No</MenuItem>
+            <MenuItem value="yes">Yes</MenuItem>
+          </Select>
+        </FormControl>
+      </Stack>
+    </Stack>
+  );
+}
+
 function ControlInspector({ control }: { control: Control }) {
   const [section, setSection] = useState<InspectorSection>("general");
 
@@ -794,6 +917,7 @@ function ControlInspector({ control }: { control: Control }) {
         {section === "layout" && <LayoutSection control={control} />}
         {section === "osc" && <OscSection control={control} />}
         {section === "midi" && <MidiSection control={control} />}
+        {section === "mqtt" && <MqttSection control={control} />}
       </Box>
     </Box>
   );
