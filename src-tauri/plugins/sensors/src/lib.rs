@@ -51,19 +51,28 @@ impl<R: Runtime> Sensors<R> {
         }
     }
 
-    pub fn start_watch(&self, app: AppHandle<R>, sensor_ids: Vec<String>) -> Result<(), String> {
+    pub fn start_watch(
+        &self,
+        app: AppHandle<R>,
+        sensor_ids: Vec<String>,
+        channel: Option<serde_json::Value>,
+    ) -> Result<(), String> {
         #[cfg(mobile)]
         {
             let _ = app;
+            let mut payload = serde_json::json!({ "sensorIds": sensor_ids });
+            if let Some(channel) = channel {
+                payload["channel"] = channel;
+            }
             return self
                 .mobile_plugin_handle
-                .run_mobile_plugin("startWatch", serde_json::json!({ "sensorIds": sensor_ids }))
+                .run_mobile_plugin("startWatch", payload)
                 .map_err(|error| error.to_string());
         }
 
         #[cfg(not(mobile))]
         {
-            let _ = (self, app, sensor_ids);
+            let _ = (self, app, sensor_ids, channel);
             Err("Mobile sensors are not available on this platform.".into())
         }
     }

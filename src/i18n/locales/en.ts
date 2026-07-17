@@ -362,7 +362,7 @@ const en = {
     nativeDesktopIntro:
       "Native sensors from the desktop app. On supported MacBooks this includes the built-in lid angle sensor.",
     nativeMobileIntro:
-      "Native sensors from the mobile app via the Tauri sensors plugin (accelerometer, gyroscope, and more).",
+      "Native device sensors (motion, barometer, proximity, pedometer, and more when available).",
     noNativeSensorsDesktop:
       "No native sensors were found on this machine. Lid angle is only available on supported MacBooks.",
     deviceOrientation: "Device orientation",

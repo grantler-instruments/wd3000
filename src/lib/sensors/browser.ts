@@ -45,21 +45,33 @@ export function useBrowserSensors(enabled: boolean) {
       return false;
     }
 
-    const requester = (
+    const orientationRequester = (
       DeviceOrientationEvent as typeof DeviceOrientationEvent & {
         requestPermission?: () => Promise<"granted" | "denied">;
       }
     ).requestPermission;
+    const motionRequester = (
+      DeviceMotionEvent as typeof DeviceMotionEvent & {
+        requestPermission?: () => Promise<"granted" | "denied">;
+      }
+    ).requestPermission;
 
-    if (typeof requester !== "function") {
+    if (typeof orientationRequester !== "function" && typeof motionRequester !== "function") {
       setPermission("granted");
       return true;
     }
 
     try {
-      const result = await requester();
-      setPermission(result);
-      return result === "granted";
+      const results: Array<"granted" | "denied"> = [];
+      if (typeof orientationRequester === "function") {
+        results.push(await orientationRequester());
+      }
+      if (typeof motionRequester === "function") {
+        results.push(await motionRequester());
+      }
+      const granted = results.some((result) => result === "granted");
+      setPermission(granted ? "granted" : "denied");
+      return granted;
     } catch {
       setPermission("denied");
       return false;

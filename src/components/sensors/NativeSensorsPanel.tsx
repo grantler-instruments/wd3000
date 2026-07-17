@@ -70,6 +70,7 @@ export function NativeSensorsPanel() {
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
+    let cancelled = false;
 
     void listenNativeSensorReadings((reading) => {
       if (!activeSensorIdsRef.current.includes(reading.sensorId)) {
@@ -86,19 +87,32 @@ export function NativeSensorsPanel() {
         sensorMappingsRef.current,
         reading,
       );
-    }).then((handler) => {
-      unlisten = handler;
-    });
+    })
+      .then((handler) => {
+        if (cancelled) {
+          handler();
+          return;
+        }
+        unlisten = handler;
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setLastError(error instanceof Error ? error.message : String(error));
+        }
+      });
 
     return () => {
+      cancelled = true;
       unlisten?.();
     };
-  }, []);
+  }, [setLastError]);
 
   const applySensorWatch = useCallback(async (nextIds: string[]) => {
     // Update the ref before native watch starts so early readings are not dropped.
     activeSensorIdsRef.current = nextIds;
     setActiveSensorIds(nextIds);
+    // Always stop first so Core Motion is restarted cleanly; start creates a
+    // fresh Channel because stop ends the previous one.
     await stopNativeSensorWatch();
     if (nextIds.length > 0) {
       await startNativeSensorWatch(nextIds);

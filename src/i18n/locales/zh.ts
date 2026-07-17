@@ -358,7 +358,7 @@ const zh: TranslationSchema = {
     nativeDesktopIntro:
       "来自桌面应用的原生传感器。在支持的 MacBook 上包括内置屏幕角度传感器。",
     nativeMobileIntro:
-      "通过 Tauri 传感器插件提供的移动应用原生传感器（加速度计、陀螺仪等）。",
+      "设备原生传感器（运动、气压、接近、计步等，以设备支持为准）。",
     noNativeSensorsDesktop:
       "此计算机未找到原生传感器。屏幕角度传感器仅在支持的 MacBook 上可用。",
     deviceOrientation: "设备方向",

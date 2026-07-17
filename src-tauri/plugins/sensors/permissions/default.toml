@@ -1,4 +1,10 @@
 [[permission]]
 identifier = "default"
-description = "Allows sensor discovery and watch commands."
-commands.allow = ["list_sensors", "start_watch", "stop_watch"]
+description = "Allows sensor discovery, watch commands, and plugin event listeners."
+commands.allow = [
+  "list_sensors",
+  "start_watch",
+  "stop_watch",
+  "register_listener",
+  "remove_listener",
+]

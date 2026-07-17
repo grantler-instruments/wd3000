@@ -66,12 +66,16 @@ export function BrowserSensorsPanel() {
 
   useBrowserSensorOutput(active, performerIo, sensorMappings, browserReadings);
 
+  const requiresGesturePermission =
+    (typeof DeviceOrientationEvent !== "undefined" &&
+      "requestPermission" in DeviceOrientationEvent) ||
+    (typeof DeviceMotionEvent !== "undefined" &&
+      "requestPermission" in DeviceMotionEvent);
+
   const needsPermission =
     permission === "unknown" ||
     permission === "denied" ||
-    (typeof DeviceOrientationEvent !== "undefined" &&
-      "requestPermission" in DeviceOrientationEvent &&
-      permission !== "granted");
+    (requiresGesturePermission && permission !== "granted");
 
   return (
     <Stack spacing={3} sx={{ maxWidth: 720 }}>

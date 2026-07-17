@@ -1,4 +1,12 @@
-const COMMANDS: &[&str] = &["list_sensors", "start_watch", "stop_watch"];
+// register_listener / remove_listener are required for addPluginListener() so
+// mobile trigger("sensor-reading") events can reach the frontend.
+const COMMANDS: &[&str] = &[
+    "list_sensors",
+    "start_watch",
+    "stop_watch",
+    "register_listener",
+    "remove_listener",
+];
 
 fn main() {
     tauri_plugin::Builder::new(COMMANDS)

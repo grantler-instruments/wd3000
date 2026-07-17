@@ -36,6 +36,58 @@ Denies the list_sensors command without any pre-configured scope.
 <tr>
 <td>
 
+`sensors:allow-register-listener`
+
+</td>
+<td>
+
+Enables the register_listener command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`sensors:deny-register-listener`
+
+</td>
+<td>
+
+Denies the register_listener command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`sensors:allow-remove-listener`
+
+</td>
+<td>
+
+Enables the remove_listener command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`sensors:deny-remove-listener`
+
+</td>
+<td>
+
+Denies the remove_listener command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `sensors:allow-start-watch`
 
 </td>
@@ -93,7 +145,7 @@ Denies the stop_watch command without any pre-configured scope.
 </td>
 <td>
 
-Allows sensor discovery and watch commands.
+Allows sensor discovery, watch commands, and plugin event listeners.
 
 </td>
 </tr>

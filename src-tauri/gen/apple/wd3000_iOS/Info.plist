@@ -19,7 +19,7 @@
 	<key>CFBundleVersion</key>
 	<string>0.0.1</string>
 	<key>NSMotionUsageDescription</key>
-	<string>WD3000 uses motion sensors for performer input mapping.</string>
+	<string>WD3000 uses motion, fitness, and barometer sensors for performer input mapping.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>WD3000 uses your local network to send and receive OSC, Art-Net, TUIO, and network MIDI messages.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>

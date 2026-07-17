@@ -1,7 +1,8 @@
 use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Mutex;
-use tauri::{AppHandle, Emitter, Runtime, State};
+use tauri::ipc::{Channel, JavaScriptChannelId};
+use tauri::{AppHandle, Emitter, Runtime, State, Webview};
 
 #[cfg(mobile)]
 use tauri::Manager;
@@ -38,6 +39,8 @@ struct SensorsInner {
     lid_watcher: Option<macos_lid::LidAngleWatcher>,
     #[cfg(mobile)]
     mobile_watching: bool,
+    #[cfg(mobile)]
+    mobile_channel: Option<Channel<serde_json::Value>>,
 }
 
 impl SensorsState {
@@ -48,6 +51,8 @@ impl SensorsState {
                 lid_watcher: None,
                 #[cfg(mobile)]
                 mobile_watching: false,
+                #[cfg(mobile)]
+                mobile_channel: None,
             }),
         }
     }
@@ -84,8 +89,12 @@ pub fn list_sensors<R: Runtime>(app: AppHandle<R>) -> Result<Vec<SensorDescripto
 #[tauri::command]
 pub fn start_sensor_watch<R: Runtime>(
     app: AppHandle<R>,
+    webview: Webview<R>,
     state: State<'_, SensorsState>,
     sensor_ids: Vec<String>,
+    // Mobile: Channel from the webview, forwarded to the native plugin so readings
+    // stream back without plugin:sensors|* ACL on the frontend.
+    channel: Option<JavaScriptChannelId>,
 ) -> Result<(), String> {
     if sensor_ids.is_empty() {
         return Err("Select at least one sensor.".into());
@@ -96,6 +105,7 @@ pub fn start_sensor_watch<R: Runtime>(
 
     #[cfg(target_os = "macos")]
     {
+        let _ = (&channel, &webview);
         if sensor_ids.iter().any(|id| id == "lid_angle") {
             if inner.lid_watcher.is_none() {
                 inner.lid_watcher = Some(macos_lid::LidAngleWatcher::start(app.clone())?);
@@ -116,10 +126,25 @@ pub fn start_sensor_watch<R: Runtime>(
             let plugin = app
                 .try_state::<tauri_plugin_sensors::Sensors<R>>()
                 .ok_or("Sensors plugin is not available")?;
-            plugin.start_watch(app.clone(), mobile_ids)?;
+            // channel_on registers the callback in the mobile CHANNELS map so the
+            // Swift/Kotlin plugin can stream readings back to the webview.
+            let rust_channel = channel.map(|id| id.channel_on::<R, serde_json::Value>(webview));
+            let channel_value = match &rust_channel {
+                Some(ch) => Some(serde_json::to_value(ch).map_err(|e| e.to_string())?),
+                None => None,
+            };
+            plugin.start_watch(app.clone(), mobile_ids, channel_value)?;
+            // Keep the Channel alive while watching. Dropping it sends an "end"
+            // event that permanently disables the JS callback for that Channel.
+            inner.mobile_channel = rust_channel;
             inner.mobile_watching = true;
             started = true;
         }
+    }
+
+    #[cfg(not(any(mobile, target_os = "macos")))]
+    {
+        let _ = (app, webview, channel);
     }
 
     if !started {
@@ -150,6 +175,7 @@ pub fn stop_sensor_watch<R: Runtime>(
                 plugin.stop_watch()?;
             }
             inner.mobile_watching = false;
+            inner.mobile_channel = None;
         }
     }
 

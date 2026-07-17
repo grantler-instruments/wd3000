@@ -367,7 +367,7 @@ const de: TranslationSchema = {
     nativeDesktopIntro:
       "Native Sensoren aus der Desktop-App. Auf unterstützten MacBooks inklusive des Deckelwinkel-Sensors.",
     nativeMobileIntro:
-      "Native Sensoren aus der Mobile-App über das Tauri-Sensor-Plugin (Beschleunigungssensor, Gyroskop und mehr).",
+      "Native Gerätesensoren (Bewegung, Barometer, Nähe, Pedometer und weitere, sofern verfügbar).",
     noNativeSensorsDesktop:
       "Auf diesem Rechner wurden keine nativen Sensoren gefunden. Deckelwinkel ist nur auf unterstützten MacBooks verfügbar.",
     deviceOrientation: "Geräteorientierung",

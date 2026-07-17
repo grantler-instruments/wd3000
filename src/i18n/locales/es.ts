@@ -367,7 +367,7 @@ const es: TranslationSchema = {
     nativeDesktopIntro:
       "Sensores nativos de la app de escritorio. En MacBooks compatibles incluye el sensor de ángulo de tapa.",
     nativeMobileIntro:
-      "Sensores nativos de la app móvil mediante el plugin Tauri (acelerómetro, giroscopio y más).",
+      "Sensores nativos del dispositivo (movimiento, barómetro, proximidad, podómetro y más si están disponibles).",
     noNativeSensorsDesktop:
       "No se encontraron sensores nativos en este equipo. El ángulo de tapa solo está disponible en MacBooks compatibles.",
     deviceOrientation: "Orientación del dispositivo",

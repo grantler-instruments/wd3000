@@ -110,14 +110,18 @@ export function SensorCard({
       </AccordionSummary>
 
       <AccordionDetails>
-        <Stack spacing={1.5}>
-          {description ? (
-            <Typography variant="body2" color="text.secondary">
-              {description}
-            </Typography>
-          ) : null}
-          <Stack spacing={0.75}>{children}</Stack>
-        </Stack>
+        {/* Mount editors only when expanded — listing many sensors with full
+            mapping forms for every axis freezes mobile WebViews. */}
+        {expanded ? (
+          <Stack spacing={1.5}>
+            {description ? (
+              <Typography variant="body2" color="text.secondary">
+                {description}
+              </Typography>
+            ) : null}
+            <Stack spacing={0.75}>{children}</Stack>
+          </Stack>
+        ) : null}
       </AccordionDetails>
     </Accordion>
   );

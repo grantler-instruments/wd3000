@@ -53,7 +53,7 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         CFBundleShortVersionString: 0.0.1
         CFBundleVersion: "0.0.1"
-        NSMotionUsageDescription: WD3000 uses motion sensors for performer input mapping.
+        NSMotionUsageDescription: WD3000 uses motion, fitness, and barometer sensors for performer input mapping.
         NSLocalNetworkUsageDescription: WD3000 uses your local network to send and receive OSC, Art-Net, TUIO, and network MIDI messages.
         NSBluetoothAlwaysUsageDescription: WD3000 uses Bluetooth to connect to MIDI controllers and interfaces.
     entitlements:

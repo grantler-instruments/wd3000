@@ -8,6 +8,9 @@
     "opener:default",
     "osc-midi-default",
     "sensors-default",
-    "sensors:default"
+    "sensors:default",
+    "sensors:allow-start-watch",
+    "sensors:allow-stop-watch",
+    "sensors:allow-list-sensors"
   ]
 }

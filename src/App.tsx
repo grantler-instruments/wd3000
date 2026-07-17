@@ -90,7 +90,7 @@ function App() {
 
         <Snackbar
           open={Boolean(lastError)}
-          autoHideDuration={5000}
+          autoHideDuration={20000}
           onClose={() => setLastError(null)}
           anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         >
@@ -129,7 +129,7 @@ function App() {
 
       <Snackbar
         open={Boolean(lastError)}
-        autoHideDuration={5000}
+        autoHideDuration={20000}
         onClose={() => setLastError(null)}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >

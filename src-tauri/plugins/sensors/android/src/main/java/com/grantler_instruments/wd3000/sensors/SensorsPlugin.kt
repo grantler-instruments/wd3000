@@ -8,6 +8,7 @@ import android.hardware.SensorManager
 import app.tauri.annotation.Command
 import app.tauri.annotation.InvokeArg
 import app.tauri.annotation.TauriPlugin
+import app.tauri.plugin.Channel
 import app.tauri.plugin.Invoke
 import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
@@ -15,6 +16,7 @@ import app.tauri.plugin.Plugin
 @InvokeArg
 class StartWatchArgs {
     lateinit var sensorIds: Array<String>
+    var channel: Channel? = null
 }
 
 @TauriPlugin
@@ -23,6 +25,7 @@ class SensorsPlugin(private val activity: android.app.Activity) : Plugin(activit
         activity.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val listeners = mutableMapOf<String, SensorEventListener>()
     private val activeSensors = mutableMapOf<String, Sensor>()
+    private var readingChannel: Channel? = null
 
     private val catalog = listOf(
         SensorCatalogEntry(
@@ -103,7 +106,7 @@ class SensorsPlugin(private val activity: android.app.Activity) : Plugin(activit
     fun listSensors(invoke: Invoke) {
         try {
             val available = catalog.mapNotNull { entry ->
-                val sensor = sensorManager.getDefaultSensor(entry.type) ?: return@mapNotNull null
+                sensorManager.getDefaultSensor(entry.type) ?: return@mapNotNull null
                 JSObject().apply {
                     put("id", entry.id)
                     put("label", entry.label)
@@ -124,6 +127,7 @@ class SensorsPlugin(private val activity: android.app.Activity) : Plugin(activit
         try {
             val args = invoke.parseArgs(StartWatchArgs::class.java)
             stopAllListeners()
+            readingChannel = args.channel
 
             for (sensorId in args.sensorIds) {
                 val entry = catalog.firstOrNull { it.id == sensorId }
@@ -150,8 +154,7 @@ class SensorsPlugin(private val activity: android.app.Activity) : Plugin(activit
                             }
                         }
 
-                        trigger(
-                            "sensor-reading",
+                        readingChannel?.send(
                             JSObject().apply {
                                 put("sensorId", sensorId)
                                 put("timestamp", System.currentTimeMillis())
@@ -196,6 +199,7 @@ class SensorsPlugin(private val activity: android.app.Activity) : Plugin(activit
         }
         listeners.clear()
         activeSensors.clear()
+        readingChannel = null
     }
 
     private data class SensorCatalogEntry(
