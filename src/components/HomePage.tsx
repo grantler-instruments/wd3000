@@ -146,15 +146,7 @@ export function HomePage() {
               icon={<BugReportIcon fontSize="small" color="action" />}
               title={t("home.debugger")}
             >
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: `repeat(${DEBUGGER_ITEMS.length}, minmax(0, 1fr))`,
-                  gap: 1.5,
-                  overflowX: "auto",
-                  pb: 0.5,
-                }}
-              >
+              <HomeNavGrid columns={{ xs: 1, sm: 5 }}>
                 {DEBUGGER_ITEMS.map((item) => (
                   <HomeNavButton
                     key={item.value}
@@ -162,7 +154,7 @@ export function HomePage() {
                     onClick={() => setActiveView("debugger", item.value)}
                   />
                 ))}
-              </Box>
+              </HomeNavGrid>
             </HomeSection>
 
             <HomeSection
