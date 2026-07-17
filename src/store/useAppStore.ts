@@ -1,5 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import i18n from "../i18n";
+import {
+  DEFAULT_LANGUAGE,
+  isAppLanguage,
+  type AppLanguage,
+} from "../i18n/languages";
 import { PersistedAppConfig } from "../lib/config";
 import {
   defaultSensorAxisMapping,
@@ -91,7 +97,9 @@ interface AppState {
   sensorMappings: Record<string, SensorAxisMapping>;
   mediapipeConfig: MediaPipeConfig;
   mediapipeMappings: Record<string, MediaPipeLandmarkMapping>;
+  language: AppLanguage;
   lastError: string | null;
+  setLanguage: (language: AppLanguage) => void;
   setMode: (mode: AppMode) => void;
   setActiveView: (
     view: DashboardView,
@@ -257,7 +265,12 @@ export const useAppStore = create<AppState>()(
       sensorMappings: {},
       mediapipeConfig: defaultMediaPipeConfig(),
       mediapipeMappings: {},
+      language: DEFAULT_LANGUAGE,
       lastError: null,
+      setLanguage: (language) => {
+        void i18n.changeLanguage(language);
+        set({ language });
+      },
       setMode: (mode) => set({ mode }),
       setActiveView: (view, subView) =>
         set((state) => {
@@ -539,7 +552,11 @@ export const useAppStore = create<AppState>()(
       addOscSender: (patch) =>
         set((state) => {
           const sender = createOscSender({
-            name: patch?.name ?? `OSC ${state.performerIo.oscSenders.length + 1}`,
+            name:
+              patch?.name ??
+              i18n.t("io.defaultOscSender", {
+                n: state.performerIo.oscSenders.length + 1,
+              }),
             ...patch,
           });
 
@@ -578,7 +595,11 @@ export const useAppStore = create<AppState>()(
       addOscReceiver: (patch) =>
         set((state) => {
           const receiver = createOscReceiver({
-            name: patch?.name ?? `OSC In ${state.performerIo.oscReceivers.length + 1}`,
+            name:
+              patch?.name ??
+              i18n.t("io.defaultOscReceiver", {
+                n: state.performerIo.oscReceivers.length + 1,
+              }),
             ...patch,
           });
 
@@ -611,7 +632,11 @@ export const useAppStore = create<AppState>()(
       addMidiOutput: (patch) =>
         set((state) => {
           const endpoint = createMidiOutputEndpoint({
-            name: patch?.name ?? `MIDI Out ${state.performerIo.midiOutputs.length + 1}`,
+            name:
+              patch?.name ??
+              i18n.t("io.defaultMidiOutput", {
+                n: state.performerIo.midiOutputs.length + 1,
+              }),
             portName: patch?.portName ?? state.midiPorts[0] ?? "",
             ...patch,
           });
@@ -651,7 +676,11 @@ export const useAppStore = create<AppState>()(
       addMidiInput: (patch) =>
         set((state) => {
           const endpoint = createMidiInputEndpoint({
-            name: patch?.name ?? `MIDI In ${state.performerIo.midiInputs.length + 1}`,
+            name:
+              patch?.name ??
+              i18n.t("io.defaultMidiInput", {
+                n: state.performerIo.midiInputs.length + 1,
+              }),
             portName: patch?.portName ?? state.midiInputPorts[0] ?? "",
             ...patch,
           });
@@ -684,7 +713,11 @@ export const useAppStore = create<AppState>()(
         set((state) => {
           const output = state.output;
           const connection = createMqttConnection({
-            name: patch?.name ?? `MQTT ${state.performerIo.mqttConnections.length + 1}`,
+            name:
+              patch?.name ??
+              i18n.t("io.defaultMqtt", {
+                n: state.performerIo.mqttConnections.length + 1,
+              }),
             host: patch?.host ?? output.mqttComposerHost,
             port: patch?.port ?? output.mqttComposerPort,
             protocol: patch?.protocol ?? output.mqttComposerProtocol,
@@ -909,7 +942,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "wd3000-layout",
-      version: 10,
+      version: 11,
       migrate: (persistedState, version) => {
         const state = persistedState as {
           controls?: Array<
@@ -926,6 +959,7 @@ export const useAppStore = create<AppState>()(
           sensorMappings?: Record<string, SensorAxisMapping>;
           mediapipeConfig?: Partial<MediaPipeConfig>;
           mediapipeMappings?: Record<string, MediaPipeLandmarkMapping>;
+          language?: AppLanguage;
         };
 
         const legacyProtocol = state.output?.protocol ?? "osc";
@@ -1051,6 +1085,7 @@ export const useAppStore = create<AppState>()(
           sensorMappings,
           mediapipeConfig,
           mediapipeMappings,
+          language: isAppLanguage(state.language) ? state.language : DEFAULT_LANGUAGE,
           layoutSettings: {
             gridSize:
               typeof state.layoutSettings?.gridSize === "number"
@@ -1070,12 +1105,16 @@ export const useAppStore = create<AppState>()(
             | "sensorMappings"
             | "mediapipeConfig"
             | "mediapipeMappings"
+            | "language"
           >
         >;
 
         return {
           ...currentState,
           ...persisted,
+          language: isAppLanguage(persisted.language)
+            ? persisted.language
+            : currentState.language,
           output: normalizeOutputConfig(persisted.output),
           performerIo: normalizePerformerIoConfig(persisted.performerIo, persisted.output),
           mode: "edit",
@@ -1092,9 +1131,13 @@ export const useAppStore = create<AppState>()(
         sensorMappings: state.sensorMappings,
         mediapipeConfig: state.mediapipeConfig,
         mediapipeMappings: state.mediapipeMappings,
+        language: state.language,
       }),
-      onRehydrateStorage: () => () => {
+      onRehydrateStorage: () => (state) => {
         clearPerformerHistory();
+        if (state && isAppLanguage(state.language)) {
+          void i18n.changeLanguage(state.language);
+        }
       },
     },
   ),

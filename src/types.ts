@@ -1,3 +1,5 @@
+import i18n from "./i18n";
+
 export type ControlType = "button" | "slider" | "keyboard" | "pad" | "tabs";
 
 export const CONTROL_WIDGET_TYPES = [
@@ -11,15 +13,15 @@ export const CONTROL_WIDGET_TYPES = [
 export function controlTypeLabel(type: ControlType): string {
   switch (type) {
     case "button":
-      return "Button";
+      return i18n.t("controlTypes.button");
     case "slider":
-      return "Slider";
+      return i18n.t("controlTypes.slider");
     case "keyboard":
-      return "Keyboard";
+      return i18n.t("controlTypes.keyboard");
     case "pad":
-      return "2D pad";
+      return i18n.t("controlTypes.pad");
     case "tabs":
-      return "Tabs";
+      return i18n.t("controlTypes.tabs");
   }
 }
 
@@ -231,8 +233,8 @@ export function tabPanelContentSize(
 
 export function createDefaultTabs(): ControlTab[] {
   return [
-    { id: crypto.randomUUID(), label: "Tab 1" },
-    { id: crypto.randomUUID(), label: "Tab 2" },
+    { id: crypto.randomUUID(), label: i18n.t("control.tabN", { n: 1 }) },
+    { id: crypto.randomUUID(), label: i18n.t("control.tabN", { n: 2 }) },
   ];
 }
 
@@ -407,17 +409,17 @@ export function createMidiInputEndpoint(
 export function defaultPerformerIoConfig(output?: OutputConfig): PerformerIoConfig {
   const connection = output ?? defaultOutputConfig();
   const oscSender = createOscSender({
-    name: "OSC 1",
+    name: i18n.t("io.defaultOscSender", { n: 1 }),
     host: connection.oscHost,
     port: connection.oscPort,
   });
   const oscReceiver = createOscReceiver({
-    name: "OSC In 1",
+    name: i18n.t("io.defaultOscReceiver", { n: 1 }),
     port: connection.oscListenPort,
   });
 
   const mqttConnection = createMqttConnection({
-    name: "MQTT 1",
+    name: i18n.t("io.defaultMqtt", { n: 1 }),
     host: connection.mqttComposerHost,
     port: connection.mqttComposerPort,
     protocol: connection.mqttComposerProtocol,
@@ -429,7 +431,7 @@ export function defaultPerformerIoConfig(output?: OutputConfig): PerformerIoConf
     midiOutputs: connection.midiPortName
       ? [
           createMidiOutputEndpoint({
-            name: "MIDI Out 1",
+            name: i18n.t("io.defaultMidiOutput", { n: 1 }),
             portName: connection.midiPortName,
           }),
         ]
@@ -437,7 +439,7 @@ export function defaultPerformerIoConfig(output?: OutputConfig): PerformerIoConf
     midiInputs: connection.midiInputPortName
       ? [
           createMidiInputEndpoint({
-            name: "MIDI In 1",
+            name: i18n.t("io.defaultMidiInput", { n: 1 }),
             portName: connection.midiInputPortName,
           }),
         ]
@@ -716,15 +718,15 @@ export function isBlackKey(note: number): boolean {
 function controlLabel(type: ControlType, index: number): string {
   switch (type) {
     case "button":
-      return `Button ${index}`;
+      return i18n.t("controlTypes.buttonN", { n: index });
     case "slider":
-      return `Slider ${index}`;
+      return i18n.t("controlTypes.sliderN", { n: index });
     case "keyboard":
-      return `Keyboard ${index}`;
+      return i18n.t("controlTypes.keyboardN", { n: index });
     case "pad":
-      return `Pad ${index}`;
+      return i18n.t("controlTypes.padN", { n: index });
     case "tabs":
-      return `Tabs ${index}`;
+      return i18n.t("controlTypes.tabsN", { n: index });
   }
 }
 
@@ -881,12 +883,12 @@ export function controlMappingLabel(
 export function controlProtocolLabel(protocol: ControlProtocol): string {
   switch (protocol) {
     case "osc":
-      return "OSC";
+      return i18n.t("protocols.osc");
     case "midi":
-      return "MIDI";
+      return i18n.t("protocols.midi");
     case "mqtt":
-      return "MQTT";
+      return i18n.t("protocols.mqtt");
     case "both":
-      return "OSC + MIDI";
+      return i18n.t("protocols.both");
   }
 }

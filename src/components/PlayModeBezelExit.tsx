@@ -1,5 +1,6 @@
 import { Box } from "@mui/material";
 import { useCallback, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getAppPlatform } from "../lib/platform";
 
 const HOT_ZONE_SIZE = 56;
@@ -12,6 +13,7 @@ interface PlayModeBezelExitProps {
 }
 
 export function PlayModeBezelExit({ onExit }: PlayModeBezelExitProps) {
+  const { t } = useTranslation();
   const origin = useRef<{ x: number; y: number } | null>(null);
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number } | null>(null);
 
@@ -74,7 +76,7 @@ export function PlayModeBezelExit({ onExit }: PlayModeBezelExitProps) {
 
   return (
     <Box
-      aria-label="Swipe down-left from the corner to exit run mode"
+      aria-label={t("control.swipeExit")}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}

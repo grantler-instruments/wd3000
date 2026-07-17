@@ -1,4 +1,5 @@
 import { Divider, Menu } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { formatShortcutKey } from "../lib/platform";
 import { CONTROL_WIDGET_TYPES, ControlType, controlTypeLabel } from "../types";
 import { ShortcutMenuItem } from "./ShortcutMenuItem";
@@ -24,6 +25,7 @@ export function AddWidgetMenu({
   anchorEl = null,
   anchorPosition,
 }: AddWidgetMenuProps) {
+  const { t } = useTranslation();
   const usePosition = anchorPosition !== undefined;
 
   return (
@@ -40,7 +42,7 @@ export function AddWidgetMenu({
       {canPaste && onPaste ? (
         <>
           <ShortcutMenuItem
-            label="Paste"
+            label={t("common.paste")}
             shortcut={formatShortcutKey("v")}
             onClick={() => {
               onPaste();

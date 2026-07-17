@@ -6,6 +6,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useBrowserSensors } from "../../lib/sensors/browser";
 import { useBrowserSensorOutput } from "../../lib/sensors/osc";
 import { useAppStore } from "../../store/useAppStore";
@@ -16,6 +17,7 @@ const ORIENTATION_SENSOR_ID = "device_orientation";
 const MOTION_SENSOR_ID = "device_motion";
 
 export function BrowserSensorsPanel() {
+  const { t } = useTranslation();
   const performerIo = useAppStore((state) => state.performerIo);
   const sensorMappings = useAppStore((state) => state.sensorMappings);
   const {
@@ -75,9 +77,7 @@ export function BrowserSensorsPanel() {
     <Stack spacing={3} sx={{ maxWidth: 720 }}>
       <Box>
         <Typography variant="body2" color="text.secondary">
-          Uses Web APIs available in the current browser. On phones and tablets this
-          typically includes device orientation and motion; on desktop browsers support
-          varies.
+          {t("sensors.browserWebApisIntro")}
         </Typography>
       </Box>
 
@@ -86,26 +86,24 @@ export function BrowserSensorsPanel() {
           severity={permission === "denied" ? "warning" : "info"}
           action={
             <Button color="inherit" size="small" onClick={() => void requestPermission()}>
-              Enable
+              {t("common.enable")}
             </Button>
           }
         >
           {permission === "denied"
-            ? "Sensor permission was denied. Enable it in browser settings to continue."
-            : "This browser may require permission before motion and orientation sensors work."}
+            ? t("sensors.permissionDenied")
+            : t("sensors.browserIntro")}
         </Alert>
       ) : null}
 
       {!support.orientation && !support.motion ? (
-        <Alert severity="info">
-          No motion or orientation APIs are available in this browser.
-        </Alert>
+        <Alert severity="info">{t("sensors.noBrowserSensors")}</Alert>
       ) : null}
 
       {support.orientation ? (
         <SensorCard
-          title="Device orientation"
-          description="Alpha, beta, and gamma angles relative to the device frame."
+          title={t("sensors.deviceOrientation")}
+          description={t("sensors.deviceOrientationDescription")}
         >
           <SensorAxisMappingEditor
             sensorId={ORIENTATION_SENSOR_ID}
@@ -135,11 +133,11 @@ export function BrowserSensorsPanel() {
 
       {support.motion ? (
         <SensorCard
-          title="Device motion"
-          description="Linear acceleration and rotation rate from the device IMU."
+          title={t("sensors.deviceMotion")}
+          description={t("sensors.deviceMotionDescription")}
         >
           <Typography variant="caption" color="text.secondary">
-            Acceleration (m/s²)
+            {t("sensors.acceleration")}
           </Typography>
           <SensorAxisMappingEditor
             sensorId={MOTION_SENSOR_ID}
@@ -157,7 +155,7 @@ export function BrowserSensorsPanel() {
             value={motion.acceleration.z}
           />
           <Typography variant="caption" color="text.secondary" sx={{ pt: 1 }}>
-            Including gravity (m/s²)
+            {t("sensors.includingGravity")}
           </Typography>
           <SensorAxisMappingEditor
             sensorId={MOTION_SENSOR_ID}
@@ -175,7 +173,7 @@ export function BrowserSensorsPanel() {
             value={motion.accelerationIncludingGravity.z}
           />
           <Typography variant="caption" color="text.secondary" sx={{ pt: 1 }}>
-            Rotation rate (°/s)
+            {t("sensors.rotationRate")}
           </Typography>
           <SensorAxisMappingEditor
             sensorId={MOTION_SENSOR_ID}
@@ -197,7 +195,7 @@ export function BrowserSensorsPanel() {
 
       {active ? (
         <Typography variant="caption" color="text.secondary">
-          Live readings are updating from the browser.
+          {t("sensors.liveUpdatingBrowser")}
         </Typography>
       ) : null}
     </Stack>

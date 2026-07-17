@@ -13,7 +13,9 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import type { TFunction } from "i18next";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   clearDebugLogFiltered,
   isMqttDebugEntry,
@@ -61,34 +63,38 @@ function clampPort(value: number, fallback: number) {
 
 type StatusChipColor = "default" | "success" | "warning" | "error";
 
-function describeMonitorStatus(status: MqttMonitorConnectionStatus): {
+function describeMonitorStatus(
+  status: MqttMonitorConnectionStatus,
+  t: TFunction,
+): {
   label: string;
   color: StatusChipColor;
 } {
   switch (status) {
     case "connected":
-      return { label: "Connected", color: "success" };
+      return { label: t("monitor.connected"), color: "success" };
     case "connecting":
-      return { label: "Connecting…", color: "warning" };
+      return { label: t("monitor.connecting"), color: "warning" };
     case "disconnected":
-      return { label: "Disconnected", color: "error" };
+      return { label: t("monitor.disconnected"), color: "error" };
     case "idle":
     default:
-      return { label: "Not connected", color: "default" };
+      return { label: t("monitor.notConnected"), color: "default" };
   }
 }
 
-function formatTopicsLabel(topics: string[]) {
+function formatTopicsLabel(topics: string[], t: TFunction) {
   if (topics.length === 0) {
     return "";
   }
   if (topics.length === 1) {
     return topics[0];
   }
-  return `${topics.length} topics`;
+  return t("monitor.topicsCount", { count: topics.length });
 }
 
 export function MqttMonitor() {
+  const { t } = useTranslation();
   const output = useAppStore((state) => state.output);
   const setOutput = useAppStore((state) => state.setOutput);
   const setLastError = useAppStore((state) => state.setLastError);
@@ -127,12 +133,12 @@ export function MqttMonitor() {
   const liveLog = useMemo(
     () => ({
       id: "live-monitor",
-      name: "Live monitor",
+      name: t("monitor.liveMonitor"),
       protocol: "mqtt" as const,
       savedAt: new Date().toISOString(),
       events: createMonitorLogEvents(entries),
     }),
-    [entries],
+    [entries, t],
   );
 
   const isReplayingLive =
@@ -141,7 +147,7 @@ export function MqttMonitor() {
     ? debugEntriesToListItems(entries)
     : debugEntriesToListItems(filteredEntries);
 
-  const topicsLabel = formatTopicsLabel(subscribeTopics);
+  const topicsLabel = formatTopicsLabel(subscribeTopics, t);
 
   useEffect(() => {
     setHost(brokerHost);
@@ -196,7 +202,7 @@ export function MqttMonitor() {
   ]);
 
   return (
-    <DebuggerSection title="Monitor" defaultExpanded>
+    <DebuggerSection title={t("monitor.monitor")} defaultExpanded>
       <Stack spacing={2}>
         <Tabs
           value={tab}
@@ -207,8 +213,8 @@ export function MqttMonitor() {
             borderColor: "divider",
           }}
         >
-          <Tab label="Live" value="live" sx={{ minHeight: 36 }} />
-          <Tab label="Saved" value="saved" sx={{ minHeight: 36 }} />
+          <Tab label={t("common.live")} value="live" sx={{ minHeight: 36 }} />
+          <Tab label={t("common.saved")} value="saved" sx={{ minHeight: 36 }} />
         </Tabs>
 
         {tab === "live" ? (
@@ -227,7 +233,7 @@ export function MqttMonitor() {
                 onClick={() => clearDebugLogFiltered(isMqttDebugEntry)}
                 disabled={!native || entries.length === 0}
               >
-                Clear
+                {t("common.clear")}
               </Button>
               <MonitorLogToolbar protocol="mqtt" entries={entries} />
             </Stack>
@@ -238,11 +244,11 @@ export function MqttMonitor() {
                 spacing={1}
                 sx={{ alignItems: "center", justifyContent: "space-between" }}
               >
-                <Typography variant="subtitle2">Broker</Typography>
+                <Typography variant="subtitle2">{t("common.broker")}</Typography>
                 {(() => {
                   const effectiveStatus: MqttMonitorConnectionStatus =
                     subscribeTopics.length === 0 ? "idle" : monitorStatus.status;
-                  const { label, color } = describeMonitorStatus(effectiveStatus);
+                  const { label, color } = describeMonitorStatus(effectiveStatus, t);
                   const chip = (
                     <Chip
                       size="small"
@@ -261,10 +267,10 @@ export function MqttMonitor() {
               </Stack>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
                 <FormControl size="small" sx={{ minWidth: 100 }}>
-                  <InputLabel id="mqtt-monitor-protocol-label">Protocol</InputLabel>
+                  <InputLabel id="mqtt-monitor-protocol-label">{t("common.protocol")}</InputLabel>
                   <Select
                     labelId="mqtt-monitor-protocol-label"
-                    label="Protocol"
+                    label={t("common.protocol")}
                     value={protocol}
                     onChange={(event) => {
                       const nextProtocol = event.target.value as MqttTransportProtocol;
@@ -275,14 +281,14 @@ export function MqttMonitor() {
                   >
                     {PROTOCOL_OPTIONS.map((value) => (
                       <MenuItem key={value} value={value}>
-                        {value.toUpperCase()}
+                        {t(`protocols.${value}`)}
                       </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
 
                 <TextField
-                  label="Host"
+                  label={t("common.host")}
                   size="small"
                   value={host}
                   onChange={(event) => {
@@ -295,7 +301,7 @@ export function MqttMonitor() {
                 />
 
                 <TextField
-                  label="Port"
+                  label={t("common.port")}
                   size="small"
                   type="number"
                   value={port}
@@ -342,13 +348,13 @@ export function MqttMonitor() {
                 emptyMessage={
                   entries.length === 0
                     ? subscribeTopics.length > 0
-                      ? `Waiting for MQTT on ${topicsLabel}…`
-                      : "Add a topic to monitor incoming MQTT."
+                      ? t("monitor.waitingMqtt", { topics: topicsLabel })
+                      : t("monitor.addTopicMqtt")
                     : isReplayingLive
-                      ? `Waiting for MQTT on ${topicsLabel}…`
+                      ? t("monitor.waitingMqtt", { topics: topicsLabel })
                       : isMonitorFilterActive(directionFilter)
-                        ? "No messages match the current filter."
-                        : `Waiting for MQTT on ${topicsLabel}…`
+                        ? t("monitor.noFilterMatch")
+                        : t("monitor.waitingMqtt", { topics: topicsLabel })
                 }
               />
             </Box>

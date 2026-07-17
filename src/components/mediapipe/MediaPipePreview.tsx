@@ -1,6 +1,7 @@
 import { Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Webcam from "react-webcam";
 import {
   MEDIAPIPE_PREVIEW_HEIGHT,
@@ -23,6 +24,7 @@ export function MediaPipePreview({
   onLiveValues?: (values: Record<string, MediaPipeLandmark>) => void;
   fill?: boolean;
 }) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const webcamRef = useRef<Webcam | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -163,7 +165,7 @@ export function MediaPipePreview({
               textAlign: "center",
             }}
           >
-            Enable tracking to start the camera and stream selected landmarks.
+            {t("mediapipe.enableToStart")}
           </Box>
         ) : !cameraReady ? (
           <Box
@@ -180,7 +182,7 @@ export function MediaPipePreview({
               textAlign: "center",
             }}
           >
-            Starting camera…
+            {t("mediapipe.startingCamera")}
           </Box>
         ) : null}
       </Box>

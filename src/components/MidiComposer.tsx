@@ -12,6 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   PITCH_BEND_CENTER,
   PITCH_BEND_MAX,
@@ -25,12 +26,25 @@ import {
   MIDI_COMPOSER_TYPES,
   type MidiComposerType,
   midiComposerRequiresChannel,
-  midiComposerTypeLabel,
 } from "../lib/midiTypes";
 import { listMidiOutputs, sendMidiRaw } from "../lib/output";
 import { isNativeApp, isWebMidiSupported } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import { DebuggerSection } from "./DebuggerSection";
+
+const MIDI_COMPOSER_TYPE_KEYS: Record<MidiComposerType, string> = {
+  "note-on": "midiComposer.noteOn",
+  "note-off": "midiComposer.noteOff",
+  cc: "midiComposer.controlChange",
+  "program-change": "midiComposer.programChange",
+  "pitch-bend": "midiComposer.pitchBend",
+  "channel-pressure": "midiComposer.aftertouch",
+  "poly-pressure": "midiComposer.polyAftertouch",
+  sysex: "midiComposer.sysex",
+  start: "midiKinds.start",
+  stop: "midiKinds.stop",
+  continue: "midiKinds.continue",
+};
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
@@ -69,6 +83,7 @@ function useNumberField(
 }
 
 export function MidiComposer() {
+  const { t } = useTranslation();
   const output = useAppStore((state) => state.output);
   const setOutput = useAppStore((state) => state.setOutput);
   const midiPorts = useAppStore((state) => state.midiPorts);
@@ -126,19 +141,19 @@ export function MidiComposer() {
 
   const noteOrCcLabel =
     messageType === "cc"
-      ? "Controller"
+      ? t("midiComposer.controller")
       : messageType === "program-change"
-        ? "Program"
-        : "Note";
+        ? t("midiComposer.program")
+        : t("common.note");
 
   const velocityLabel =
     messageType === "note-on" || messageType === "note-off"
-      ? "Velocity"
-      : "Value";
+      ? t("common.velocity")
+      : t("common.value");
 
   const handleSend = async () => {
     if (!portName) {
-      setLastError("Select a MIDI output port");
+      setLastError(t("monitor.selectMidiOutput"));
       return;
     }
 
@@ -163,29 +178,29 @@ export function MidiComposer() {
 
   if (!isNativeApp() && !isWebMidiSupported()) {
     return (
-      <DebuggerSection title="Composer">
-        <Alert severity="warning">Web MIDI is not supported in this browser.</Alert>
+      <DebuggerSection title={t("monitor.composer")}>
+        <Alert severity="warning">{t("monitor.webMidiOutputUnsupported")}</Alert>
       </DebuggerSection>
     );
   }
 
   if (midiPorts.length === 0) {
     return (
-      <DebuggerSection title="Composer">
-        <Alert severity="warning">No MIDI output ports found.</Alert>
+      <DebuggerSection title={t("monitor.composer")}>
+        <Alert severity="warning">{t("monitor.noMidiOutputs")}</Alert>
       </DebuggerSection>
     );
   }
 
   return (
-    <DebuggerSection title="Composer">
+    <DebuggerSection title={t("monitor.composer")}>
       <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
         {showChannel && (
           <FormControl size="small" sx={{ width: 96 }}>
-            <InputLabel id="midi-composer-channel-label">Channel</InputLabel>
+            <InputLabel id="midi-composer-channel-label">{t("common.channel")}</InputLabel>
             <Select
               labelId="midi-composer-channel-label"
-              label="Channel"
+              label={t("common.channel")}
               value={params.channel}
               onChange={(event) =>
                 setParams((current) => ({
@@ -204,16 +219,16 @@ export function MidiComposer() {
         )}
 
         <FormControl size="small" sx={{ width: 180 }}>
-          <InputLabel id="midi-composer-type-label">Type</InputLabel>
+          <InputLabel id="midi-composer-type-label">{t("common.type")}</InputLabel>
           <Select
             labelId="midi-composer-type-label"
-            label="Type"
+            label={t("common.type")}
             value={messageType}
             onChange={(event) => setMessageType(event.target.value as MidiComposerType)}
           >
             {MIDI_COMPOSER_TYPES.map((type) => (
               <MenuItem key={type} value={type}>
-                {midiComposerTypeLabel(type)}
+                {t(MIDI_COMPOSER_TYPE_KEYS[type])}
               </MenuItem>
             ))}
           </Select>
@@ -222,14 +237,14 @@ export function MidiComposer() {
         {messageType === "sysex" && (
           <>
             <TextField
-              label="Start"
+              label={t("midiKinds.start")}
               value="F0"
               disabled
               size="small"
               sx={{ width: 72 }}
             />
             <TextField
-              label="Manufacturer"
+              label={t("midiComposer.manufacturer")}
               value={params.manufacturerId}
               onChange={(event) =>
                 setParams((current) => ({
@@ -242,7 +257,7 @@ export function MidiComposer() {
               sx={{ width: 120 }}
             />
             <TextField
-              label="Data"
+              label={t("midiComposer.data")}
               value={params.sysexData.replace(/\s+/g, "").toUpperCase()}
               onChange={(event) =>
                 setParams((current) => ({
@@ -255,7 +270,7 @@ export function MidiComposer() {
               sx={{ width: 220 }}
             />
             <TextField
-              label="End"
+              label={t("midiComposer.end")}
               value="F7"
               disabled
               size="small"
@@ -298,7 +313,7 @@ export function MidiComposer() {
               {PITCH_BEND_MIN}
             </Typography>
             <TextField
-              label="Bend"
+              label={t("midiComposer.bend")}
               value={pitchBendField.input}
               onChange={(event) => pitchBendField.handleChange(event.target.value)}
               onBlur={pitchBendField.handleBlur}
@@ -314,7 +329,7 @@ export function MidiComposer() {
               +{PITCH_BEND_MAX}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              0 = center
+              {t("midiComposer.bendCenter")}
             </Typography>
           </Stack>
         )}
@@ -322,10 +337,10 @@ export function MidiComposer() {
         <Box sx={{ flex: 1 }} />
 
         <FormControl size="small" sx={{ minWidth: 200, maxWidth: 320 }}>
-          <InputLabel id="midi-composer-device-label">Device</InputLabel>
+          <InputLabel id="midi-composer-device-label">{t("common.device")}</InputLabel>
           <Select
             labelId="midi-composer-device-label"
-            label="Device"
+            label={t("common.device")}
             value={portName}
             onChange={(event) => {
               const nextPort = event.target.value;
@@ -348,7 +363,7 @@ export function MidiComposer() {
           disabled={sending || !portName}
           sx={{ flexShrink: 0 }}
         >
-          Send
+          {t("common.send")}
         </Button>
       </Stack>
     </DebuggerSection>

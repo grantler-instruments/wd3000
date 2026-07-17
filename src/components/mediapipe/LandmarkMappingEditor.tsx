@@ -16,6 +16,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import type { MediaPipeLandmark } from "../../lib/mediapipe/types";
 import {
   defaultMediaPipeLandmarkMapping,
@@ -36,6 +37,8 @@ function MappingProtocolSection({
   onToggle: (enabled: boolean) => void;
   children: ReactNode;
 }) {
+  const { t } = useTranslation();
+
   return (
     <Stack spacing={enabled ? 1.5 : 0}>
       <Stack
@@ -48,7 +51,11 @@ function MappingProtocolSection({
           size="small"
           checked={enabled}
           onChange={(_, checked) => onToggle(checked)}
-          aria-label={`${enabled ? "Disable" : "Enable"} ${label}`}
+          aria-label={
+            enabled
+              ? t("sensors.disableNamed", { label })
+              : t("sensors.enableNamed", { label })
+          }
         />
       </Stack>
       {enabled ? <Stack spacing={1}>{children}</Stack> : null}
@@ -71,6 +78,7 @@ export function LandmarkMappingEditor({
   mappingKey: string;
   liveValue?: MediaPipeLandmark;
 }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const storedMapping = useAppStore((state) => state.mediapipeMappings[mappingKey]);
   const performerIo = useAppStore((state) => state.performerIo);
@@ -88,9 +96,9 @@ export function LandmarkMappingEditor({
   const title = formatMediaPipeLandmarkKey(mappingKey);
   const liveSummary = `${formatValue(liveValue?.x)} / ${formatValue(liveValue?.y)} / ${formatValue(liveValue?.z)}`;
   const activeOutputs = [
-    mapping.osc.enabled ? "OSC" : null,
-    mapping.mqtt.enabled ? "MQTT" : null,
-    mapping.midi.enabled ? "MIDI" : null,
+    mapping.osc.enabled ? t("protocols.osc") : null,
+    mapping.mqtt.enabled ? t("protocols.mqtt") : null,
+    mapping.midi.enabled ? t("protocols.midi") : null,
   ].filter((label): label is string => label !== null);
 
   return (
@@ -145,7 +153,7 @@ export function LandmarkMappingEditor({
         <Stack spacing={1.5}>
           <Stack direction="row" spacing={2} sx={{ justifyContent: "space-between" }}>
             <Typography variant="body2" color="text.secondary">
-              x / y / z
+              {t("mediapipe.xyz")}
             </Typography>
             <Typography variant="body2" sx={{ fontVariantNumeric: "tabular-nums" }}>
               {liveSummary}
@@ -155,22 +163,24 @@ export function LandmarkMappingEditor({
           <Divider />
 
           <Typography variant="caption" color="text.secondary">
-            Outputs
+            {t("sensors.outputs")}
           </Typography>
 
           <Stack spacing={1.5}>
             <MappingProtocolSection
-              label="OSC"
+              label={t("protocols.osc")}
               enabled={mapping.osc.enabled}
               onToggle={(enabled) =>
                 updateMediaPipeLandmarkMapping(mappingKey, { osc: { enabled } })
               }
             >
               <FormControl fullWidth size="small">
-                <InputLabel id={`${mappingKey}-osc-sender-label`}>Sender</InputLabel>
+                <InputLabel id={`${mappingKey}-osc-sender-label`}>
+                  {t("control.sender")}
+                </InputLabel>
                 <Select
                   labelId={`${mappingKey}-osc-sender-label`}
-                  label="Sender"
+                  label={t("control.sender")}
                   value={mapping.osc.senderId ?? ""}
                   onChange={(event) =>
                     updateMediaPipeLandmarkMapping(mappingKey, {
@@ -180,7 +190,7 @@ export function LandmarkMappingEditor({
                 >
                   {performerIo.oscSenders.length === 0 && (
                     <MenuItem value="" disabled>
-                      Add senders in I/O settings
+                      {t("control.addSendersInIo")}
                     </MenuItem>
                   )}
                   {performerIo.oscSenders.map((sender) => (
@@ -191,7 +201,7 @@ export function LandmarkMappingEditor({
                 </Select>
               </FormControl>
               <TextField
-                label="Address"
+                label={t("common.address")}
                 size="small"
                 value={mapping.osc.address}
                 onChange={(event) =>
@@ -203,17 +213,19 @@ export function LandmarkMappingEditor({
             </MappingProtocolSection>
 
             <MappingProtocolSection
-              label="MQTT"
+              label={t("protocols.mqtt")}
               enabled={mapping.mqtt.enabled}
               onToggle={(enabled) =>
                 updateMediaPipeLandmarkMapping(mappingKey, { mqtt: { enabled } })
               }
             >
               <FormControl fullWidth size="small">
-                <InputLabel id={`${mappingKey}-mqtt-connection-label`}>Broker</InputLabel>
+                <InputLabel id={`${mappingKey}-mqtt-connection-label`}>
+                  {t("common.broker")}
+                </InputLabel>
                 <Select
                   labelId={`${mappingKey}-mqtt-connection-label`}
-                  label="Broker"
+                  label={t("common.broker")}
                   value={mapping.mqtt.connectionId ?? ""}
                   onChange={(event) =>
                     updateMediaPipeLandmarkMapping(mappingKey, {
@@ -223,7 +235,7 @@ export function LandmarkMappingEditor({
                 >
                   {performerIo.mqttConnections.length === 0 && (
                     <MenuItem value="" disabled>
-                      Add brokers in I/O settings
+                      {t("control.addBrokersInIo")}
                     </MenuItem>
                   )}
                   {performerIo.mqttConnections.map((connection) => (
@@ -237,7 +249,7 @@ export function LandmarkMappingEditor({
                 </Select>
               </FormControl>
               <TextField
-                label="Topic"
+                label={t("common.topic")}
                 size="small"
                 value={mapping.mqtt.topic}
                 onChange={(event) =>
@@ -249,17 +261,19 @@ export function LandmarkMappingEditor({
             </MappingProtocolSection>
 
             <MappingProtocolSection
-              label="MIDI"
+              label={t("protocols.midi")}
               enabled={mapping.midi.enabled}
               onToggle={(enabled) =>
                 updateMediaPipeLandmarkMapping(mappingKey, { midi: { enabled } })
               }
             >
               <FormControl fullWidth size="small">
-                <InputLabel id={`${mappingKey}-midi-output-label`}>Output</InputLabel>
+                <InputLabel id={`${mappingKey}-midi-output-label`}>
+                  {t("common.output")}
+                </InputLabel>
                 <Select
                   labelId={`${mappingKey}-midi-output-label`}
-                  label="Output"
+                  label={t("common.output")}
                   value={mapping.midi.outputId ?? ""}
                   onChange={(event) =>
                     updateMediaPipeLandmarkMapping(mappingKey, {
@@ -269,7 +283,7 @@ export function LandmarkMappingEditor({
                 >
                   {performerIo.midiOutputs.length === 0 && (
                     <MenuItem value="" disabled>
-                      Add outputs in I/O settings
+                      {t("control.addOutputsInIo")}
                     </MenuItem>
                   )}
                   {performerIo.midiOutputs.map((endpoint) => (
@@ -281,7 +295,7 @@ export function LandmarkMappingEditor({
               </FormControl>
               <Stack direction="row" spacing={1}>
                 <TextField
-                  label="Channel"
+                  label={t("common.channel")}
                   size="small"
                   type="number"
                   fullWidth
@@ -296,7 +310,7 @@ export function LandmarkMappingEditor({
               </Stack>
               <Stack direction="row" spacing={1}>
                 <TextField
-                  label="X CC"
+                  label={t("mediapipe.xCc")}
                   size="small"
                   type="number"
                   fullWidth
@@ -309,7 +323,7 @@ export function LandmarkMappingEditor({
                   }
                 />
                 <TextField
-                  label="Y CC"
+                  label={t("mediapipe.yCc")}
                   size="small"
                   type="number"
                   fullWidth
@@ -322,7 +336,7 @@ export function LandmarkMappingEditor({
                   }
                 />
                 <TextField
-                  label="Z CC"
+                  label={t("mediapipe.zCc")}
                   size="small"
                   type="number"
                   fullWidth

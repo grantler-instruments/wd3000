@@ -2,13 +2,36 @@ import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import HourglassEmptyOutlinedIcon from "@mui/icons-material/HourglassEmptyOutlined";
 import { Box, Chip, Divider, Stack, Typography } from "@mui/material";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { DebugLogKind } from "../lib/debugLog";
-import { isMidiDebugKind, midiKindLabel } from "../lib/midiTypes";
+import { isMidiDebugKind, type MidiDebugKind } from "../lib/midiTypes";
 import {
   getReplayRowStatuses,
   type ReplayRowStatus,
   useMonitorLogReplayProgress,
 } from "../lib/monitorLogReplay";
+
+const MIDI_KIND_KEYS: Record<MidiDebugKind, string> = {
+  "midi-note": "midiKinds.note",
+  "midi-cc": "midiKinds.cc",
+  "midi-pc": "midiKinds.pc",
+  "midi-pitch-bend": "midiKinds.pitch",
+  "midi-pressure": "midiKinds.pressure",
+  "midi-poly-pressure": "midiKinds.polyAt",
+  "midi-mtc": "midiKinds.mtc",
+  "midi-song-position": "midiKinds.songPos",
+  "midi-song-select": "midiKinds.songSel",
+  "midi-tune-request": "midiKinds.tune",
+  "midi-sysex": "midiKinds.sysex",
+  "midi-sysex-end": "midiKinds.eox",
+  "midi-timing-clock": "midiKinds.clock",
+  "midi-start": "midiKinds.start",
+  "midi-continue": "midiKinds.continue",
+  "midi-stop": "midiKinds.stop",
+  "midi-active-sensing": "midiKinds.sense",
+  "midi-system-reset": "midiKinds.reset",
+  "midi-raw": "midiKinds.raw",
+};
 
 export interface MonitorLogListItem {
   id: string;
@@ -30,27 +53,13 @@ function formatTime(timestamp: number) {
   return `${base}.${ms}`;
 }
 
-function kindLabel(kind: DebugLogKind) {
-  if (kind === "osc") {
-    return "OSC";
-  }
-
-  if (kind === "mqtt") {
-    return "MQTT";
-  }
-
-  if (isMidiDebugKind(kind)) {
-    return midiKindLabel(kind);
-  }
-
-  return kind;
-}
-
 function ReplayStatusIcon({ status }: { status?: ReplayRowStatus }) {
+  const { t } = useTranslation();
+
   if (status === "sent") {
     return (
       <CheckCircleOutlinedIcon
-        aria-label="Sent"
+        aria-label={t("monitor.sent")}
         sx={{ width: 20, fontSize: 18, color: "success.main", flexShrink: 0 }}
       />
     );
@@ -59,7 +68,7 @@ function ReplayStatusIcon({ status }: { status?: ReplayRowStatus }) {
   if (status === "next") {
     return (
       <HourglassEmptyOutlinedIcon
-        aria-label="Next to send"
+        aria-label={t("monitor.nextToSend")}
         sx={{ width: 20, fontSize: 18, color: "warning.main", flexShrink: 0 }}
       />
     );
@@ -75,6 +84,7 @@ interface MonitorLogListProps {
 }
 
 export function MonitorLogList({ entries, emptyMessage, logId }: MonitorLogListProps) {
+  const { t } = useTranslation();
   const replayProgress = useMonitorLogReplayProgress();
   const replayStatuses = useMemo(
     () => getReplayRowStatuses(entries, replayProgress, logId),
@@ -84,6 +94,22 @@ export function MonitorLogList({ entries, emptyMessage, logId }: MonitorLogListP
     replayProgress.active &&
     Boolean(logId) &&
     replayProgress.logId === logId;
+
+  const kindLabel = (kind: DebugLogKind) => {
+    if (kind === "osc") {
+      return t("protocols.osc");
+    }
+
+    if (kind === "mqtt") {
+      return t("protocols.mqtt");
+    }
+
+    if (isMidiDebugKind(kind)) {
+      return t(MIDI_KIND_KEYS[kind]);
+    }
+
+    return kind;
+  };
 
   if (entries.length === 0) {
     return (

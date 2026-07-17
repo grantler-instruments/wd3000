@@ -11,6 +11,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   MQTT_DEFAULT_COMPOSER_HOST,
   MQTT_DEFAULT_TCP_PORT,
@@ -33,6 +34,7 @@ function clampPort(value: number, fallback: number) {
 }
 
 export function MqttComposer() {
+  const { t } = useTranslation();
   const output = useAppStore((state) => state.output);
   const setOutput = useAppStore((state) => state.setOutput);
   const setLastError = useAppStore((state) => state.setLastError);
@@ -68,14 +70,14 @@ export function MqttComposer() {
   };
 
   return (
-    <DebuggerSection title="Composer">
+    <DebuggerSection title={t("monitor.composer")}>
       <Stack spacing={1.5}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
           <FormControl size="small" sx={{ minWidth: 100 }}>
-            <InputLabel id="mqtt-protocol-label">Protocol</InputLabel>
+            <InputLabel id="mqtt-protocol-label">{t("common.protocol")}</InputLabel>
             <Select
               labelId="mqtt-protocol-label"
-              label="Protocol"
+              label={t("common.protocol")}
               value={protocol}
               onChange={(event) => {
                 const nextProtocol = event.target.value as MqttTransportProtocol;
@@ -86,14 +88,14 @@ export function MqttComposer() {
             >
               {PROTOCOL_OPTIONS.map((value) => (
                 <MenuItem key={value} value={value}>
-                  {value.toUpperCase()}
+                  {t(`protocols.${value}`)}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
 
           <TextField
-            label="Host"
+            label={t("common.host")}
             size="small"
             value={host}
             onChange={(event) => {
@@ -106,7 +108,7 @@ export function MqttComposer() {
           />
 
           <TextField
-            label="Port"
+            label={t("common.port")}
             size="small"
             type="number"
             value={port}
@@ -125,7 +127,7 @@ export function MqttComposer() {
 
         <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
           <TextField
-            label="Topic"
+            label={t("common.topic")}
             size="small"
             value={topic}
             onChange={(event) => setTopic(event.target.value)}
@@ -134,7 +136,7 @@ export function MqttComposer() {
           />
 
           <TextField
-            label="Payload"
+            label={t("common.payload")}
             size="small"
             value={payload}
             onChange={(event) => setPayload(event.target.value)}
@@ -143,10 +145,10 @@ export function MqttComposer() {
           />
 
           <FormControl size="small" sx={{ minWidth: 88 }}>
-            <InputLabel id="mqtt-qos-label">QoS</InputLabel>
+            <InputLabel id="mqtt-qos-label">{t("common.qos")}</InputLabel>
             <Select
               labelId="mqtt-qos-label"
-              label="QoS"
+              label={t("common.qos")}
               value={qos}
               onChange={(event) => setQos(Number(event.target.value) as MqttQoS)}
               disabled={!native}
@@ -168,7 +170,7 @@ export function MqttComposer() {
                 disabled={!native}
               />
             }
-            label="Retain"
+            label={t("common.retain")}
           />
 
           <Button
@@ -178,7 +180,7 @@ export function MqttComposer() {
             disabled={!native || sending || !topic.trim() || !host.trim()}
             sx={{ flexShrink: 0 }}
           >
-            Publish
+            {t("monitor.publish")}
           </Button>
         </Stack>
       </Stack>

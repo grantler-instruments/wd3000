@@ -1,18 +1,21 @@
 import { Alert } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { isNativeApp } from "../lib/platform";
 
 interface NativeOnlyAlertProps {
-  protocol: string;
+  protocol: "midi" | "osc" | "mqtt" | "tuio" | "artnet";
 }
 
 export function NativeOnlyAlert({ protocol }: NativeOnlyAlertProps) {
+  const { t } = useTranslation();
+
   if (isNativeApp()) {
     return null;
   }
 
   return (
     <Alert severity="info" sx={{ mb: 2 }}>
-      {protocol} is only available in the desktop and mobile apps.
+      {t("monitor.nativeOnly", { protocol: t(`protocols.${protocol}`) })}
     </Alert>
   );
 }

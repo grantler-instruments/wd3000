@@ -1,4 +1,5 @@
-import { Box, Button, Dialog, DialogActions, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
+import { Box, Button, Dialog, DialogActions } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import { AppDialogHeader } from "./AppDialogHeader";
 import { IoSettingsPanel } from "./IoSettingsPanel";
@@ -10,6 +11,8 @@ interface IoSettingsDialogProps {
 }
 
 export function IoSettingsDialog({ open, onClose }: IoSettingsDialogProps) {
+  const { t } = useTranslation();
+
   return (
     <Dialog
       open={open}
@@ -28,15 +31,7 @@ export function IoSettingsDialog({ open, onClose }: IoSettingsDialogProps) {
     >
       <ThemeProvider theme={settingsTheme}>
         <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-          <AppDialogHeader
-            title="I/O settings"
-            onClose={onClose}
-            subtitle={
-              <Typography variant="body2" color="text.secondary" noWrap sx={{ flexShrink: 0 }}>
-                Shared across performers
-              </Typography>
-            }
-          />
+          <AppDialogHeader title={t("home.settings")} onClose={onClose} />
 
           <Box sx={{ flex: 1, minHeight: 0, display: "flex" }}>
             <IoSettingsPanel />
@@ -52,7 +47,7 @@ export function IoSettingsDialog({ open, onClose }: IoSettingsDialogProps) {
             }}
           >
             <Button onClick={onClose} variant="contained" size="small">
-              Done
+              {t("common.done")}
             </Button>
           </DialogActions>
         </Box>

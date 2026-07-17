@@ -7,6 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 
@@ -15,6 +16,7 @@ function normalizeTopic(topic: string) {
 }
 
 export function MqttSubscriber() {
+  const { t } = useTranslation();
   const output = useAppStore((state) => state.output);
   const setOutput = useAppStore((state) => state.setOutput);
   const native = isNativeApp();
@@ -37,11 +39,11 @@ export function MqttSubscriber() {
 
   return (
     <Stack spacing={1.5} sx={{ textTransform: "none" }}>
-      <Typography variant="subtitle2">Subscribe</Typography>
+      <Typography variant="subtitle2">{t("monitor.subscribe")}</Typography>
 
       <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
         <TextField
-          label="Topic"
+          label={t("common.topic")}
           size="small"
           value={topicInput}
           onChange={(event) => setTopicInput(event.target.value)}
@@ -70,7 +72,7 @@ export function MqttSubscriber() {
           disabled={!native || !normalizeTopic(topicInput)}
           sx={{ flexShrink: 0 }}
         >
-          Subscribe
+          {t("monitor.subscribe")}
         </Button>
       </Stack>
 
@@ -92,7 +94,7 @@ export function MqttSubscriber() {
         </Stack>
       ) : (
         <Typography variant="body2" color="text.secondary">
-          Add a topic to start monitoring.
+          {t("monitor.addTopicStart")}
         </Typography>
       )}
     </Stack>

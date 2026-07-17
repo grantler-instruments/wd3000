@@ -12,6 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   HAND_LANDMARK_HOTSPOTS,
   HAND_LANDMARK_LABELS,
@@ -28,13 +29,8 @@ import { LandmarkMappingEditor } from "./mediapipe/LandmarkMappingEditor";
 import { LandmarkPicker } from "./mediapipe/LandmarkPicker";
 import { MediaPipePreview, stopMediaPipeTracking } from "./mediapipe/MediaPipePreview";
 
-const POSE_PICKER_TABS = [
-  { label: "Body", sketch: mediapipeSketchPath("body.svg"), landmarks: POSE_BODY_HOTSPOTS },
-  { label: "Face", sketch: mediapipeSketchPath("face.svg"), landmarks: POSE_FACE_HOTSPOTS },
-  { label: "Hands", sketch: mediapipeSketchPath("hands.svg"), landmarks: POSE_HANDS_HOTSPOTS },
-] as const;
-
 export function MediaPipePerformerPanel() {
+  const { t } = useTranslation();
   const mediapipeConfig = useAppStore((state) => state.mediapipeConfig);
   const setMediaPipeTracker = useAppStore((state) => state.setMediaPipeTracker);
   const setMediaPipeVideoDevice = useAppStore((state) => state.setMediaPipeVideoDevice);
@@ -49,6 +45,27 @@ export function MediaPipePerformerPanel() {
   const [poseTab, setPoseTab] = useState(0);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [liveValues, setLiveValues] = useState<Record<string, MediaPipeLandmark>>({});
+
+  const posePickerTabs = useMemo(
+    () => [
+      {
+        label: t("mediapipe.body"),
+        sketch: mediapipeSketchPath("body.svg"),
+        landmarks: POSE_BODY_HOTSPOTS,
+      },
+      {
+        label: t("mediapipe.face"),
+        sketch: mediapipeSketchPath("face.svg"),
+        landmarks: POSE_FACE_HOTSPOTS,
+      },
+      {
+        label: t("mediapipe.hands"),
+        sketch: mediapipeSketchPath("hands.svg"),
+        landmarks: POSE_HANDS_HOTSPOTS,
+      },
+    ],
+    [t],
+  );
 
   const handleDevices = useCallback(
     (mediaDevices: MediaDeviceInfo[]) =>
@@ -86,7 +103,7 @@ export function MediaPipePerformerPanel() {
 
   const handleSelectAllLandmarks = () => {
     if (mediapipeConfig.tracker === "pose") {
-      const tab = POSE_PICKER_TABS[poseTab];
+      const tab = posePickerTabs[poseTab];
       addMediaPipeLandmarks(tab.landmarks.map((landmark) => landmark.label));
       return;
     }
@@ -99,11 +116,11 @@ export function MediaPipePerformerPanel() {
       {mediapipeConfig.tracker === "pose" ? (
         <Stack spacing={2}>
           <Tabs value={poseTab} onChange={(_, value) => setPoseTab(value)}>
-            {POSE_PICKER_TABS.map((tab, index) => (
+            {posePickerTabs.map((tab, index) => (
               <Tab key={tab.label} label={tab.label} value={index} />
             ))}
           </Tabs>
-          {POSE_PICKER_TABS.map((tab, index) => (
+          {posePickerTabs.map((tab, index) => (
             <Box key={tab.label} sx={{ display: poseTab === index ? "block" : "none" }}>
               <LandmarkPicker
                 sketch={tab.sketch}
@@ -143,7 +160,7 @@ export function MediaPipePerformerPanel() {
             "&:hover": { opacity: 1 },
           }}
         >
-          Select all
+          {t("mediapipe.selectAll")}
         </Typography>
         <Typography
           component="button"
@@ -162,7 +179,7 @@ export function MediaPipePerformerPanel() {
             "&:hover": { opacity: 1 },
           }}
         >
-          Clear
+          {t("mediapipe.clear")}
         </Typography>
       </Stack>
     </Box>
@@ -172,11 +189,10 @@ export function MediaPipePerformerPanel() {
     <Stack spacing={3} sx={{ maxWidth: 1200 }}>
       <Box>
         <Typography variant="h6" gutterBottom>
-          MediaPipe
+          {t("mediapipe.title")}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Track pose or hand landmarks from your camera and route coordinates to OSC, MQTT, or
-          MIDI using the shared performer I/O settings.
+          {t("mediapipe.description")}
         </Typography>
       </Box>
 
@@ -196,35 +212,36 @@ export function MediaPipePerformerPanel() {
           value={mediapipeConfig.tracker}
           onChange={(_, value: "pose" | "hands") => setMediaPipeTracker(value)}
         >
-          <Tab label="Hands" value="hands" />
-          <Tab label="Pose" value="pose" />
+          <Tab label={t("mediapipe.hands")} value="hands" />
+          <Tab label={t("mediapipe.pose")} value="pose" />
         </Tabs>
 
         <FormControl size="small" sx={{ minWidth: 220 }}>
-          <InputLabel id="mediapipe-camera-label">Camera</InputLabel>
+          <InputLabel id="mediapipe-camera-label">{t("mediapipe.camera")}</InputLabel>
           <Select
             labelId="mediapipe-camera-label"
-            label="Camera"
+            label={t("mediapipe.camera")}
             value={mediapipeConfig.videoDeviceId ?? ""}
             onChange={(event) =>
               setMediaPipeVideoDevice(event.target.value ? event.target.value : null)
             }
           >
-            <MenuItem value="">Default camera</MenuItem>
+            <MenuItem value="">{t("mediapipe.defaultCamera")}</MenuItem>
             {devices.map((device) => (
               <MenuItem key={device.deviceId} value={device.deviceId}>
-                {device.label || `Camera ${device.deviceId.slice(0, 8)}`}
+                {device.label ||
+                  t("mediapipe.cameraNamed", { id: device.deviceId.slice(0, 8) })}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
 
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          <Typography variant="body2">Tracking</Typography>
+          <Typography variant="body2">{t("mediapipe.tracking")}</Typography>
           <Switch
             checked={mediapipeConfig.active}
             onChange={(_, checked) => setMediaPipeActive(checked)}
-            aria-label="Toggle MediaPipe tracking"
+            aria-label={t("mediapipe.toggleTracking")}
           />
         </Stack>
       </Stack>
@@ -243,7 +260,7 @@ export function MediaPipePerformerPanel() {
       {mappingKeys.length > 0 ? (
         <Box>
           <Typography variant="subtitle1" gutterBottom>
-            Output mappings
+            {t("mediapipe.outputMappings")}
           </Typography>
           <Stack spacing={1}>
             {mappingKeys.map((mappingKey) => {

@@ -9,6 +9,7 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { formatShortcutKey } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import { AddControlMenu } from "./AddControlMenu";
@@ -17,6 +18,7 @@ import { ProjectMenu } from "./ProjectMenu";
 import { GrantlerLogo } from "./GrantlerLogo";
 
 export function PageHeader() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const setMode = useAppStore((state) => state.setMode);
@@ -34,7 +36,7 @@ export function PageHeader() {
         <Toolbar variant="dense" sx={{ gap: 1, flexWrap: "wrap" }}>
           <IconButton
             edge="start"
-            aria-label="Back to home"
+            aria-label={t("control.backToHome")}
             onClick={() => setActiveView("home")}
             sx={{ p: 0.5, mr: 0.5 }}
           >
@@ -55,7 +57,7 @@ export function PageHeader() {
             {showRunButton && (
               isMobile ? (
                 <IconButton
-                  aria-label={`Run ${formatShortcutKey("e")}`}
+                  aria-label={t("control.runShortcut", { shortcut: formatShortcutKey("e") })}
                   color="primary"
                   onClick={() => setMode("play")}
                   sx={{
@@ -73,7 +75,7 @@ export function PageHeader() {
                   startIcon={<PlayArrowIcon />}
                   onClick={() => setMode("play")}
                 >
-                  Run {formatShortcutKey("e")}
+                  {t("control.runShortcut", { shortcut: formatShortcutKey("e") })}
                 </Button>
               )
             )}

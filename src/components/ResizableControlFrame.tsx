@@ -1,6 +1,7 @@
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { Box } from "@mui/material";
 import { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useResizeControl } from "../hooks/useResizeControl";
 import {
   Control,
@@ -39,6 +40,7 @@ export function ResizableControlFrame({
   showCanvasDragHandle = false,
   onCanvasDragStart,
 }: ResizableControlFrameProps) {
+  const { t } = useTranslation();
   const updateControlLayout = useAppStore((state) => state.updateControlLayout);
   const selectControl = useAppStore((state) => state.selectControl);
   const openControlInspector = useAppStore((state) => state.openControlInspector);
@@ -113,7 +115,7 @@ export function ResizableControlFrame({
           <Box
             onPointerDown={onDragStart}
             onClick={(event) => event.stopPropagation()}
-            title="Drag to reposition on canvas, or drop onto a tab grid"
+            title={t("control.dragToReposition")}
             sx={{
               flex: 1,
               minWidth: 0,
@@ -140,7 +142,7 @@ export function ResizableControlFrame({
                 onCanvasDragStart?.(event);
               }}
               onClick={(event) => event.stopPropagation()}
-              title="Drag into tab panel (HTML5)"
+              title={t("control.dragIntoTabPanel")}
               sx={{
                 width: 28,
                 height: 28,
@@ -177,7 +179,7 @@ export function ResizableControlFrame({
             onCanvasDragStart?.(event);
           }}
           onClick={(event) => event.stopPropagation()}
-          title="Drag widget"
+          title={t("control.dragWidget")}
           sx={{
             position: "absolute",
             top: 4,

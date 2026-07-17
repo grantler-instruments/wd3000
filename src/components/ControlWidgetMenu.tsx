@@ -1,4 +1,5 @@
 import { Divider, Menu, MenuItem } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { formatDeleteKey, formatShortcutKey } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import { ShortcutMenuItem } from "./ShortcutMenuItem";
@@ -16,6 +17,7 @@ export function ControlWidgetMenu({
   controlId,
   anchorPosition,
 }: ControlWidgetMenuProps) {
+  const { t } = useTranslation();
   const openControlInspector = useAppStore((state) => state.openControlInspector);
   const copyControl = useAppStore((state) => state.copyControl);
   const cutControl = useAppStore((state) => state.cutControl);
@@ -39,30 +41,30 @@ export function ControlWidgetMenu({
         disabled={controlId === null}
         onClick={() => controlId && handleAction(() => openControlInspector(controlId))}
       >
-        Edit widget…
+        {t("control.editWidgetEllipsis")}
       </MenuItem>
       <Divider />
       <ShortcutMenuItem
-        label="Copy"
+        label={t("common.copy")}
         shortcut={formatShortcutKey("c")}
         disabled={controlId === null}
         onClick={() => controlId && handleAction(() => copyControl(controlId))}
       />
       <ShortcutMenuItem
-        label="Cut"
+        label={t("common.cut")}
         shortcut={formatShortcutKey("x")}
         disabled={controlId === null}
         onClick={() => controlId && handleAction(() => cutControl(controlId))}
       />
       <ShortcutMenuItem
-        label="Duplicate"
+        label={t("common.duplicate")}
         shortcut={formatShortcutKey("d")}
         disabled={controlId === null}
         onClick={() => controlId && handleAction(() => duplicateControl(controlId))}
       />
       <Divider />
       <ShortcutMenuItem
-        label="Delete"
+        label={t("common.delete")}
         shortcut={formatDeleteKey()}
         disabled={controlId === null}
         onClick={() => controlId && handleAction(() => removeControl(controlId))}

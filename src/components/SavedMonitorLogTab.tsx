@@ -13,6 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 import {
   exportMonitorLogToFile,
   formatMonitorLogDuration,
@@ -48,7 +49,14 @@ interface SavedMonitorLogTabProps {
   protocol: MonitorLogProtocol;
 }
 
+const PROTOCOL_KEYS: Record<MonitorLogProtocol, string> = {
+  osc: "protocols.osc",
+  midi: "protocols.midi",
+  mqtt: "protocols.mqtt",
+};
+
 export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
+  const { t } = useTranslation();
   const logs = useSavedMonitorLogs(protocol);
   const saveLog = useMonitorLogStore((state) => state.saveLog);
   const removeLog = useMonitorLogStore((state) => state.removeLog);
@@ -63,8 +71,7 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
   const [directionFilter, setDirectionFilter] = useState(defaultMonitorDirectionFilter);
   const [midiTypeFilter, setMidiTypeFilter] = useState(defaultMonitorMidiTypeFilter);
   const [midiPortFilter, setMidiPortFilter] = useState(defaultMonitorMidiPortFilter);
-  const protocolLabel =
-    protocol === "midi" ? "MIDI" : protocol === "mqtt" ? "MQTT" : "OSC";
+  const protocolLabel = t(PROTOCOL_KEYS[protocol]);
 
   useEffect(() => {
     if (pendingSelection?.protocol !== protocol) {
@@ -149,11 +156,11 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
     try {
       const imported = parseMonitorLogImport(await file.text());
       if (imported.protocol !== protocol) {
-        throw new Error(`Expected a ${protocolLabel} monitor log.`);
+        throw new Error(t("monitor.expectedProtocolLog", { protocol: protocolLabel }));
       }
       saveLog(imported);
       setSelectedId(imported.id);
-      setSuccessMessage(`Imported "${imported.name}".`);
+      setSuccessMessage(t("monitor.importedLog", { name: imported.name }));
     } catch (error) {
       setLastError(error instanceof Error ? error.message : String(error));
     }
@@ -164,7 +171,7 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
       <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
         <Stack direction="row" spacing={1}>
           <Button size="small" startIcon={<FileUploadIcon />} onClick={handleImportClick}>
-            Import
+            {t("common.import")}
           </Button>
         </Stack>
 
@@ -175,7 +182,7 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
         )}
 
         <Typography variant="body2" color="text.secondary">
-          No saved {protocolLabel} logs yet. Save or import a log from the Live tab.
+          {t("monitor.noSavedLogs", { protocol: protocolLabel })}
         </Typography>
 
         <input
@@ -193,10 +200,10 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
     <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
       <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
         <FormControl size="small" sx={{ minWidth: 220, flex: 1, maxWidth: 360 }}>
-          <InputLabel id={`saved-log-label-${protocol}`}>Saved log</InputLabel>
+          <InputLabel id={`saved-log-label-${protocol}`}>{t("monitor.savedLog")}</InputLabel>
           <Select
             labelId={`saved-log-label-${protocol}`}
-            label="Saved log"
+            label={t("monitor.savedLog")}
             value={selectValue}
             onChange={(event) => setSelectedId(event.target.value)}
           >
@@ -215,7 +222,7 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
             onClick={handleExport}
             disabled={!selectedLog}
           >
-            Export
+            {t("common.export")}
           </Button>
           <Button
             size="small"
@@ -224,10 +231,10 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
             onClick={handleDelete}
             disabled={!selectedLog || isMonitorLogReplayActive()}
           >
-            Delete
+            {t("common.delete")}
           </Button>
           <Button size="small" startIcon={<FileUploadIcon />} onClick={handleImportClick}>
-            Import
+            {t("common.import")}
           </Button>
         </Box>
       </Stack>
@@ -267,16 +274,16 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
           entries={previewEntries}
           emptyMessage={
             !selectedLog
-              ? "Select a saved log to preview its messages."
+              ? t("monitor.selectSavedLog")
               : isReplayingSelected
-                ? "This saved log has no messages."
+                ? t("monitor.emptySavedLog")
               : isMonitorFilterActive(
                   directionFilter,
                   protocol === "midi" ? midiTypeFilter : undefined,
                   protocol === "midi" ? midiPortFilter : undefined,
                 )
-                ? "No messages match the current filter."
-                : "This saved log has no messages."
+                ? t("monitor.noFilterMatch")
+                : t("monitor.emptySavedLog")
           }
         />
       </Box>

@@ -5,6 +5,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getAppPlatform } from "../../lib/platform";
 import {
   listNativeSensors,
@@ -18,18 +19,8 @@ import { useAppStore } from "../../store/useAppStore";
 import { SensorAxisMappingEditor } from "./SensorAxisMappingEditor";
 import { SensorCard } from "./SensorCard";
 
-function platformDescription(platform: ReturnType<typeof getAppPlatform>) {
-  switch (platform) {
-    case "desktop":
-      return "Native sensors from the desktop app. On supported MacBooks this includes the built-in lid angle sensor.";
-    case "mobile":
-      return "Native sensors from the mobile app via the Tauri sensors plugin (accelerometer, gyroscope, and more).";
-    default:
-      return "";
-  }
-}
-
 export function NativeSensorsPanel() {
+  const { t } = useTranslation();
   const platform = getAppPlatform();
   const performerIo = useAppStore((state) => state.performerIo);
   const sensorMappings = useAppStore((state) => state.sensorMappings);
@@ -44,6 +35,13 @@ export function NativeSensorsPanel() {
   performerIoRef.current = performerIo;
   activeSensorIdsRef.current = activeSensorIds;
   sensorMappingsRef.current = sensorMappings;
+
+  const platformDescription =
+    platform === "desktop"
+      ? t("sensors.nativeDesktopIntro")
+      : platform === "mobile"
+        ? t("sensors.nativeMobileIntro")
+        : "";
 
   useEffect(() => {
     let cancelled = false;
@@ -132,17 +130,17 @@ export function NativeSensorsPanel() {
     <Stack spacing={3} sx={{ maxWidth: 720 }}>
       <Box>
         <Typography variant="body2" color="text.secondary">
-          {platformDescription(platform)}
+          {platformDescription}
         </Typography>
       </Box>
 
       {loading ? (
-        <Typography color="text.secondary">Detecting sensors…</Typography>
+        <Typography color="text.secondary">{t("sensors.detecting")}</Typography>
       ) : sensors.length === 0 ? (
         <Alert severity="info">
           {platform === "desktop"
-            ? "No native sensors were found on this machine. Lid angle is only available on supported MacBooks."
-            : "No native sensors were found on this device."}
+            ? t("sensors.noNativeSensorsDesktop")
+            : t("sensors.noNativeSensors")}
         </Alert>
       ) : (
         <Stack spacing={1}>
@@ -173,7 +171,9 @@ export function NativeSensorsPanel() {
                   ))
                 ) : (
                   <Typography variant="body2" color="text.secondary">
-                    {watching ? "Waiting for readings…" : "Turn on to configure mapping."}
+                    {watching
+                      ? t("sensors.waitingReadings")
+                      : t("sensors.turnOnToConfigure")}
                   </Typography>
                 )}
               </SensorCard>

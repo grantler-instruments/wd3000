@@ -11,6 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   defaultSensorAxisMapping,
   normalizeSensorAxisMapping,
@@ -31,6 +32,8 @@ function MappingProtocolSection({
   onToggle: (enabled: boolean) => void;
   children: ReactNode;
 }) {
+  const { t } = useTranslation();
+
   return (
     <Stack spacing={enabled ? 1.5 : 0}>
       <Stack
@@ -43,7 +46,11 @@ function MappingProtocolSection({
           size="small"
           checked={enabled}
           onChange={(_, checked) => onToggle(checked)}
-          aria-label={`${enabled ? "Disable" : "Enable"} ${label}`}
+          aria-label={
+            enabled
+              ? t("sensors.disableNamed", { label })
+              : t("sensors.enableNamed", { label })
+          }
         />
       </Stack>
       {enabled ? <Stack spacing={1}>{children}</Stack> : null}
@@ -62,6 +69,7 @@ export function SensorAxisMappingEditor({
   value: number | null | undefined;
   unit?: string;
 }) {
+  const { t } = useTranslation();
   const mappingKey = sensorAxisKey(sensorId, axis);
   const storedMapping = useAppStore((state) => state.sensorMappings[mappingKey]);
   const performerIo = useAppStore((state) => state.performerIo);
@@ -89,20 +97,22 @@ export function SensorAxisMappingEditor({
       <Divider />
 
       <Typography variant="caption" color="text.secondary">
-        Outputs
+        {t("sensors.outputs")}
       </Typography>
 
       <Stack spacing={1.5}>
         <MappingProtocolSection
-          label="OSC"
+          label={t("protocols.osc")}
           enabled={mapping.osc.enabled}
           onToggle={(enabled) => updateSensorAxisMapping(sensorId, axis, { osc: { enabled } })}
         >
           <FormControl fullWidth size="small">
-            <InputLabel id={`${sensorId}-${axis}-osc-sender-label`}>Sender</InputLabel>
+            <InputLabel id={`${sensorId}-${axis}-osc-sender-label`}>
+              {t("control.sender")}
+            </InputLabel>
             <Select
               labelId={`${sensorId}-${axis}-osc-sender-label`}
-              label="Sender"
+              label={t("control.sender")}
               value={mapping.osc.senderId ?? ""}
               onChange={(event) =>
                 updateSensorAxisMapping(sensorId, axis, {
@@ -112,7 +122,7 @@ export function SensorAxisMappingEditor({
             >
               {performerIo.oscSenders.length === 0 && (
                 <MenuItem value="" disabled>
-                  Add senders in I/O settings
+                  {t("control.addSendersInIo")}
                 </MenuItem>
               )}
               {performerIo.oscSenders.map((sender) => (
@@ -123,7 +133,7 @@ export function SensorAxisMappingEditor({
             </Select>
           </FormControl>
           <TextField
-            label="Address"
+            label={t("common.address")}
             size="small"
             value={mapping.osc.address}
             onChange={(event) =>
@@ -135,15 +145,17 @@ export function SensorAxisMappingEditor({
         </MappingProtocolSection>
 
         <MappingProtocolSection
-          label="MIDI"
+          label={t("protocols.midi")}
           enabled={mapping.midi.enabled}
           onToggle={(enabled) => updateSensorAxisMapping(sensorId, axis, { midi: { enabled } })}
         >
           <FormControl fullWidth size="small">
-            <InputLabel id={`${sensorId}-${axis}-midi-output-label`}>Output</InputLabel>
+            <InputLabel id={`${sensorId}-${axis}-midi-output-label`}>
+              {t("common.output")}
+            </InputLabel>
             <Select
               labelId={`${sensorId}-${axis}-midi-output-label`}
-              label="Output"
+              label={t("common.output")}
               value={mapping.midi.outputId ?? ""}
               onChange={(event) =>
                 updateSensorAxisMapping(sensorId, axis, {
@@ -153,7 +165,7 @@ export function SensorAxisMappingEditor({
             >
               {performerIo.midiOutputs.length === 0 && (
                 <MenuItem value="" disabled>
-                  Add outputs in I/O settings
+                  {t("control.addOutputsInIo")}
                 </MenuItem>
               )}
               {performerIo.midiOutputs.map((endpoint) => (
@@ -165,7 +177,7 @@ export function SensorAxisMappingEditor({
           </FormControl>
           <Stack direction="row" spacing={1}>
             <TextField
-              label="Channel"
+              label={t("common.channel")}
               size="small"
               type="number"
               fullWidth
@@ -178,7 +190,7 @@ export function SensorAxisMappingEditor({
               }
             />
             <TextField
-              label="CC"
+              label={t("control.cc")}
               size="small"
               type="number"
               fullWidth
@@ -193,7 +205,7 @@ export function SensorAxisMappingEditor({
           </Stack>
           <Stack direction="row" spacing={1}>
             <TextField
-              label="Input min"
+              label={t("sensors.inputMin")}
               size="small"
               type="number"
               fullWidth
@@ -205,7 +217,7 @@ export function SensorAxisMappingEditor({
               }
             />
             <TextField
-              label="Input max"
+              label={t("sensors.inputMax")}
               size="small"
               type="number"
               fullWidth

@@ -9,23 +9,24 @@ import {
 } from "@mui/material";
 import type { ReactNode } from "react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAppStore } from "../store/useAppStore";
 import type { DebuggerSubView, PerformerSubView } from "../types";
 import { GrantlerLogo } from "./GrantlerLogo";
 import { IoSettingsDialog } from "./IoSettingsDialog";
 
-const PERFORMER_ITEMS: { value: PerformerSubView; label: string }[] = [
-  { value: "ui", label: "UI" },
-  { value: "sensors", label: "Sensors" },
-  { value: "mediapipe", label: "MediaPipe" },
+const PERFORMER_ITEMS: { value: PerformerSubView; labelKey: string }[] = [
+  { value: "ui", labelKey: "home.ui" },
+  { value: "sensors", labelKey: "home.sensors" },
+  { value: "mediapipe", labelKey: "home.mediapipe" },
 ];
 
-const DEBUGGER_ITEMS: { value: DebuggerSubView; label: string }[] = [
-  { value: "midi", label: "MIDI" },
-  { value: "osc", label: "OSC" },
-  { value: "tuio", label: "TUIO" },
-  { value: "artnet", label: "Art-Net" },
-  { value: "mqtt", label: "MQTT" },
+const DEBUGGER_ITEMS: { value: DebuggerSubView; labelKey: string }[] = [
+  { value: "midi", labelKey: "protocols.midi" },
+  { value: "osc", labelKey: "protocols.osc" },
+  { value: "tuio", labelKey: "protocols.tuio" },
+  { value: "artnet", labelKey: "protocols.artnet" },
+  { value: "mqtt", labelKey: "protocols.mqtt" },
 ];
 
 function HomeSection({
@@ -97,6 +98,7 @@ function HomeNavButton({
 }
 
 export function HomePage() {
+  const { t } = useTranslation();
   const setActiveView = useAppStore((state) => state.setActiveView);
   const [ioSettingsOpen, setIoSettingsOpen] = useState(false);
 
@@ -127,13 +129,13 @@ export function HomePage() {
           <Stack spacing={4} sx={{ width: "100%" }}>
             <HomeSection
               icon={<DashboardIcon fontSize="small" color="action" />}
-              title="Performer"
+              title={t("home.performer")}
             >
               <HomeNavGrid columns={{ xs: 1, sm: 3 }}>
                 {PERFORMER_ITEMS.map((item) => (
                   <HomeNavButton
                     key={item.value}
-                    label={item.label}
+                    label={t(item.labelKey)}
                     onClick={() => setActiveView("performer", item.value)}
                   />
                 ))}
@@ -142,7 +144,7 @@ export function HomePage() {
 
             <HomeSection
               icon={<BugReportIcon fontSize="small" color="action" />}
-              title="Debugger"
+              title={t("home.debugger")}
             >
               <Box
                 sx={{
@@ -156,7 +158,7 @@ export function HomePage() {
                 {DEBUGGER_ITEMS.map((item) => (
                   <HomeNavButton
                     key={item.value}
-                    label={item.label}
+                    label={t(item.labelKey)}
                     onClick={() => setActiveView("debugger", item.value)}
                   />
                 ))}
@@ -165,7 +167,7 @@ export function HomePage() {
 
             <HomeSection
               icon={<SettingsIcon fontSize="small" color="action" />}
-              title="Settings"
+              title={t("home.settings")}
             >
               <Button
                 variant="outlined"
@@ -173,7 +175,7 @@ export function HomePage() {
                 onClick={() => setIoSettingsOpen(true)}
                 sx={{ minWidth: 160 }}
               >
-                I/O settings
+                {t("home.settings")}
               </Button>
             </HomeSection>
           </Stack>

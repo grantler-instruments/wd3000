@@ -7,6 +7,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { sendButtonValue, sendSliderValue } from "../lib/output";
 import {
   Control,
@@ -31,6 +32,7 @@ export function ControlWidget({
   layoutPreview = false,
   hideLabel = false,
 }: ControlWidgetProps) {
+  const { t } = useTranslation();
   const performerIo = useAppStore((state) => state.performerIo);
   const setControlValue = useAppStore((state) => state.setControlValue);
   const setLastError = useAppStore((state) => state.setLastError);
@@ -144,7 +146,7 @@ export function ControlWidget({
               void handleButtonPress(false);
             }}
           >
-            Trigger
+            {t("control.trigger")}
           </Button>
         ) : control.type === "keyboard" ? (
           <Box sx={{ flex: 1, minHeight: 0, display: "flex" }}>

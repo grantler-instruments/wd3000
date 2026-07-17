@@ -4,6 +4,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AddControlMenu } from "./AddControlMenu";
 import { AddWidgetMenu } from "./AddWidgetMenu";
 import { ControlWidgetMenu } from "./ControlWidgetMenu";
@@ -321,6 +322,7 @@ function FreeLayoutCanvas({
 }
 
 export function ControlCanvas({ editable }: ControlCanvasProps) {
+  const { t } = useTranslation();
   const controls = useAppStore((state) => state.controls);
   const gridSize = useAppStore((state) => state.layoutSettings.gridSize);
   const hasTopLevelControls = topLevelControls(controls).length > 0;
@@ -373,13 +375,13 @@ export function ControlCanvas({ editable }: ControlCanvasProps) {
           {editable ? (
             <Stack spacing={2} sx={{ alignItems: "center" }}>
               <Typography color="text.secondary">
-                Add widgets to build your control surface.
+                {t("control.emptyCanvasEdit")}
               </Typography>
               <AddControlMenu />
             </Stack>
           ) : (
             <Typography color="text.secondary">
-              Switch to edit mode to add controls.
+              {t("control.emptyCanvasPlay")}
             </Typography>
           )}
         </Box>

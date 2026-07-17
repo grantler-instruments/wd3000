@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useViewportSize } from "../hooks/useViewportSize";
 import { useAppStore } from "../store/useAppStore";
 import { AppDialogHeader } from "./AppDialogHeader";
@@ -36,20 +37,11 @@ import {
   controlCanvasSizeLimits,
   controlLayoutHeight,
   controlTabs,
-  controlTypeLabel,
   endpointLabel,
   isValidControlColor,
 } from "../types";
 
 type InspectorSection = "general" | "layout" | "osc" | "midi" | "mqtt";
-
-const SECTIONS: { id: InspectorSection; label: string }[] = [
-  { id: "general", label: "General" },
-  { id: "layout", label: "Layout" },
-  { id: "osc", label: "OSC" },
-  { id: "midi", label: "MIDI" },
-  { id: "mqtt", label: "MQTT" },
-];
 
 function SectionIntro({ title, description }: { title: string; description: string }) {
   return (
@@ -119,6 +111,7 @@ function ColorSwatch({
 }
 
 function GeneralSection({ control }: { control: Control }) {
+  const { t } = useTranslation();
   const controls = useAppStore((state) => state.controls);
   const performerIo = useAppStore((state) => state.performerIo);
   const updateControl = useAppStore((state) => state.updateControl);
@@ -128,12 +121,12 @@ function GeneralSection({ control }: { control: Control }) {
   return (
     <Stack spacing={2.5}>
       <SectionIntro
-        title="General"
-        description="Name, appearance, and widget type."
+        title={t("control.general")}
+        description={t("control.generalDescription")}
       />
 
       <TextField
-        label="Label"
+        label={t("common.label")}
         size="small"
         fullWidth
         value={control.label}
@@ -142,28 +135,28 @@ function GeneralSection({ control }: { control: Control }) {
 
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
         <FormControl fullWidth size="small">
-          <InputLabel id="control-type-label">Type</InputLabel>
+          <InputLabel id="control-type-label">{t("common.type")}</InputLabel>
           <Select
             labelId="control-type-label"
-            label="Type"
+            label={t("common.type")}
             value={control.type}
             onChange={(event) =>
               updateControl(control.id, { type: event.target.value as ControlType })
             }
           >
-            <MenuItem value="button">Button</MenuItem>
-            <MenuItem value="slider">Slider</MenuItem>
-            <MenuItem value="keyboard">Keyboard</MenuItem>
-            <MenuItem value="pad">2D pad</MenuItem>
-            <MenuItem value="tabs">Tabs</MenuItem>
+            <MenuItem value="button">{t("controlTypes.button")}</MenuItem>
+            <MenuItem value="slider">{t("controlTypes.slider")}</MenuItem>
+            <MenuItem value="keyboard">{t("controlTypes.keyboard")}</MenuItem>
+            <MenuItem value="pad">{t("controlTypes.pad")}</MenuItem>
+            <MenuItem value="tabs">{t("controlTypes.tabs")}</MenuItem>
           </Select>
         </FormControl>
 
         <FormControl fullWidth size="small">
-          <InputLabel id="control-protocol-label">Output</InputLabel>
+          <InputLabel id="control-protocol-label">{t("common.output")}</InputLabel>
           <Select
             labelId="control-protocol-label"
-            label="Output"
+            label={t("common.output")}
             value={control.protocol}
             onChange={(event) => {
               const protocol = event.target.value as ControlProtocol;
@@ -184,21 +177,21 @@ function GeneralSection({ control }: { control: Control }) {
               });
             }}
           >
-            <MenuItem value="osc">OSC</MenuItem>
-            <MenuItem value="midi">MIDI</MenuItem>
-            <MenuItem value="mqtt">MQTT</MenuItem>
-            <MenuItem value="both">OSC + MIDI</MenuItem>
+            <MenuItem value="osc">{t("protocols.osc")}</MenuItem>
+            <MenuItem value="midi">{t("protocols.midi")}</MenuItem>
+            <MenuItem value="mqtt">{t("protocols.mqtt")}</MenuItem>
+            <MenuItem value="both">{t("protocols.both")}</MenuItem>
           </Select>
         </FormControl>
       </Stack>
 
       <Box>
         <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
-          Color
+          {t("common.color")}
         </Typography>
         <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap" }}>
           <ColorSwatch
-            label="Default theme color"
+            label={t("control.defaultThemeColor")}
             selected={!control.color}
             onClick={() => updateControl(control.id, { color: null })}
           />
@@ -206,7 +199,7 @@ function GeneralSection({ control }: { control: Control }) {
             <ColorSwatch
               key={color}
               color={color}
-              label={`Set color to ${color}`}
+              label={t("control.setColorTo", { color })}
               selected={control.color === color}
               onClick={() => updateControl(control.id, { color })}
             />
@@ -264,10 +257,10 @@ function GeneralSection({ control }: { control: Control }) {
 
       {control.type === "slider" && (
         <FormControl fullWidth size="small">
-          <InputLabel id="slider-orientation-label">Orientation</InputLabel>
+          <InputLabel id="slider-orientation-label">{t("control.orientation")}</InputLabel>
           <Select
             labelId="slider-orientation-label"
-            label="Orientation"
+            label={t("control.orientation")}
             value={control.sliderOrientation ?? "horizontal"}
             onChange={(event) =>
               updateControl(control.id, {
@@ -275,8 +268,8 @@ function GeneralSection({ control }: { control: Control }) {
               })
             }
           >
-            <MenuItem value="horizontal">Horizontal</MenuItem>
-            <MenuItem value="vertical">Vertical</MenuItem>
+            <MenuItem value="horizontal">{t("control.horizontal")}</MenuItem>
+            <MenuItem value="vertical">{t("control.vertical")}</MenuItem>
           </Select>
         </FormControl>
       )}
@@ -288,7 +281,7 @@ function GeneralSection({ control }: { control: Control }) {
             spacing={1}
             sx={{ alignItems: "center", justifyContent: "space-between", mb: 1 }}
           >
-            <Typography variant="subtitle2">Tabs</Typography>
+            <Typography variant="subtitle2">{t("controlTypes.tabs")}</Typography>
             <Button
               size="small"
               startIcon={<AddIcon />}
@@ -296,12 +289,12 @@ function GeneralSection({ control }: { control: Control }) {
                 const tabs = controlTabs(control);
                 const nextTab: ControlTab = {
                   id: crypto.randomUUID(),
-                  label: `Tab ${tabs.length + 1}`,
+                  label: t("control.tabN", { n: tabs.length + 1 }),
                 };
                 updateControl(control.id, { tabs: [...tabs, nextTab] });
               }}
             >
-              Add
+              {t("control.addTab")}
             </Button>
           </Stack>
           <Stack spacing={1}>
@@ -309,7 +302,7 @@ function GeneralSection({ control }: { control: Control }) {
               <Paper key={tab.id} variant="outlined" sx={{ px: 1.5, py: 1 }}>
                 <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                   <TextField
-                    label={`Tab ${index + 1}`}
+                    label={t("control.tabN", { n: index + 1 })}
                     size="small"
                     fullWidth
                     value={tab.label}
@@ -323,7 +316,7 @@ function GeneralSection({ control }: { control: Control }) {
                     }}
                   />
                   <IconButton
-                    aria-label={`Remove tab ${index + 1}`}
+                    aria-label={t("control.removeTab", { n: index + 1 })}
                     size="small"
                     disabled={controlTabs(control).length <= 1}
                     onClick={() => {
@@ -344,18 +337,21 @@ function GeneralSection({ control }: { control: Control }) {
       {control.parentId && (
         <Paper variant="outlined" sx={{ px: 1.5, py: 1.25 }}>
           <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-            Placement
+            {t("control.placement")}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            Inside{" "}
-            {controls.find((entry) => entry.id === control.parentId)?.label ?? "tabs widget"}
+            {t("control.insideTabs", {
+              label:
+                controls.find((entry) => entry.id === control.parentId)?.label ??
+                t("control.tabsWidget"),
+            })}
           </Typography>
           <Button
             size="small"
             variant="outlined"
             onClick={() => assignControlToTab(control.id, null, null)}
           >
-            Move to canvas
+            {t("control.moveToCanvas")}
           </Button>
         </Paper>
       )}
@@ -364,6 +360,7 @@ function GeneralSection({ control }: { control: Control }) {
 }
 
 function LayoutSection({ control }: { control: Control }) {
+  const { t } = useTranslation();
   const updateControlLayout = useAppStore((state) => state.updateControlLayout);
   const { width: canvasWidth, height: canvasHeight } = useViewportSize();
   const sizeLimits = controlCanvasSizeLimits(
@@ -375,13 +372,13 @@ function LayoutSection({ control }: { control: Control }) {
   return (
     <Stack spacing={2.5}>
       <SectionIntro
-        title="Layout"
-        description="Position and size on the canvas."
+        title={t("control.layout")}
+        description={t("control.layoutDescription")}
       />
 
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
         <TextField
-          label="Width"
+          label={t("common.width")}
           size="small"
           type="number"
           fullWidth
@@ -399,7 +396,7 @@ function LayoutSection({ control }: { control: Control }) {
           }
         />
         <TextField
-          label="Height"
+          label={t("common.height")}
           size="small"
           type="number"
           fullWidth
@@ -449,6 +446,7 @@ function LayoutSection({ control }: { control: Control }) {
 }
 
 function OscSection({ control }: { control: Control }) {
+  const { t } = useTranslation();
   const performerIo = useAppStore((state) => state.performerIo);
   const updateControl = useAppStore((state) => state.updateControl);
   const usesOsc = control.protocol === "osc" || control.protocol === "both";
@@ -457,10 +455,10 @@ function OscSection({ control }: { control: Control }) {
     return (
       <Stack spacing={2}>
         <SectionIntro
-          title="OSC"
-          description="Assign global senders and receivers from I/O settings."
+          title={t("protocols.osc")}
+          description={t("control.oscAssign")}
         />
-        <UnusedSection message="This widget is not configured for OSC output. Change output to OSC or Both in General." />
+        <UnusedSection message={t("control.oscUnused")} />
       </Stack>
     );
   }
@@ -468,15 +466,15 @@ function OscSection({ control }: { control: Control }) {
   return (
     <Stack spacing={2.5}>
       <SectionIntro
-        title="OSC"
-        description="Pick endpoints and set the message address."
+        title={t("protocols.osc")}
+        description={t("control.oscPick")}
       />
 
       <FormControl fullWidth size="small">
-        <InputLabel id="control-osc-sender-label">Sender</InputLabel>
+        <InputLabel id="control-osc-sender-label">{t("control.sender")}</InputLabel>
         <Select
           labelId="control-osc-sender-label"
-          label="Sender"
+          label={t("control.sender")}
           value={control.oscSenderId ?? ""}
           onChange={(event) =>
             updateControl(control.id, {
@@ -486,7 +484,7 @@ function OscSection({ control }: { control: Control }) {
         >
           {performerIo.oscSenders.length === 0 && (
             <MenuItem value="" disabled>
-              Add senders in I/O settings
+              {t("control.addSendersInIo")}
             </MenuItem>
           )}
           {performerIo.oscSenders.map((sender) => (
@@ -498,10 +496,10 @@ function OscSection({ control }: { control: Control }) {
       </FormControl>
 
       <FormControl fullWidth size="small">
-        <InputLabel id="control-osc-receiver-label">Receiver</InputLabel>
+        <InputLabel id="control-osc-receiver-label">{t("control.receiver")}</InputLabel>
         <Select
           labelId="control-osc-receiver-label"
-          label="Receiver"
+          label={t("control.receiver")}
           value={control.oscReceiverId ?? ""}
           onChange={(event) =>
             updateControl(control.id, {
@@ -509,7 +507,7 @@ function OscSection({ control }: { control: Control }) {
             })
           }
         >
-          <MenuItem value="">Any receiver</MenuItem>
+          <MenuItem value="">{t("control.anyReceiver")}</MenuItem>
           {performerIo.oscReceivers.map((receiver) => (
             <MenuItem key={receiver.id} value={receiver.id}>
               {endpointLabel(receiver.name, `port ${receiver.port}`)}
@@ -519,7 +517,7 @@ function OscSection({ control }: { control: Control }) {
       </FormControl>
 
       <TextField
-        label="Address"
+        label={t("common.address")}
         size="small"
         fullWidth
         value={control.osc.address}
@@ -534,12 +532,13 @@ function OscSection({ control }: { control: Control }) {
 }
 
 function MidiMappingFields({ control }: { control: Control }) {
+  const { t } = useTranslation();
   const updateControl = useAppStore((state) => state.updateControl);
 
   if (control.type === "button") {
     return (
       <TextField
-        label="Note"
+        label={t("common.note")}
         size="small"
         type="number"
         fullWidth
@@ -561,7 +560,7 @@ function MidiMappingFields({ control }: { control: Control }) {
     return (
       <Stack spacing={1.5}>
         <TextField
-          label="Start note"
+          label={t("control.startNote")}
           size="small"
           type="number"
           fullWidth
@@ -578,7 +577,7 @@ function MidiMappingFields({ control }: { control: Control }) {
         />
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
           <TextField
-            label="Octaves"
+            label={t("control.octaves")}
             size="small"
             type="number"
             fullWidth
@@ -602,7 +601,7 @@ function MidiMappingFields({ control }: { control: Control }) {
             }
           />
           <TextField
-            label="Velocity"
+            label={t("common.velocity")}
             size="small"
             type="number"
             fullWidth
@@ -629,7 +628,7 @@ function MidiMappingFields({ control }: { control: Control }) {
     return (
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
         <TextField
-          label="CC X"
+          label={t("control.ccX")}
           size="small"
           type="number"
           fullWidth
@@ -645,7 +644,7 @@ function MidiMappingFields({ control }: { control: Control }) {
           }
         />
         <TextField
-          label="CC Y"
+          label={t("control.ccY")}
           size="small"
           type="number"
           fullWidth
@@ -666,7 +665,7 @@ function MidiMappingFields({ control }: { control: Control }) {
 
   return (
     <TextField
-      label="CC"
+      label={t("control.cc")}
       size="small"
       type="number"
       fullWidth
@@ -685,6 +684,7 @@ function MidiMappingFields({ control }: { control: Control }) {
 }
 
 function MidiSection({ control }: { control: Control }) {
+  const { t } = useTranslation();
   const performerIo = useAppStore((state) => state.performerIo);
   const updateControl = useAppStore((state) => state.updateControl);
   const usesMidi = control.protocol === "midi" || control.protocol === "both";
@@ -693,10 +693,10 @@ function MidiSection({ control }: { control: Control }) {
     return (
       <Stack spacing={2}>
         <SectionIntro
-          title="MIDI"
-          description="Assign global ports from I/O settings."
+          title={t("protocols.midi")}
+          description={t("control.midiAssign")}
         />
-        <UnusedSection message="This widget is not configured for MIDI output. Change output to MIDI or Both in General." />
+        <UnusedSection message={t("control.midiUnused")} />
       </Stack>
     );
   }
@@ -704,15 +704,15 @@ function MidiSection({ control }: { control: Control }) {
   return (
     <Stack spacing={2.5}>
       <SectionIntro
-        title="MIDI"
-        description="Pick ports and set channel mapping."
+        title={t("protocols.midi")}
+        description={t("control.midiPick")}
       />
 
       <FormControl fullWidth size="small">
-        <InputLabel id="control-midi-output-label">Output</InputLabel>
+        <InputLabel id="control-midi-output-label">{t("common.output")}</InputLabel>
         <Select
           labelId="control-midi-output-label"
-          label="Output"
+          label={t("common.output")}
           value={control.midiOutputId ?? ""}
           onChange={(event) =>
             updateControl(control.id, {
@@ -722,7 +722,7 @@ function MidiSection({ control }: { control: Control }) {
         >
           {performerIo.midiOutputs.length === 0 && (
             <MenuItem value="" disabled>
-              Add outputs in I/O settings
+              {t("control.addOutputsInIo")}
             </MenuItem>
           )}
           {performerIo.midiOutputs.map((endpoint) => (
@@ -734,10 +734,10 @@ function MidiSection({ control }: { control: Control }) {
       </FormControl>
 
       <FormControl fullWidth size="small">
-        <InputLabel id="control-midi-input-label">Input</InputLabel>
+        <InputLabel id="control-midi-input-label">{t("common.input")}</InputLabel>
         <Select
           labelId="control-midi-input-label"
-          label="Input"
+          label={t("common.input")}
           value={control.midiInputId ?? ""}
           onChange={(event) =>
             updateControl(control.id, {
@@ -745,7 +745,7 @@ function MidiSection({ control }: { control: Control }) {
             })
           }
         >
-          <MenuItem value="">Any input</MenuItem>
+          <MenuItem value="">{t("control.anyInput")}</MenuItem>
           {performerIo.midiInputs.map((endpoint) => (
             <MenuItem key={endpoint.id} value={endpoint.id}>
               {endpointLabel(endpoint.name, endpoint.portName)}
@@ -755,7 +755,7 @@ function MidiSection({ control }: { control: Control }) {
       </FormControl>
 
       <TextField
-        label="Channel"
+        label={t("common.channel")}
         size="small"
         type="number"
         fullWidth
@@ -777,6 +777,7 @@ function MidiSection({ control }: { control: Control }) {
 }
 
 function MqttSection({ control }: { control: Control }) {
+  const { t } = useTranslation();
   const performerIo = useAppStore((state) => state.performerIo);
   const updateControl = useAppStore((state) => state.updateControl);
   const usesMqtt = control.protocol === "mqtt";
@@ -785,10 +786,10 @@ function MqttSection({ control }: { control: Control }) {
     return (
       <Stack spacing={2}>
         <SectionIntro
-          title="MQTT"
-          description="Assign broker connections from I/O settings."
+          title={t("protocols.mqtt")}
+          description={t("control.mqttAssign")}
         />
-        <UnusedSection message="This widget is not configured for MQTT output. Change output to MQTT in General." />
+        <UnusedSection message={t("control.mqttUnused")} />
       </Stack>
     );
   }
@@ -796,15 +797,15 @@ function MqttSection({ control }: { control: Control }) {
   return (
     <Stack spacing={2.5}>
       <SectionIntro
-        title="MQTT"
-        description="Pick a broker and set the publish topic."
+        title={t("protocols.mqtt")}
+        description={t("control.mqttPick")}
       />
 
       <FormControl fullWidth size="small">
-        <InputLabel id="control-mqtt-connection-label">Broker</InputLabel>
+        <InputLabel id="control-mqtt-connection-label">{t("common.broker")}</InputLabel>
         <Select
           labelId="control-mqtt-connection-label"
-          label="Broker"
+          label={t("common.broker")}
           value={control.mqttConnectionId ?? ""}
           onChange={(event) =>
             updateControl(control.id, {
@@ -814,7 +815,7 @@ function MqttSection({ control }: { control: Control }) {
         >
           {performerIo.mqttConnections.length === 0 && (
             <MenuItem value="" disabled>
-              Add brokers in I/O settings
+              {t("control.addBrokersInIo")}
             </MenuItem>
           )}
           {performerIo.mqttConnections.map((connection) => (
@@ -829,7 +830,7 @@ function MqttSection({ control }: { control: Control }) {
       </FormControl>
 
       <TextField
-        label="Topic"
+        label={t("common.topic")}
         size="small"
         fullWidth
         value={control.mqtt.topic}
@@ -849,10 +850,10 @@ function MqttSection({ control }: { control: Control }) {
 
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
         <FormControl fullWidth size="small">
-          <InputLabel id="control-mqtt-qos-label">QoS</InputLabel>
+          <InputLabel id="control-mqtt-qos-label">{t("common.qos")}</InputLabel>
           <Select
             labelId="control-mqtt-qos-label"
-            label="QoS"
+            label={t("common.qos")}
             value={control.mqtt.qos}
             onChange={(event) =>
               updateControl(control.id, {
@@ -870,10 +871,10 @@ function MqttSection({ control }: { control: Control }) {
         </FormControl>
 
         <FormControl fullWidth size="small">
-          <InputLabel id="control-mqtt-retain-label">Retain</InputLabel>
+          <InputLabel id="control-mqtt-retain-label">{t("common.retain")}</InputLabel>
           <Select
             labelId="control-mqtt-retain-label"
-            label="Retain"
+            label={t("common.retain")}
             value={control.mqtt.retain ? "yes" : "no"}
             onChange={(event) =>
               updateControl(control.id, {
@@ -884,8 +885,8 @@ function MqttSection({ control }: { control: Control }) {
               })
             }
           >
-            <MenuItem value="no">No</MenuItem>
-            <MenuItem value="yes">Yes</MenuItem>
+            <MenuItem value="no">{t("common.no")}</MenuItem>
+            <MenuItem value="yes">{t("common.yes")}</MenuItem>
           </Select>
         </FormControl>
       </Stack>
@@ -894,7 +895,16 @@ function MqttSection({ control }: { control: Control }) {
 }
 
 function ControlInspector({ control }: { control: Control }) {
+  const { t } = useTranslation();
   const [section, setSection] = useState<InspectorSection>("general");
+
+  const sections: { id: InspectorSection; label: string }[] = [
+    { id: "general", label: t("control.general") },
+    { id: "layout", label: t("control.layout") },
+    { id: "osc", label: t("protocols.osc") },
+    { id: "midi", label: t("protocols.midi") },
+    { id: "mqtt", label: t("protocols.mqtt") },
+  ];
 
   return (
     <Box
@@ -907,7 +917,7 @@ function ControlInspector({ control }: { control: Control }) {
       }}
     >
       <SettingsSectionNav
-        sections={SECTIONS}
+        sections={sections}
         section={section}
         onSelect={setSection}
         sidebarWidth={148}
@@ -924,6 +934,7 @@ function ControlInspector({ control }: { control: Control }) {
 }
 
 export function ControlPerformerDialog() {
+  const { t } = useTranslation();
   const mode = useAppStore((state) => state.mode);
   const controls = useAppStore((state) => state.controls);
   const inspectorControlId = useAppStore((state) => state.inspectorControlId);
@@ -964,12 +975,12 @@ export function ControlPerformerDialog() {
       <ThemeProvider theme={settingsTheme}>
         <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
           <AppDialogHeader
-            title={selectedControl?.label ?? "Widget"}
+            title={selectedControl?.label ?? t("control.widget")}
             onClose={handleClose}
             subtitle={
               selectedControl ? (
                 <Typography variant="body2" color="text.secondary" noWrap sx={{ flexShrink: 0 }}>
-                  {controlTypeLabel(selectedControl.type)}
+                  {t(`controlTypes.${selectedControl.type}`)}
                 </Typography>
               ) : undefined
             }
@@ -994,11 +1005,11 @@ export function ControlPerformerDialog() {
               startIcon={<DeleteOutlinedIcon />}
               onClick={handleDelete}
             >
-              Delete
+              {t("common.delete")}
             </Button>
             <Box sx={{ flex: 1 }} />
             <Button onClick={handleClose} variant="contained" size="small">
-              Done
+              {t("common.done")}
             </Button>
           </DialogActions>
         </Box>

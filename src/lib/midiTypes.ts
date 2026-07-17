@@ -1,3 +1,5 @@
+import i18n from "../i18n";
+
 export type MidiComposerType =
   | "note-on"
   | "note-off"
@@ -71,43 +73,43 @@ export function midiComposerRequiresChannel(type: MidiComposerType) {
 export function midiKindLabel(kind: string) {
   switch (kind) {
     case "midi-note":
-      return "Note";
+      return i18n.t("midiKinds.note");
     case "midi-cc":
-      return "CC";
+      return i18n.t("midiKinds.cc");
     case "midi-pc":
-      return "PC";
+      return i18n.t("midiKinds.pc");
     case "midi-pitch-bend":
-      return "Pitch";
+      return i18n.t("midiKinds.pitch");
     case "midi-pressure":
-      return "Pressure";
+      return i18n.t("midiKinds.pressure");
     case "midi-poly-pressure":
-      return "Poly AT";
+      return i18n.t("midiKinds.polyAt");
     case "midi-mtc":
-      return "MTC";
+      return i18n.t("midiKinds.mtc");
     case "midi-song-position":
-      return "Song Pos";
+      return i18n.t("midiKinds.songPos");
     case "midi-song-select":
-      return "Song Sel";
+      return i18n.t("midiKinds.songSel");
     case "midi-tune-request":
-      return "Tune";
+      return i18n.t("midiKinds.tune");
     case "midi-sysex":
-      return "SysEx";
+      return i18n.t("midiKinds.sysex");
     case "midi-sysex-end":
-      return "EOX";
+      return i18n.t("midiKinds.eox");
     case "midi-timing-clock":
-      return "Clock";
+      return i18n.t("midiKinds.clock");
     case "midi-start":
-      return "Start";
+      return i18n.t("midiKinds.start");
     case "midi-continue":
-      return "Continue";
+      return i18n.t("midiKinds.continue");
     case "midi-stop":
-      return "Stop";
+      return i18n.t("midiKinds.stop");
     case "midi-active-sensing":
-      return "Sense";
+      return i18n.t("midiKinds.sense");
     case "midi-system-reset":
-      return "Reset";
+      return i18n.t("midiKinds.reset");
     case "midi-raw":
-      return "Raw";
+      return i18n.t("midiKinds.raw");
     default:
       return kind;
   }
@@ -116,27 +118,27 @@ export function midiKindLabel(kind: string) {
 export function midiComposerTypeLabel(type: MidiComposerType) {
   switch (type) {
     case "note-on":
-      return "Note On";
+      return i18n.t("midiComposer.noteOn");
     case "note-off":
-      return "Note Off";
+      return i18n.t("midiComposer.noteOff");
     case "cc":
-      return "Control Change";
+      return i18n.t("midiComposer.controlChange");
     case "program-change":
-      return "Program Change";
+      return i18n.t("midiComposer.programChange");
     case "pitch-bend":
-      return "Pitch Bend";
+      return i18n.t("midiComposer.pitchBend");
     case "channel-pressure":
-      return "Aftertouch";
+      return i18n.t("midiComposer.aftertouch");
     case "poly-pressure":
-      return "Polyphonic Aftertouch";
+      return i18n.t("midiComposer.polyAftertouch");
     case "sysex":
-      return "SysEx";
+      return i18n.t("midiComposer.sysex");
     case "start":
-      return "Start";
+      return i18n.t("midiKinds.start");
     case "stop":
-      return "Stop";
+      return i18n.t("midiKinds.stop");
     case "continue":
-      return "Continue";
+      return i18n.t("midiKinds.continue");
   }
 }
 

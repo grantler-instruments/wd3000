@@ -11,6 +11,7 @@ import {
   Tabs,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { clearDebugLogFiltered, useDebugLog } from "../lib/debugLog";
 import { listMidiInputs, startMidiInput, stopMidiInput } from "../lib/input";
 import { listMidiOutputs } from "../lib/output";
@@ -44,6 +45,7 @@ import { DebuggerSection } from "./DebuggerSection";
 type MonitorTab = "live" | "saved";
 
 export function MidiMonitor() {
+  const { t } = useTranslation();
   const output = useAppStore((state) => state.output);
   const setOutput = useAppStore((state) => state.setOutput);
   const midiInputPorts = useAppStore((state) => state.midiInputPorts);
@@ -90,12 +92,12 @@ export function MidiMonitor() {
   const liveLog = useMemo(
     () => ({
       id: "live-monitor",
-      name: "Live monitor",
+      name: t("monitor.liveMonitor"),
       protocol: "midi" as const,
       savedAt: new Date().toISOString(),
       events: createMonitorLogEvents(entries),
     }),
-    [entries],
+    [entries, t],
   );
 
   const isReplayingLive =
@@ -137,7 +139,7 @@ export function MidiMonitor() {
   }, [inputPort, setLastError]);
 
   return (
-    <DebuggerSection title="Monitor" flexGrow>
+    <DebuggerSection title={t("monitor.monitor")} flexGrow>
       <Stack
         spacing={2}
         sx={{
@@ -150,7 +152,7 @@ export function MidiMonitor() {
       >
         {!isNativeApp() && !isWebMidiSupported() && (
           <Alert severity="warning">
-            Web MIDI is not supported in this browser.
+            {t("monitor.webMidiUnsupported")}
           </Alert>
         )}
 
@@ -164,8 +166,8 @@ export function MidiMonitor() {
             borderColor: "divider",
           }}
         >
-          <Tab label="Live" value="live" sx={{ minHeight: 36 }} />
-          <Tab label="Saved" value="saved" sx={{ minHeight: 36 }} />
+          <Tab label={t("common.live")} value="live" sx={{ minHeight: 36 }} />
+          <Tab label={t("common.saved")} value="saved" sx={{ minHeight: 36 }} />
         </Tabs>
 
         {tab === "live" ? (
@@ -196,19 +198,19 @@ export function MidiMonitor() {
                 }
                 disabled={entries.length === 0}
               >
-                Clear
+                {t("common.clear")}
               </Button>
               <MonitorLogToolbar protocol="midi" entries={entries} />
             </Stack>
 
             {midiInputPorts.length === 0 ? (
-              <Alert severity="info">No MIDI input ports found.</Alert>
+              <Alert severity="info">{t("monitor.noMidiInputs")}</Alert>
             ) : (
               <FormControl fullWidth size="small" sx={{ maxWidth: 480, flexShrink: 0 }}>
-                <InputLabel id="midi-monitor-port-label">Input port</InputLabel>
+                <InputLabel id="midi-monitor-port-label">{t("monitor.inputPort")}</InputLabel>
                 <Select
                   labelId="midi-monitor-port-label"
-                  label="Input port"
+                  label={t("monitor.inputPort")}
                   value={inputPort}
                   onChange={(event) => {
                     const nextPort = event.target.value;
@@ -217,7 +219,7 @@ export function MidiMonitor() {
                   }}
                 >
                   <MenuItem value="">
-                    <em>None</em>
+                    <em>{t("common.none")}</em>
                   </MenuItem>
                   {midiInputPorts.map((port) => (
                     <MenuItem key={port} value={port}>
@@ -260,13 +262,13 @@ export function MidiMonitor() {
                 emptyMessage={
                   entries.length === 0
                     ? inputPort
-                      ? "Waiting for MIDI messages…"
-                      : "Select an input port to monitor incoming MIDI."
+                      ? t("monitor.waitingMidi")
+                      : t("monitor.selectMidiInput")
                     : isReplayingLive
-                      ? "Waiting for MIDI messages…"
+                      ? t("monitor.waitingMidi")
                       : isMonitorFilterActive(directionFilter, midiTypeFilter, midiPortFilter)
-                        ? "No messages match the current filter."
-                        : "Waiting for MIDI messages…"
+                        ? t("monitor.noFilterMatch")
+                        : t("monitor.waitingMidi")
                 }
               />
             </Box>

@@ -1,4 +1,5 @@
 import { Checkbox, FormControlLabel, Stack, Typography } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import {
   toggleMonitorMidiPort,
   type MonitorMidiPortFilterState,
@@ -11,10 +12,12 @@ interface MonitorMidiPortFilterProps {
 }
 
 export function MonitorMidiPortFilter({ ports, value, onChange }: MonitorMidiPortFilterProps) {
+  const { t } = useTranslation();
+
   if (ports.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary">
-        Devices appear here once MIDI traffic is logged.
+        {t("monitor.devicesAppearHere")}
       </Typography>
     );
   }

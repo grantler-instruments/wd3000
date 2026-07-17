@@ -6,6 +6,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ARTNET_DEFAULT_PORT,
   ARTNET_MAX_CHANNEL,
@@ -60,6 +61,7 @@ function useNumberField(
 }
 
 export function ArtNetComposer() {
+  const { t } = useTranslation();
   const setLastError = useAppStore((state) => state.setLastError);
   const native = isNativeApp();
 
@@ -96,7 +98,7 @@ export function ArtNetComposer() {
 
   const handleSend = async () => {
     if (!host.trim()) {
-      setLastError("Enter an Art-Net host");
+      setLastError(t("monitor.enterArtNetHost"));
       return;
     }
 
@@ -123,10 +125,10 @@ export function ArtNetComposer() {
   };
 
   return (
-    <DebuggerSection title="Composer">
+    <DebuggerSection title={t("monitor.composer")}>
       <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
         <TextField
-          label="Universe"
+          label={t("common.universe")}
           value={universeField.input}
           onChange={(event) => universeField.handleChange(event.target.value)}
           onBlur={universeField.handleBlur}
@@ -136,7 +138,7 @@ export function ArtNetComposer() {
         />
 
         <TextField
-          label="Channel"
+          label={t("common.channel")}
           value={channelField.input}
           onChange={(event) => channelField.handleChange(event.target.value)}
           onBlur={channelField.handleBlur}
@@ -146,7 +148,7 @@ export function ArtNetComposer() {
         />
 
         <TextField
-          label="Value"
+          label={t("common.value")}
           value={valueField.input}
           onChange={(event) => valueField.handleChange(event.target.value)}
           onBlur={valueField.handleBlur}
@@ -158,7 +160,7 @@ export function ArtNetComposer() {
         <Box sx={{ flex: 1 }} />
 
         <TextField
-          label="Host"
+          label={t("common.host")}
           size="small"
           value={host}
           onChange={(event) => setHost(event.target.value)}
@@ -166,7 +168,7 @@ export function ArtNetComposer() {
         />
 
         <TextField
-          label="Port"
+          label={t("common.port")}
           value={portField.input}
           onChange={(event) => portField.handleChange(event.target.value)}
           onBlur={portField.handleBlur}
@@ -182,7 +184,7 @@ export function ArtNetComposer() {
           disabled={!native || sending || !host.trim()}
           sx={{ flexShrink: 0 }}
         >
-          Send
+            {t("common.send")}
         </Button>
       </Stack>
     </DebuggerSection>

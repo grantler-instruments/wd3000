@@ -1,16 +1,19 @@
 import CloseIcon from "@mui/icons-material/Close";
 import { Box, DialogTitle, IconButton, Typography } from "@mui/material";
 import { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 interface DialogCloseButtonProps {
   onClose: () => void;
 }
 
 export function DialogCloseButton({ onClose }: DialogCloseButtonProps) {
+  const { t } = useTranslation();
+
   return (
     <IconButton
       onClick={onClose}
-      aria-label="Close"
+      aria-label={t("common.close")}
       size="small"
       sx={{ flexShrink: 0, mt: -0.5, mr: -0.5 }}
     >

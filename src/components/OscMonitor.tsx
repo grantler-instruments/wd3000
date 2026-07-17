@@ -7,6 +7,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   clearDebugLogFiltered,
   isOscDebugEntry,
@@ -33,6 +34,7 @@ import { DebuggerSection } from "./DebuggerSection";
 type MonitorTab = "live" | "saved";
 
 export function OscMonitor() {
+  const { t } = useTranslation();
   const output = useAppStore((state) => state.output);
   const setOutput = useAppStore((state) => state.setOutput);
   const setLastError = useAppStore((state) => state.setLastError);
@@ -63,12 +65,12 @@ export function OscMonitor() {
   const liveLog = useMemo(
     () => ({
       id: "live-monitor",
-      name: "Live monitor",
+      name: t("monitor.liveMonitor"),
       protocol: "osc" as const,
       savedAt: new Date().toISOString(),
       events: createMonitorLogEvents(entries),
     }),
-    [entries],
+    [entries, t],
   );
 
   const isReplayingLive =
@@ -101,7 +103,7 @@ export function OscMonitor() {
   }, [listenPort, native, setLastError]);
 
   return (
-    <DebuggerSection title="Monitor" flexGrow>
+    <DebuggerSection title={t("monitor.monitor")} flexGrow>
       <Stack
         spacing={2}
         sx={{
@@ -122,8 +124,8 @@ export function OscMonitor() {
             borderColor: "divider",
           }}
         >
-          <Tab label="Live" value="live" sx={{ minHeight: 36 }} />
-          <Tab label="Saved" value="saved" sx={{ minHeight: 36 }} />
+          <Tab label={t("common.live")} value="live" sx={{ minHeight: 36 }} />
+          <Tab label={t("common.saved")} value="saved" sx={{ minHeight: 36 }} />
         </Tabs>
 
         {tab === "live" ? (
@@ -152,13 +154,13 @@ export function OscMonitor() {
                 onClick={() => clearDebugLogFiltered(isOscDebugEntry)}
                 disabled={!native || entries.length === 0}
               >
-                Clear
+                {t("common.clear")}
               </Button>
               <MonitorLogToolbar protocol="osc" entries={entries} />
             </Stack>
 
             <TextField
-              label="Listen port"
+              label={t("common.listenPort")}
               size="small"
               type="number"
               value={listenPort}
@@ -167,7 +169,7 @@ export function OscMonitor() {
                 setListenPort(nextPort);
                 setOutput({ oscListenPort: nextPort });
               }}
-              helperText="Set to 0 to disable listening."
+              helperText={t("monitor.setListenPortZero")}
               disabled={!native}
               sx={{ maxWidth: 200, flexShrink: 0 }}
               slotProps={{
@@ -202,13 +204,13 @@ export function OscMonitor() {
                 emptyMessage={
                   entries.length === 0
                     ? listenPort > 0
-                      ? `Waiting for OSC on port ${listenPort}…`
-                      : "Set a listen port to monitor incoming OSC."
+                      ? t("monitor.waitingOsc", { port: listenPort })
+                      : t("monitor.setListenPortOsc")
                     : isReplayingLive
-                      ? `Waiting for OSC on port ${listenPort}…`
+                      ? t("monitor.waitingOsc", { port: listenPort })
                       : isMonitorFilterActive(directionFilter)
-                        ? "No messages match the current filter."
-                        : `Waiting for OSC on port ${listenPort}…`
+                        ? t("monitor.noFilterMatch")
+                        : t("monitor.waitingOsc", { port: listenPort })
                 }
               />
             </Box>

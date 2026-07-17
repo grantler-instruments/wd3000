@@ -1,5 +1,6 @@
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import { IconButton } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 interface ControlEditButtonProps {
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
@@ -7,10 +8,12 @@ interface ControlEditButtonProps {
 }
 
 export function ControlEditButton({ onClick, inline = false }: ControlEditButtonProps) {
+  const { t } = useTranslation();
+
   return (
     <IconButton
       size="small"
-      aria-label="Edit widget"
+      aria-label={t("control.editWidget")}
       onClick={(event) => {
         event.stopPropagation();
         onClick(event);

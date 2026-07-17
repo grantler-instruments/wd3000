@@ -1,10 +1,12 @@
 import { Box, useTheme } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 interface GrantlerLogoProps {
   height?: number;
 }
 
 export function GrantlerLogo({ height = 28 }: GrantlerLogoProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const primary = theme.palette.primary.main;
   const primaryDark = theme.palette.primary.dark;
@@ -15,7 +17,7 @@ export function GrantlerLogo({ height = 28 }: GrantlerLogoProps) {
       viewBox="0 0 1011 1117"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-label="Grantler Instruments"
+      aria-label={t("brand.grantler")}
       sx={{ height, width: "auto", display: "block", pointerEvents: "none" }}
     >
       <path

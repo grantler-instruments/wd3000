@@ -1,6 +1,7 @@
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { Button, ButtonProps } from "@mui/material";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ControlType } from "../types";
 import { useAppStore } from "../store/useAppStore";
 import { AddWidgetMenu } from "./AddWidgetMenu";
@@ -14,6 +15,7 @@ export function AddControlMenu({
   size = "small",
   variant = "outlined",
 }: AddControlMenuProps) {
+  const { t } = useTranslation();
   const addControl = useAppStore((state) => state.addControl);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = anchorEl !== null;
@@ -33,7 +35,7 @@ export function AddControlMenu({
         aria-expanded={open ? "true" : undefined}
         aria-controls={open ? "add-control-menu" : undefined}
       >
-        Add widget
+        {t("control.addWidget")}
       </Button>
       <AddWidgetMenu
         id="add-control-menu"

@@ -1,5 +1,6 @@
 import { Alert, Box, Typography } from "@mui/material";
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import i18n from "../i18n";
 
 interface DebuggerErrorBoundaryProps {
   children: ReactNode;
@@ -28,7 +29,7 @@ export class DebuggerErrorBoundary extends Component<
       return (
         <Box sx={{ p: 3 }}>
           <Alert severity="error" sx={{ mb: 2 }}>
-            The debugger failed to load.
+            {i18n.t("monitor.debuggerFailed")}
           </Alert>
           <Typography variant="body2" color="text.secondary">
             {this.state.error.message}

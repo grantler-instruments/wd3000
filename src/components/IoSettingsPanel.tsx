@@ -14,9 +14,11 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { listMidiInputs } from "../lib/input";
 import { listMidiOutputs } from "../lib/output";
 import { useAppStore } from "../store/useAppStore";
+import { LanguageSelect } from "./LanguageSelect";
 import { SettingsSectionNav } from "./SettingsSectionNav";
 import type {
   MidiInputEndpoint,
@@ -26,13 +28,35 @@ import type {
   OscSender,
 } from "../types";
 
-type IoSettingsSection = "osc" | "midi" | "mqtt";
+type IoSettingsSection = "general" | "osc" | "midi" | "mqtt";
 
-const SECTIONS: { id: IoSettingsSection; label: string }[] = [
-  { id: "osc", label: "OSC" },
-  { id: "midi", label: "MIDI" },
-  { id: "mqtt", label: "MQTT" },
-];
+function useIoSections() {
+  const { t } = useTranslation();
+  return [
+    { id: "general" as const, label: t("control.general") },
+    { id: "osc" as const, label: t("protocols.osc") },
+    { id: "midi" as const, label: t("protocols.midi") },
+    { id: "mqtt" as const, label: t("protocols.mqtt") },
+  ];
+}
+
+function GeneralSettingsPanel() {
+  const { t } = useTranslation();
+
+  return (
+    <Stack spacing={2.5}>
+      <Box>
+        <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+          {t("control.general")}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {t("settings.generalDescription")}
+        </Typography>
+      </Box>
+      <LanguageSelect />
+    </Stack>
+  );
+}
 
 function SubsectionHeader({
   title,
@@ -116,17 +140,18 @@ function EndpointCard({
 }
 
 function MqttConnectionRow({ connection }: { connection: MqttConnection }) {
+  const { t } = useTranslation();
   const updateMqttConnection = useAppStore((state) => state.updateMqttConnection);
   const removeMqttConnection = useAppStore((state) => state.removeMqttConnection);
 
   return (
     <EndpointCard
       onRemove={() => removeMqttConnection(connection.id)}
-      removeLabel={`Remove ${connection.name}`}
+      removeLabel={t("common.removeNamed", { name: connection.name })}
     >
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ flexWrap: "wrap" }}>
         <TextField
-          label="Name"
+          label={t("common.name")}
           size="small"
           fullWidth
           value={connection.name}
@@ -135,10 +160,10 @@ function MqttConnectionRow({ connection }: { connection: MqttConnection }) {
           }
         />
         <FormControl size="small" sx={{ minWidth: 100 }}>
-          <InputLabel id={`mqtt-protocol-${connection.id}`}>Protocol</InputLabel>
+          <InputLabel id={`mqtt-protocol-${connection.id}`}>{t("common.protocol")}</InputLabel>
           <Select
             labelId={`mqtt-protocol-${connection.id}`}
-            label="Protocol"
+            label={t("common.protocol")}
             value={connection.protocol}
             onChange={(event) =>
               updateMqttConnection(connection.id, {
@@ -146,12 +171,12 @@ function MqttConnectionRow({ connection }: { connection: MqttConnection }) {
               })
             }
           >
-            <MenuItem value="tcp">TCP</MenuItem>
-            <MenuItem value="ws">WS</MenuItem>
+            <MenuItem value="tcp">{t("protocols.tcp")}</MenuItem>
+            <MenuItem value="ws">{t("protocols.ws")}</MenuItem>
           </Select>
         </FormControl>
         <TextField
-          label="Host"
+          label={t("common.host")}
           size="small"
           fullWidth
           value={connection.host}
@@ -160,7 +185,7 @@ function MqttConnectionRow({ connection }: { connection: MqttConnection }) {
           }
         />
         <TextField
-          label="Port"
+          label={t("common.port")}
           size="small"
           type="number"
           sx={{ width: { xs: "100%", sm: 100 }, flexShrink: 0 }}
@@ -178,31 +203,32 @@ function MqttConnectionRow({ connection }: { connection: MqttConnection }) {
 }
 
 function OscSenderRow({ sender }: { sender: OscSender }) {
+  const { t } = useTranslation();
   const updateOscSender = useAppStore((state) => state.updateOscSender);
   const removeOscSender = useAppStore((state) => state.removeOscSender);
 
   return (
     <EndpointCard
       onRemove={() => removeOscSender(sender.id)}
-      removeLabel={`Remove ${sender.name}`}
+      removeLabel={t("common.removeNamed", { name: sender.name })}
     >
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
         <TextField
-          label="Name"
+          label={t("common.name")}
           size="small"
           fullWidth
           value={sender.name}
           onChange={(event) => updateOscSender(sender.id, { name: event.target.value })}
         />
         <TextField
-          label="Host"
+          label={t("common.host")}
           size="small"
           fullWidth
           value={sender.host}
           onChange={(event) => updateOscSender(sender.id, { host: event.target.value })}
         />
         <TextField
-          label="Port"
+          label={t("common.port")}
           size="small"
           type="number"
           sx={{ width: { xs: "100%", sm: 100 }, flexShrink: 0 }}
@@ -220,24 +246,25 @@ function OscSenderRow({ sender }: { sender: OscSender }) {
 }
 
 function OscReceiverRow({ receiver }: { receiver: OscReceiver }) {
+  const { t } = useTranslation();
   const updateOscReceiver = useAppStore((state) => state.updateOscReceiver);
   const removeOscReceiver = useAppStore((state) => state.removeOscReceiver);
 
   return (
     <EndpointCard
       onRemove={() => removeOscReceiver(receiver.id)}
-      removeLabel={`Remove ${receiver.name}`}
+      removeLabel={t("common.removeNamed", { name: receiver.name })}
     >
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
         <TextField
-          label="Name"
+          label={t("common.name")}
           size="small"
           fullWidth
           value={receiver.name}
           onChange={(event) => updateOscReceiver(receiver.id, { name: event.target.value })}
         />
         <TextField
-          label="Listen port"
+          label={t("common.listenPort")}
           size="small"
           type="number"
           sx={{ width: { xs: "100%", sm: 140 }, flexShrink: 0 }}
@@ -261,27 +288,28 @@ function MidiOutputRow({
   endpoint: MidiOutputEndpoint;
   ports: string[];
 }) {
+  const { t } = useTranslation();
   const updateMidiOutput = useAppStore((state) => state.updateMidiOutput);
   const removeMidiOutput = useAppStore((state) => state.removeMidiOutput);
 
   return (
     <EndpointCard
       onRemove={() => removeMidiOutput(endpoint.id)}
-      removeLabel={`Remove ${endpoint.name}`}
+      removeLabel={t("common.removeNamed", { name: endpoint.name })}
     >
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
         <TextField
-          label="Name"
+          label={t("common.name")}
           size="small"
           fullWidth
           value={endpoint.name}
           onChange={(event) => updateMidiOutput(endpoint.id, { name: event.target.value })}
         />
         <FormControl fullWidth size="small">
-          <InputLabel id={`midi-out-${endpoint.id}`}>Port</InputLabel>
+          <InputLabel id={`midi-out-${endpoint.id}`}>{t("common.port")}</InputLabel>
           <Select
             labelId={`midi-out-${endpoint.id}`}
-            label="Port"
+            label={t("common.port")}
             value={endpoint.portName}
             onChange={(event) =>
               updateMidiOutput(endpoint.id, { portName: event.target.value })
@@ -289,7 +317,7 @@ function MidiOutputRow({
           >
             {ports.length === 0 && (
               <MenuItem value="" disabled>
-                No outputs found
+                {t("io.noOutputsFound")}
               </MenuItem>
             )}
             {ports.map((port) => (
@@ -311,27 +339,28 @@ function MidiInputRow({
   endpoint: MidiInputEndpoint;
   ports: string[];
 }) {
+  const { t } = useTranslation();
   const updateMidiInput = useAppStore((state) => state.updateMidiInput);
   const removeMidiInput = useAppStore((state) => state.removeMidiInput);
 
   return (
     <EndpointCard
       onRemove={() => removeMidiInput(endpoint.id)}
-      removeLabel={`Remove ${endpoint.name}`}
+      removeLabel={t("common.removeNamed", { name: endpoint.name })}
     >
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
         <TextField
-          label="Name"
+          label={t("common.name")}
           size="small"
           fullWidth
           value={endpoint.name}
           onChange={(event) => updateMidiInput(endpoint.id, { name: event.target.value })}
         />
         <FormControl fullWidth size="small">
-          <InputLabel id={`midi-in-${endpoint.id}`}>Port</InputLabel>
+          <InputLabel id={`midi-in-${endpoint.id}`}>{t("common.port")}</InputLabel>
           <Select
             labelId={`midi-in-${endpoint.id}`}
-            label="Port"
+            label={t("common.port")}
             value={endpoint.portName}
             onChange={(event) =>
               updateMidiInput(endpoint.id, { portName: event.target.value })
@@ -339,7 +368,7 @@ function MidiInputRow({
           >
             {ports.length === 0 && (
               <MenuItem value="" disabled>
-                No inputs found
+                {t("io.noInputsFound")}
               </MenuItem>
             )}
             {ports.map((port) => (
@@ -355,6 +384,7 @@ function MidiInputRow({
 }
 
 function OscSettingsPanel() {
+  const { t } = useTranslation();
   const performerIo = useAppStore((state) => state.performerIo);
   const addOscSender = useAppStore((state) => state.addOscSender);
   const addOscReceiver = useAppStore((state) => state.addOscReceiver);
@@ -363,27 +393,27 @@ function OscSettingsPanel() {
     <Stack spacing={3}>
       <Box>
         <Typography variant="h6" sx={{ mb: 0.5 }}>
-          OSC
+          {t("protocols.osc")}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Named send and receive endpoints. Assign them to widgets in the editor.
+          {t("io.oscIntro")}
         </Typography>
       </Box>
 
       <Box>
         <SubsectionHeader
-          title="Senders"
-          description="Where widgets send messages."
-          addLabel="Add sender"
+          title={t("io.senders")}
+          description={t("io.sendersDescription")}
+          addLabel={t("io.addSender")}
           onAdd={() =>
             addOscSender({
-              name: `OSC ${performerIo.oscSenders.length + 1}`,
+              name: t("io.defaultOscSender", { n: performerIo.oscSenders.length + 1 }),
             })
           }
         />
         <Stack spacing={1}>
           {performerIo.oscSenders.length === 0 ? (
-            <EmptyState message="No senders yet." />
+            <EmptyState message={t("io.noSenders")} />
           ) : (
             performerIo.oscSenders.map((sender) => (
               <OscSenderRow key={sender.id} sender={sender} />
@@ -394,18 +424,18 @@ function OscSettingsPanel() {
 
       <Box>
         <SubsectionHeader
-          title="Receivers"
-          description="Ports listened to in play mode."
-          addLabel="Add receiver"
+          title={t("io.receivers")}
+          description={t("io.receiversDescription")}
+          addLabel={t("io.addReceiver")}
           onAdd={() =>
             addOscReceiver({
-              name: `OSC In ${performerIo.oscReceivers.length + 1}`,
+              name: t("io.defaultOscReceiver", { n: performerIo.oscReceivers.length + 1 }),
             })
           }
         />
         <Stack spacing={1}>
           {performerIo.oscReceivers.length === 0 ? (
-            <EmptyState message="No receivers yet." />
+            <EmptyState message={t("io.noReceivers")} />
           ) : (
             performerIo.oscReceivers.map((receiver) => (
               <OscReceiverRow key={receiver.id} receiver={receiver} />
@@ -418,6 +448,7 @@ function OscSettingsPanel() {
 }
 
 function MidiSettingsPanel() {
+  const { t } = useTranslation();
   const performerIo = useAppStore((state) => state.performerIo);
   const addMidiOutput = useAppStore((state) => state.addMidiOutput);
   const addMidiInput = useAppStore((state) => state.addMidiInput);
@@ -428,28 +459,28 @@ function MidiSettingsPanel() {
     <Stack spacing={3}>
       <Box>
         <Typography variant="h6" sx={{ mb: 0.5 }}>
-          MIDI
+          {t("protocols.midi")}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Named input and output ports for widgets and performers.
+          {t("io.midiIntro")}
         </Typography>
       </Box>
 
       <Box>
         <SubsectionHeader
-          title="Outputs"
-          description="Ports widgets send notes and CC to."
-          addLabel="Add output"
+          title={t("io.outputs")}
+          description={t("io.outputsDescription")}
+          addLabel={t("io.addOutput")}
           onAdd={() =>
             addMidiOutput({
-              name: `MIDI Out ${performerIo.midiOutputs.length + 1}`,
+              name: t("io.defaultMidiOutput", { n: performerIo.midiOutputs.length + 1 }),
               portName: midiPorts[0] ?? "",
             })
           }
         />
         <Stack spacing={1}>
           {performerIo.midiOutputs.length === 0 ? (
-            <EmptyState message="No outputs yet." />
+            <EmptyState message={t("io.noOutputs")} />
           ) : (
             performerIo.midiOutputs.map((endpoint) => (
               <MidiOutputRow key={endpoint.id} endpoint={endpoint} ports={midiPorts} />
@@ -460,19 +491,19 @@ function MidiSettingsPanel() {
 
       <Box>
         <SubsectionHeader
-          title="Inputs"
-          description="Ports listened to in play mode."
-          addLabel="Add input"
+          title={t("io.inputs")}
+          description={t("io.inputsDescription")}
+          addLabel={t("io.addInput")}
           onAdd={() =>
             addMidiInput({
-              name: `MIDI In ${performerIo.midiInputs.length + 1}`,
+              name: t("io.defaultMidiInput", { n: performerIo.midiInputs.length + 1 }),
               portName: midiInputPorts[0] ?? "",
             })
           }
         />
         <Stack spacing={1}>
           {performerIo.midiInputs.length === 0 ? (
-            <EmptyState message="No inputs yet." />
+            <EmptyState message={t("io.noInputs")} />
           ) : (
             performerIo.midiInputs.map((endpoint) => (
               <MidiInputRow key={endpoint.id} endpoint={endpoint} ports={midiInputPorts} />
@@ -485,6 +516,7 @@ function MidiSettingsPanel() {
 }
 
 function MqttSettingsPanel() {
+  const { t } = useTranslation();
   const performerIo = useAppStore((state) => state.performerIo);
   const output = useAppStore((state) => state.output);
   const addMqttConnection = useAppStore((state) => state.addMqttConnection);
@@ -493,21 +525,21 @@ function MqttSettingsPanel() {
     <Stack spacing={3}>
       <Box>
         <Typography variant="h6" sx={{ mb: 0.5 }}>
-          MQTT
+          {t("protocols.mqtt")}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Named broker connections. Assign them to widgets in the editor.
+          {t("io.mqttIntro")}
         </Typography>
       </Box>
 
       <Box>
         <SubsectionHeader
-          title="Brokers"
-          description="Where widgets publish messages."
-          addLabel="Add broker"
+          title={t("io.brokers")}
+          description={t("io.brokersDescription")}
+          addLabel={t("io.addBroker")}
           onAdd={() =>
             addMqttConnection({
-              name: `MQTT ${performerIo.mqttConnections.length + 1}`,
+              name: t("io.defaultMqtt", { n: performerIo.mqttConnections.length + 1 }),
               host: output.mqttComposerHost,
               port: output.mqttComposerPort,
               protocol: output.mqttComposerProtocol,
@@ -516,7 +548,7 @@ function MqttSettingsPanel() {
         />
         <Stack spacing={1}>
           {performerIo.mqttConnections.length === 0 ? (
-            <EmptyState message="No broker connections yet." />
+            <EmptyState message={t("io.noBrokers")} />
           ) : (
             performerIo.mqttConnections.map((connection) => (
               <MqttConnectionRow key={connection.id} connection={connection} />
@@ -529,7 +561,8 @@ function MqttSettingsPanel() {
 }
 
 export function IoSettingsPanel() {
-  const [section, setSection] = useState<IoSettingsSection>("osc");
+  const sections = useIoSections();
+  const [section, setSection] = useState<IoSettingsSection>("general");
   const setMidiPorts = useAppStore((state) => state.setMidiPorts);
   const setMidiInputPorts = useAppStore((state) => state.setMidiInputPorts);
   const setLastError = useAppStore((state) => state.setLastError);
@@ -567,7 +600,7 @@ export function IoSettingsPanel() {
         width: "100%",
       }}
     >
-      <SettingsSectionNav sections={SECTIONS} section={section} onSelect={setSection} />
+      <SettingsSectionNav sections={sections} section={section} onSelect={setSection} />
 
       <Box
         sx={{
@@ -578,6 +611,7 @@ export function IoSettingsPanel() {
           py: 2.5,
         }}
       >
+        {section === "general" && <GeneralSettingsPanel />}
         {section === "osc" && <OscSettingsPanel />}
         {section === "midi" && <MidiSettingsPanel />}
         {section === "mqtt" && <MqttSettingsPanel />}

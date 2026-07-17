@@ -1,6 +1,7 @@
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { Button, ButtonProps, Divider, Menu } from "@mui/material";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { usePerformerHistoryAvailability } from "../hooks/usePerformerHistory";
 import { redoPerformerEdit, undoPerformerEdit } from "../lib/performer-history";
 import { formatDeleteKey, formatRedoKey, formatShortcutKey } from "../lib/platform";
@@ -16,6 +17,7 @@ export function EditControlMenu({
   size = "small",
   variant = "outlined",
 }: EditControlMenuProps) {
+  const { t } = useTranslation();
   const selectedControlId = useAppStore((state) => state.selectedControlId);
   const controlClipboard = useAppStore((state) => state.controlClipboard);
   const copyControl = useAppStore((state) => state.copyControl);
@@ -50,7 +52,7 @@ export function EditControlMenu({
         aria-expanded={open ? "true" : undefined}
         aria-controls={open ? "edit-control-menu" : undefined}
       >
-        Edit
+        {t("common.edit")}
       </Button>
       <Menu
         id="edit-control-menu"
@@ -61,20 +63,20 @@ export function EditControlMenu({
         transformOrigin={{ vertical: "top", horizontal: "left" }}
       >
         <ShortcutMenuItem
-          label="Undo"
+          label={t("common.undo")}
           shortcut={formatShortcutKey("z")}
           disabled={!canUndo}
           onClick={() => handleAction(() => undoPerformerEdit())}
         />
         <ShortcutMenuItem
-          label="Redo"
+          label={t("common.redo")}
           shortcut={formatRedoKey()}
           disabled={!canRedo}
           onClick={() => handleAction(() => redoPerformerEdit())}
         />
         <Divider />
         <ShortcutMenuItem
-          label="Copy"
+          label={t("common.copy")}
           shortcut={formatShortcutKey("c")}
           disabled={!canEditSelection}
           onClick={() =>
@@ -82,7 +84,7 @@ export function EditControlMenu({
           }
         />
         <ShortcutMenuItem
-          label="Cut"
+          label={t("common.cut")}
           shortcut={formatShortcutKey("x")}
           disabled={!canEditSelection}
           onClick={() =>
@@ -90,13 +92,13 @@ export function EditControlMenu({
           }
         />
         <ShortcutMenuItem
-          label="Paste"
+          label={t("common.paste")}
           shortcut={formatShortcutKey("v")}
           disabled={!canPaste}
           onClick={() => handleAction(() => pasteControl())}
         />
         <ShortcutMenuItem
-          label="Duplicate"
+          label={t("common.duplicate")}
           shortcut={formatShortcutKey("d")}
           disabled={!canEditSelection}
           onClick={() =>
@@ -105,7 +107,7 @@ export function EditControlMenu({
         />
         <Divider />
         <ShortcutMenuItem
-          label="Delete"
+          label={t("common.delete")}
           shortcut={formatDeleteKey()}
           disabled={!canEditSelection}
           onClick={() =>

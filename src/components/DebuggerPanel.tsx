@@ -55,7 +55,7 @@ export function DebuggerPanel() {
         >
           {tab === "midi" ? (
             <Stack spacing={1} sx={debuggerStackSx}>
-              <NativeOnlyAlert protocol="MIDI" />
+              <NativeOnlyAlert protocol="midi" />
               <MidiComposer />
               <Box sx={debuggerMonitorSx}>
                 <MidiMonitor />
@@ -63,7 +63,7 @@ export function DebuggerPanel() {
             </Stack>
           ) : tab === "osc" ? (
             <Stack spacing={1} sx={debuggerStackSx}>
-              <NativeOnlyAlert protocol="OSC" />
+              <NativeOnlyAlert protocol="osc" />
               <OscComposer />
               <Box sx={debuggerMonitorSx}>
                 <OscMonitor />
@@ -71,7 +71,7 @@ export function DebuggerPanel() {
             </Stack>
           ) : tab === "artnet" ? (
             <Stack spacing={1} sx={debuggerStackSx}>
-              <NativeOnlyAlert protocol="Art-Net" />
+              <NativeOnlyAlert protocol="artnet" />
               <ArtNetComposer />
               <Box sx={debuggerMonitorSx}>
                 <ArtNetMonitor />
@@ -79,14 +79,14 @@ export function DebuggerPanel() {
             </Stack>
           ) : tab === "mqtt" ? (
             <Stack spacing={1}>
-              <NativeOnlyAlert protocol="MQTT" />
+              <NativeOnlyAlert protocol="mqtt" />
               <MqttComposer />
               <MqttMonitor />
               <MqttBroker />
             </Stack>
           ) : tab === "tuio" ? (
             <Stack spacing={1} sx={debuggerStackSx}>
-              <NativeOnlyAlert protocol="TUIO" />
+              <NativeOnlyAlert protocol="tuio" />
               <TuioMonitor />
             </Stack>
           ) : null}

@@ -15,6 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { usePointerReorder } from "../hooks/usePointerReorder";
 import {
   defaultOscComposerArg,
@@ -27,11 +28,18 @@ import { isNativeApp } from "../lib/platform";
 import {
   OSC_ARG_TYPES,
   type OscArgType,
-  oscArgTypeLabel,
   oscArgTypeRequiresValue,
 } from "../lib/oscTypes";
 import { useAppStore } from "../store/useAppStore";
 import { DebuggerSection } from "./DebuggerSection";
+
+const OSC_ARG_TYPE_KEYS: Record<OscArgType, string> = {
+  int: "oscComposer.int",
+  float: "oscComposer.float",
+  string: "oscComposer.string",
+  true: "oscComposer.trueT",
+  false: "oscComposer.falseF",
+};
 
 interface OscComposerArgRow extends OscComposerArg {
   id: string;
@@ -131,6 +139,7 @@ function OscArgRow({
   onRemove: () => void;
   onDragStart: () => void;
 }) {
+  const { t } = useTranslation();
   const floatField = useFloatField(arg.floatValue, (floatValue) =>
     onChange({ ...arg, floatValue }),
   );
@@ -153,7 +162,7 @@ function OscArgRow({
       }}
     >
       <Box
-        aria-label={`Reorder argument ${index + 1}`}
+        aria-label={t("oscComposer.reorderArgument", { n: index + 1 })}
         role="button"
         tabIndex={canReorder ? 0 : -1}
         onPointerDown={(event) => {
@@ -192,10 +201,10 @@ function OscArgRow({
       </Typography>
 
       <FormControl size="small" sx={{ width: 140 }}>
-        <InputLabel id={`osc-composer-type-label-${arg.id}`}>Type</InputLabel>
+        <InputLabel id={`osc-composer-type-label-${arg.id}`}>{t("common.type")}</InputLabel>
         <Select
           labelId={`osc-composer-type-label-${arg.id}`}
-          label="Type"
+          label={t("common.type")}
           value={arg.type}
           onChange={(event) =>
             onChange({ ...arg, type: event.target.value as OscArgType })
@@ -203,7 +212,7 @@ function OscArgRow({
         >
           {OSC_ARG_TYPES.map((type) => (
             <MenuItem key={type} value={type}>
-              {oscArgTypeLabel(type)}
+              {t(OSC_ARG_TYPE_KEYS[type])}
             </MenuItem>
           ))}
         </Select>
@@ -211,7 +220,7 @@ function OscArgRow({
 
       {arg.type === "float" && (
         <TextField
-          label="Value"
+          label={t("common.value")}
           size="small"
           value={floatField.input}
           onChange={(event) => floatField.handleChange(event.target.value)}
@@ -224,7 +233,7 @@ function OscArgRow({
 
       {arg.type === "int" && (
         <TextField
-          label="Value"
+          label={t("common.value")}
           size="small"
           value={intField.input}
           onChange={(event) => intField.handleChange(event.target.value)}
@@ -237,7 +246,7 @@ function OscArgRow({
 
       {arg.type === "string" && (
         <TextField
-          label="Value"
+          label={t("common.value")}
           size="small"
           value={arg.stringValue}
           onChange={(event) =>
@@ -250,7 +259,7 @@ function OscArgRow({
 
       {!oscArgTypeRequiresValue(arg.type) && (
         <Typography variant="body2" color="text.secondary" sx={{ minWidth: 120 }}>
-          No value payload
+          {t("oscComposer.noValuePayload")}
         </Typography>
       )}
 
@@ -258,7 +267,7 @@ function OscArgRow({
 
       <IconButton
         size="small"
-        aria-label={`Remove argument ${index + 1}`}
+        aria-label={t("oscComposer.removeArgument", { n: index + 1 })}
         onClick={onRemove}
         disabled={!canRemove}
       >
@@ -269,6 +278,7 @@ function OscArgRow({
 }
 
 export function OscComposer() {
+  const { t } = useTranslation();
   const output = useAppStore((state) => state.output);
   const setOutput = useAppStore((state) => state.setOutput);
   const setLastError = useAppStore((state) => state.setLastError);
@@ -332,11 +342,11 @@ export function OscComposer() {
   };
 
   return (
-    <DebuggerSection title="Composer">
+    <DebuggerSection title={t("monitor.composer")}>
       <Stack spacing={1}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <TextField
-            label="Address"
+            label={t("common.address")}
             size="small"
             value={address}
             onChange={(event) => setAddress(event.target.value)}
@@ -347,7 +357,7 @@ export function OscComposer() {
           <Box sx={{ flex: 1 }} />
 
           <TextField
-            label="Host"
+            label={t("common.host")}
             size="small"
             value={host}
             onChange={(event) => {
@@ -358,7 +368,7 @@ export function OscComposer() {
             sx={{ width: 140 }}
           />
           <TextField
-            label="Port"
+            label={t("common.port")}
             size="small"
             type="number"
             value={port}
@@ -383,7 +393,7 @@ export function OscComposer() {
             }
             sx={{ flexShrink: 0 }}
           >
-            Send
+            {t("common.send")}
           </Button>
         </Stack>
 
@@ -409,7 +419,7 @@ export function OscComposer() {
             onClick={() => setArgs((current) => [...current, createArgRow()])}
             disabled={!native}
           >
-            Add argument
+            {t("oscComposer.addArgument")}
           </Button>
         </Box>
       </Stack>

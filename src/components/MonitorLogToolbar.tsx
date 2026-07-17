@@ -10,6 +10,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { DebugLogEntry } from "../lib/debugLog";
 import {
   createSavedMonitorLog,
@@ -25,7 +26,14 @@ interface MonitorLogToolbarProps {
   entries: DebugLogEntry[];
 }
 
+const PROTOCOL_KEYS: Record<MonitorLogProtocol, string> = {
+  osc: "protocols.osc",
+  midi: "protocols.midi",
+  mqtt: "protocols.mqtt",
+};
+
 export function MonitorLogToolbar({ protocol, entries }: MonitorLogToolbarProps) {
+  const { t } = useTranslation();
   const saveLog = useMonitorLogStore((state) => state.saveLog);
   const setLastError = useAppStore((state) => state.setLastError);
   const [saveOpen, setSaveOpen] = useState(false);
@@ -34,15 +42,14 @@ export function MonitorLogToolbar({ protocol, entries }: MonitorLogToolbarProps)
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const disabled = entries.length === 0;
-  const protocolLabel =
-    protocol === "midi" ? "MIDI" : protocol === "mqtt" ? "MQTT" : "OSC";
+  const protocolLabel = t(PROTOCOL_KEYS[protocol]);
 
   const handleSave = () => {
     try {
       const log = createSavedMonitorLog(name, protocol, entries);
       saveLog(log);
       setSaveOpen(false);
-      setSuccessMessage(`Saved "${log.name}" to library.`);
+      setSuccessMessage(t("monitor.savedToLibrary", { name: log.name }));
     } catch (error) {
       setLastError(error instanceof Error ? error.message : String(error));
     }
@@ -53,7 +60,7 @@ export function MonitorLogToolbar({ protocol, entries }: MonitorLogToolbarProps)
       const log = createSavedMonitorLog(name, protocol, entries);
       exportMonitorLogToFile(log);
       setExportOpen(false);
-      setSuccessMessage(`Exported ${log.name}.wd3000.json`);
+      setSuccessMessage(t("monitor.exportedFile", { name: log.name }));
     } catch (error) {
       setLastError(error instanceof Error ? error.message : String(error));
     }
@@ -72,7 +79,7 @@ export function MonitorLogToolbar({ protocol, entries }: MonitorLogToolbarProps)
             }}
             disabled={disabled}
           >
-            Save
+            {t("common.save")}
           </Button>
           <Button
             size="small"
@@ -83,7 +90,7 @@ export function MonitorLogToolbar({ protocol, entries }: MonitorLogToolbarProps)
             }}
             disabled={disabled}
           >
-            Export
+            {t("common.export")}
           </Button>
         </Stack>
 
@@ -96,40 +103,40 @@ export function MonitorLogToolbar({ protocol, entries }: MonitorLogToolbarProps)
 
       <Dialog open={saveOpen} onClose={() => setSaveOpen(false)} fullWidth maxWidth="xs">
         <AppDialogTitle onClose={() => setSaveOpen(false)}>
-          Save {protocolLabel} monitor log
+          {t("monitor.saveLogTitle", { protocol: protocolLabel })}
         </AppDialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             fullWidth
-            label="Name"
+            label={t("common.name")}
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder={`${protocolLabel} session`}
+            placeholder={t("monitor.sessionPlaceholder", { protocol: protocolLabel })}
             sx={{ mt: 1 }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSaveOpen(false)}>Cancel</Button>
+          <Button onClick={() => setSaveOpen(false)}>{t("common.cancel")}</Button>
           <Button variant="contained" onClick={handleSave} disabled={!name.trim()}>
-            Save
+            {t("common.save")}
           </Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={exportOpen} onClose={() => setExportOpen(false)} fullWidth maxWidth="xs">
         <AppDialogTitle onClose={() => setExportOpen(false)}>
-          Export {protocolLabel} monitor log
+          {t("monitor.exportLogTitle", { protocol: protocolLabel })}
         </AppDialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             fullWidth
-            label="File name"
+            label={t("common.fileName")}
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder={`${protocolLabel.toLowerCase()}-session`}
-            helperText="Exports as name.wd3000.json"
+            placeholder={t("monitor.sessionPlaceholder", { protocol: protocolLabel })}
+            helperText={t("monitor.exportsAs")}
             sx={{ mt: 1 }}
             slotProps={{
               formHelperText: { sx: { mx: 0 } },
@@ -137,9 +144,9 @@ export function MonitorLogToolbar({ protocol, entries }: MonitorLogToolbarProps)
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setExportOpen(false)}>Cancel</Button>
+          <Button onClick={() => setExportOpen(false)}>{t("common.cancel")}</Button>
           <Button variant="contained" onClick={handleExport} disabled={!name.trim()}>
-            Export
+            {t("common.export")}
           </Button>
         </DialogActions>
       </Dialog>

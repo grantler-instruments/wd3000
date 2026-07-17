@@ -1,3 +1,5 @@
+import i18n from "../i18n";
+
 export type OscArgType = "int" | "float" | "string" | "true" | "false";
 
 export const OSC_ARG_TYPES: OscArgType[] = [
@@ -11,15 +13,15 @@ export const OSC_ARG_TYPES: OscArgType[] = [
 export function oscArgTypeLabel(type: OscArgType) {
   switch (type) {
     case "int":
-      return "Int (i)";
+      return i18n.t("oscComposer.int");
     case "float":
-      return "Float (f)";
+      return i18n.t("oscComposer.float");
     case "string":
-      return "String (s)";
+      return i18n.t("oscComposer.string");
     case "true":
-      return "True (T)";
+      return i18n.t("oscComposer.trueT");
     case "false":
-      return "False (F)";
+      return i18n.t("oscComposer.falseF");
   }
 }
 

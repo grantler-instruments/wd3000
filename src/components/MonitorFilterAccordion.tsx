@@ -8,6 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { MonitorLogProtocol } from "../lib/monitorLog";
 import type { MonitorMidiPortFilterState } from "../lib/monitorMidiPortFilter";
 import type { MonitorMidiTypeFilterState } from "../lib/monitorMidiFilter";
@@ -41,6 +42,7 @@ export function MonitorFilterAccordion({
   onMidiPortFilterChange,
   midiPorts = [],
 }: MonitorFilterAccordionProps) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const filtersActive = isMonitorFilterActive(
     directionFilter,
@@ -58,9 +60,9 @@ export function MonitorFilterAccordion({
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          <Typography variant="subtitle2">Filters</Typography>
+          <Typography variant="subtitle2">{t("common.filters")}</Typography>
           {filtersActive && (
-            <Chip label="Active" size="small" color="primary" variant="outlined" />
+            <Chip label={t("common.active")} size="small" color="primary" variant="outlined" />
           )}
         </Stack>
       </AccordionSummary>
@@ -69,7 +71,7 @@ export function MonitorFilterAccordion({
         <Stack spacing={2}>
           <Stack spacing={0.5}>
             <Typography variant="caption" color="text.secondary">
-              Direction
+              {t("monitor.direction")}
             </Typography>
             <MonitorDirectionFilter
               value={directionFilter}
@@ -80,7 +82,7 @@ export function MonitorFilterAccordion({
           {protocol === "midi" && midiTypeFilter && onMidiTypeFilterChange && (
             <Stack spacing={0.5}>
               <Typography variant="caption" color="text.secondary">
-                MIDI type
+                {t("monitor.midiType")}
               </Typography>
               <MonitorMidiTypeFilter
                 value={midiTypeFilter}
@@ -92,7 +94,7 @@ export function MonitorFilterAccordion({
           {protocol === "midi" && midiPortFilter !== undefined && onMidiPortFilterChange && (
             <Stack spacing={0.5}>
               <Typography variant="caption" color="text.secondary">
-                Device
+                {t("common.device")}
               </Typography>
               <MonitorMidiPortFilter
                 ports={midiPorts}

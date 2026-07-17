@@ -1,4 +1,5 @@
 import { Checkbox, FormControlLabel, Stack } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import type { MonitorDirectionFilterState } from "../lib/monitorLogFilter";
 
 interface MonitorDirectionFilterProps {
@@ -7,6 +8,8 @@ interface MonitorDirectionFilterProps {
 }
 
 export function MonitorDirectionFilter({ value, onChange }: MonitorDirectionFilterProps) {
+  const { t } = useTranslation();
+
   const handleInChange = (checked: boolean) => {
     if (!checked && !value.showOut) {
       return;
@@ -31,7 +34,7 @@ export function MonitorDirectionFilter({ value, onChange }: MonitorDirectionFilt
             onChange={(event) => handleInChange(event.target.checked)}
           />
         }
-        label="IN (received)"
+        label={t("monitor.directionIn")}
         sx={{ mr: 0 }}
       />
       <FormControlLabel
@@ -42,7 +45,7 @@ export function MonitorDirectionFilter({ value, onChange }: MonitorDirectionFilt
             onChange={(event) => handleOutChange(event.target.checked)}
           />
         }
-        label="OUT (sent by WD3000)"
+        label={t("monitor.directionOut")}
       />
     </Stack>
   );

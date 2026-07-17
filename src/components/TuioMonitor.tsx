@@ -10,13 +10,15 @@ import {
 } from "@mui/material";
 import { listen } from "@tauri-apps/api/event";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   OUTGOING_CURSOR_COLOR,
   sendTuioCursors,
   startTuioListener,
   stopTuioListener,
   TUIO_ENTITY_COLORS,
-  TUIO_ENTITY_LABELS,
+  TUIO_ENTITY_KINDS,
+  tuioEntityLabel,
   type TuioEntity,
   type TuioFrame,
 } from "../lib/tuio";
@@ -50,7 +52,7 @@ function formatTime(timestamp: number) {
 }
 
 function entityLabel(entity: TuioEntity) {
-  const kind = TUIO_ENTITY_LABELS[entity.kind] ?? entity.kind;
+  const kind = tuioEntityLabel(entity.kind);
   const details: string[] = [`#${entity.sessionId}`];
 
   if (entity.classId != null) {
@@ -264,6 +266,7 @@ function drawSurface(
 }
 
 export function TuioMonitor() {
+  const { t } = useTranslation();
   const setLastError = useAppStore((state) => state.setLastError);
   const native = isNativeApp();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -508,10 +511,10 @@ export function TuioMonitor() {
 
   return (
     <>
-      <DebuggerSection title="Composer">
+      <DebuggerSection title={t("monitor.composer")}>
         <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ alignItems: "flex-start", flexWrap: "wrap" }}>
           <TextField
-            label="Send host"
+            label={t("monitor.sendHost")}
             size="small"
             value={sendHost}
             onChange={(event) => setSendHost(event.target.value)}
@@ -519,12 +522,12 @@ export function TuioMonitor() {
             sx={{ maxWidth: 180 }}
           />
           <TextField
-            label="Send port"
+            label={t("monitor.sendPort")}
             size="small"
             type="number"
             value={sendPort}
             onChange={(event) => setSendPort(Number(event.target.value) || 0)}
-            helperText="TUIO default is 3333."
+            helperText={t("monitor.tuioDefaultPort")}
             disabled={!native}
             sx={{ maxWidth: 160 }}
             slotProps={{
@@ -539,13 +542,13 @@ export function TuioMonitor() {
                 disabled={!native}
               />
             }
-            label="Send from canvas"
+            label={t("monitor.sendFromCanvas")}
           />
           <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
-            {Object.entries(TUIO_ENTITY_LABELS).map(([kind, label]) => (
+            {TUIO_ENTITY_KINDS.map((kind) => (
               <Chip
                 key={kind}
-                label={label}
+                label={tuioEntityLabel(kind)}
                 size="small"
                 sx={{
                   bgcolor: `${TUIO_ENTITY_COLORS[kind]}33`,
@@ -567,7 +570,7 @@ export function TuioMonitor() {
           flexDirection: "column",
         }}
       >
-        <DebuggerSection title="Monitor" flexGrow>
+        <DebuggerSection title={t("monitor.monitor")} flexGrow>
           <Stack
             spacing={2}
             sx={{
@@ -579,12 +582,12 @@ export function TuioMonitor() {
             }}
           >
             <TextField
-              label="Listen port"
+              label={t("common.listenPort")}
               size="small"
               type="number"
               value={listenPort}
               onChange={(event) => setListenPort(Number(event.target.value) || 0)}
-              helperText="Set to 0 to disable listening."
+              helperText={t("monitor.setListenPortZero")}
               disabled={!native}
               sx={{ maxWidth: 160, flexShrink: 0 }}
               slotProps={{
@@ -647,8 +650,12 @@ export function TuioMonitor() {
               }}
             >
               {sendEnabled
-                ? `Listening on ${listenPort}. Click or drag to send TUIO cursors to ${sendHost}:${sendPort}.`
-                : `Waiting for TUIO on port ${listenPort}…`}
+                ? t("monitor.listeningOnPortSend", {
+                    port: listenPort,
+                    host: sendHost,
+                    sendPort,
+                  })
+                : t("monitor.waitingTuio")}
             </Typography>
           )}
         </Box>
@@ -664,7 +671,9 @@ export function TuioMonitor() {
             }}
           >
             <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
-              Active entities ({(frame?.entities.length ?? 0) + outgoingCursors.length})
+              {t("monitor.activeEntities", {
+                count: (frame?.entities.length ?? 0) + outgoingCursors.length,
+              })}
             </Typography>
             <Divider />
             {outgoingCursors.length > 0 && (
@@ -677,7 +686,7 @@ export function TuioMonitor() {
                     sx={{ px: 2, py: 1, alignItems: "center" }}
                   >
                     <Chip
-                      label="Out"
+                      label={t("monitor.out")}
                       size="small"
                       sx={{
                         minWidth: 72,
@@ -686,7 +695,7 @@ export function TuioMonitor() {
                     />
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography variant="body2" noWrap>
-                        Cursor #{cursor.sessionId}
+                        {t("monitor.cursorN", { id: cursor.sessionId })}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         {cursor.x.toFixed(3)}, {cursor.y.toFixed(3)}
@@ -706,7 +715,7 @@ export function TuioMonitor() {
                     sx={{ px: 2, py: 1, alignItems: "center" }}
                   >
                     <Chip
-                      label={TUIO_ENTITY_LABELS[entity.kind] ?? entity.kind}
+                      label={tuioEntityLabel(entity.kind)}
                       size="small"
                       sx={{
                         minWidth: 72,
@@ -726,7 +735,7 @@ export function TuioMonitor() {
               </Stack>
             ) : outgoingCursors.length === 0 ? (
               <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-                No active TUIO entities.
+                {t("monitor.noActiveTuio")}
               </Typography>
             ) : null}
           </Box>
@@ -742,7 +751,7 @@ export function TuioMonitor() {
               }}
             >
               <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
-                Symbols
+                {t("monitor.symbols")}
               </Typography>
               <Divider />
               <Stack divider={<Divider />}>
@@ -768,12 +777,12 @@ export function TuioMonitor() {
             }}
           >
             <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
-              Events
+              {t("monitor.events")}
             </Typography>
             <Divider />
             {logEntries.length === 0 ? (
               <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-                Remove events will appear here.
+                {t("monitor.removeEventsHint")}
               </Typography>
             ) : (
               <Stack divider={<Divider />}>

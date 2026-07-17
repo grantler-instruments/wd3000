@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ARTNET_DEFAULT_PORT,
   ARTNET_MAX_UNIVERSE,
@@ -121,6 +122,7 @@ function formatTime(timestamp: number) {
 }
 
 export function ArtNetMonitor() {
+  const { t } = useTranslation();
   const allEntries = useDebugLog();
   const native = isNativeApp();
 
@@ -201,7 +203,7 @@ export function ArtNetMonitor() {
 
     if (listenPort <= 0) {
       setListenerStatus("error");
-      setListenerError("Enter a valid listen port.");
+      setListenerError(t("monitor.enterValidListenPort"));
       void stopArtNetListener();
       return;
     }
@@ -224,7 +226,7 @@ export function ArtNetMonitor() {
         }
 
         setListenerStatus("error");
-        setListenerError("Listener did not open the port.");
+        setListenerError(t("monitor.listenerDidNotOpen"));
       })
       .catch((error) => {
         if (!cancelled) {
@@ -243,15 +245,15 @@ export function ArtNetMonitor() {
   const listenerStatusLabel = useMemo(() => {
     switch (listenerStatus) {
       case "starting":
-        return `Opening port ${listenPort}…`;
+        return t("monitor.openingPort", { port: listenPort });
       case "listening":
-        return `Port open · listening on ${listenPort}`;
+        return t("monitor.portOpenListening", { port: listenPort });
       case "error":
-        return listenerError ?? "Failed to open port";
+        return listenerError ?? t("monitor.failedToOpenPort");
       default:
-        return "Stopped";
+        return t("monitor.stopped");
     }
-  }, [listenPort, listenerError, listenerStatus]);
+  }, [listenPort, listenerError, listenerStatus, t]);
 
   const listenerStatusColor = useMemo(() => {
     switch (listenerStatus) {
@@ -267,7 +269,7 @@ export function ArtNetMonitor() {
   }, [listenerStatus]);
 
   return (
-    <DebuggerSection title="Monitor" flexGrow>
+    <DebuggerSection title={t("monitor.monitor")} flexGrow>
       <Stack
         spacing={2}
         sx={{
@@ -293,7 +295,7 @@ export function ArtNetMonitor() {
             onClick={() => clearDebugLogFiltered(isArtNetDebugEntry)}
             disabled={!native || entries.length === 0}
           >
-            Clear
+            {t("common.clear")}
           </Button>
         </Stack>
 
@@ -310,10 +312,10 @@ export function ArtNetMonitor() {
               disabled={!native || listenerStatus === "starting"}
             />
           }
-          label="Listen"
+          label={t("common.listen")}
         />
         <TextField
-          label="Listen port"
+          label={t("common.listenPort")}
           size="small"
           type="number"
           value={listenPort}
@@ -340,10 +342,10 @@ export function ArtNetMonitor() {
           sx={{ alignItems: { xs: "stretch", sm: "center" }, mb: 1, flexWrap: "wrap" }}
         >
           <Typography variant="subtitle2" sx={{ alignSelf: "center" }}>
-            Live channels
+            {t("monitor.liveChannels")}
           </Typography>
           <TextField
-            label="Universe"
+            label={t("common.universe")}
             size="small"
             type="number"
             value={selectedUniverse}
@@ -376,7 +378,7 @@ export function ArtNetMonitor() {
           )}
         </Stack>
         <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
-          Art-Net supports 32,768 universes (0–32767), 512 channels each.
+          {t("monitor.artNetUniversesHint")}
         </Typography>
         <ArtNetChannelGrid channels={channels} />
       </Box>
@@ -401,12 +403,12 @@ export function ArtNetMonitor() {
             {listenPort > 0
               ? listeningEnabled
                 ? listenerStatus === "listening"
-                  ? `Waiting for Art-Net on port ${listenPort}…`
+                  ? t("monitor.waitingArtNet", { port: listenPort })
                   : listenerStatus === "starting"
-                    ? `Opening port ${listenPort}…`
-                    : listenerError ?? "Listener is not running."
-                : "Enable Listen to monitor incoming Art-Net."
-              : "Set a listen port to monitor incoming Art-Net."}
+                    ? t("monitor.openingPort", { port: listenPort })
+                    : listenerError ?? t("monitor.listenerNotRunning")
+                : t("monitor.listenArtNet")
+              : t("monitor.setListenPortArtNet")}
           </Typography>
         ) : filteredEntries.length === 0 ? (
           <Typography
@@ -414,7 +416,7 @@ export function ArtNetMonitor() {
             color="text.secondary"
             sx={{ p: 2, textAlign: "center" }}
           >
-            No packets for universe {selectedUniverse} yet.
+            {t("monitor.noPacketsForUniverse", { universe: selectedUniverse })}
           </Typography>
         ) : (
           <Stack divider={<Divider />}>
@@ -445,7 +447,7 @@ export function ArtNetMonitor() {
                   color={entry.direction === "in" ? "info" : "success"}
                   sx={{ minWidth: 48 }}
                 />
-                <Chip label="Art-Net" size="small" variant="outlined" />
+                <Chip label={t("protocols.artnet")} size="small" variant="outlined" />
                 <Typography
                   component="span"
                   variant="body2"

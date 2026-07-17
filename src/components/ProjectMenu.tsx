@@ -15,6 +15,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { useRef, useState, type ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { exportConfigToFile, parseConfigImport } from "../lib/config";
 import { useAppStore } from "../store/useAppStore";
 import { AppDialogTitle } from "./AppDialogHeader";
@@ -28,6 +29,7 @@ export function ProjectMenu({
   size = "small",
   variant = "outlined",
 }: ProjectMenuProps) {
+  const { t } = useTranslation();
   const controls = useAppStore((state) => state.controls);
   const output = useAppStore((state) => state.output);
   const performerIo = useAppStore((state) => state.performerIo);
@@ -116,7 +118,7 @@ export function ProjectMenu({
         aria-expanded={open ? "true" : undefined}
         aria-controls={open ? "project-menu" : undefined}
       >
-        Project
+        {t("project.title")}
       </Button>
       <Menu
         id="project-menu"
@@ -130,19 +132,19 @@ export function ProjectMenu({
           <ListItemIcon>
             <NoteAddIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>New project</ListItemText>
+          <ListItemText>{t("project.newProject")}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleImportClick}>
           <ListItemIcon>
             <FileUploadIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Import</ListItemText>
+          <ListItemText>{t("common.import")}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExport}>
           <ListItemIcon>
             <FileDownloadIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Export</ListItemText>
+          <ListItemText>{t("common.export")}</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -155,33 +157,31 @@ export function ProjectMenu({
       />
 
       <Dialog open={newProjectOpen} onClose={() => setNewProjectOpen(false)}>
-        <AppDialogTitle onClose={() => setNewProjectOpen(false)}>New project?</AppDialogTitle>
+        <AppDialogTitle onClose={() => setNewProjectOpen(false)}>
+          {t("project.newProjectConfirmTitle")}
+        </AppDialogTitle>
         <DialogContent>
-          <DialogContentText>
-            This clears your current layout, controls, and connection settings. Export first if
-            you want to keep a backup.
-          </DialogContentText>
+          <DialogContentText>{t("project.newProjectConfirmBody")}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setNewProjectOpen(false)}>Cancel</Button>
+          <Button onClick={() => setNewProjectOpen(false)}>{t("common.cancel")}</Button>
           <Button variant="contained" onClick={handleConfirmNewProject}>
-            New project
+            {t("project.newProject")}
           </Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={importOpen} onClose={handleCancelImport}>
-        <AppDialogTitle onClose={handleCancelImport}>Import project?</AppDialogTitle>
+        <AppDialogTitle onClose={handleCancelImport}>
+          {t("project.importConfirmTitle")}
+        </AppDialogTitle>
         <DialogContent>
-          <DialogContentText>
-            This replaces your current layout, controls, and connection settings. Export first
-            if you want to keep a backup.
-          </DialogContentText>
+          <DialogContentText>{t("project.importConfirmBody")}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelImport}>Cancel</Button>
+          <Button onClick={handleCancelImport}>{t("common.cancel")}</Button>
           <Button variant="contained" onClick={handleConfirmImport}>
-            Import
+            {t("common.import")}
           </Button>
         </DialogActions>
       </Dialog>

@@ -1,5 +1,6 @@
 import { Box, Typography, alpha } from "@mui/material";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useDragPosition } from "../hooks/useDragPosition";
 import {
   assignControlToHoveredTab,
@@ -47,6 +48,8 @@ function DropPlacementPreview({
   width: number;
   height: number;
 }) {
+  const { t } = useTranslation();
+
   return (
     <Box
       sx={{
@@ -80,7 +83,7 @@ function DropPlacementPreview({
           lineHeight: 1.2,
         }}
       >
-        Place here
+        {t("control.placeHere")}
       </Typography>
     </Box>
   );
@@ -193,6 +196,7 @@ export function TabPanelContent({
   layoutPreview = false,
   gridSize = LAYOUT_GRID_SIZE,
 }: TabPanelContentProps) {
+  const { t } = useTranslation();
   const assignControlToTab = useAppStore((state) => state.assignControlToTab);
   const selectControl = useAppStore((state) => state.selectControl);
   const tabDropPreview = useAppStore((state) => state.tabDropPreview);
@@ -425,7 +429,7 @@ export function TabPanelContent({
               pointerEvents: "none",
             }}
           >
-            Drag a widget onto this grid. It will land where you release it.
+            {t("control.dragOntoGrid")}
           </Typography>
         )}
 

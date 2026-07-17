@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import i18n from "../i18n";
 
 export interface TuioEntity {
   kind: string;
@@ -57,12 +58,33 @@ export const TUIO_ENTITY_COLORS: Record<string, string> = {
   symbol: "#bdbdbd",
 };
 
-export const TUIO_ENTITY_LABELS: Record<string, string> = {
-  cursor: "Cursor",
-  object: "Object",
-  blob: "Blob",
-  pointer: "Pointer",
-  token: "Token",
-  bounds: "Bounds",
-  symbol: "Symbol",
-};
+export const TUIO_ENTITY_KINDS = [
+  "cursor",
+  "object",
+  "blob",
+  "pointer",
+  "token",
+  "bounds",
+  "symbol",
+] as const;
+
+export function tuioEntityLabel(kind: string): string {
+  switch (kind) {
+    case "cursor":
+      return i18n.t("tuio.cursor");
+    case "object":
+      return i18n.t("tuio.object");
+    case "blob":
+      return i18n.t("tuio.blob");
+    case "pointer":
+      return i18n.t("tuio.pointer");
+    case "token":
+      return i18n.t("tuio.token");
+    case "bounds":
+      return i18n.t("tuio.bounds");
+    case "symbol":
+      return i18n.t("tuio.symbol");
+    default:
+      return kind;
+  }
+}

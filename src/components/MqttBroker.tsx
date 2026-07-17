@@ -6,6 +6,7 @@ import {
 } from "@mui/material";
 import type { MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { startMqttBroker, stopMqttBroker } from "../lib/input";
 import { MQTT_DEFAULT_TCP_PORT, MQTT_DEFAULT_WS_PORT } from "../lib/mqtt";
 import { getLocalIp } from "../lib/network";
@@ -25,6 +26,7 @@ function stopPropagation(event: MouseEvent) {
 }
 
 export function MqttBroker() {
+  const { t } = useTranslation();
   const output = useAppStore((state) => state.output);
   const setOutput = useAppStore((state) => state.setOutput);
   const setLastError = useAppStore((state) => state.setLastError);
@@ -126,7 +128,7 @@ export function MqttBroker() {
     <DebuggerSection
       title={
         <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
-          <Typography variant="subtitle2">Broker</Typography>
+          <Typography variant="subtitle2">{t("common.broker")}</Typography>
           {native ? (
             <Typography
               variant="caption"
@@ -149,7 +151,7 @@ export function MqttBroker() {
             setOutput({ mqttBrokerEnabled: nextActive });
           }}
           disabled={!native || portsConflict}
-          aria-label={active ? "Deactivate broker" : "Activate broker"}
+          aria-label={active ? t("monitor.deactivateBroker") : t("monitor.activateBroker")}
         />
       }
     >
@@ -159,7 +161,7 @@ export function MqttBroker() {
         sx={{ alignItems: { xs: "stretch", sm: "center" }, flexWrap: "wrap" }}
       >
         <TextField
-          label="TCP port"
+          label={t("monitor.tcpPort")}
           size="small"
           type="number"
           value={tcpPort}
@@ -176,7 +178,7 @@ export function MqttBroker() {
         />
 
         <TextField
-          label="WS port"
+          label={t("monitor.wsPort")}
           size="small"
           type="number"
           value={wsPort}

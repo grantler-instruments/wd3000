@@ -1,6 +1,7 @@
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import type { MouseEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Accordion,
   AccordionDetails,
@@ -57,6 +58,7 @@ export function SensorCard({
   onToggleWatch?: (watching: boolean) => void;
   children: ReactNode;
 }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
@@ -97,7 +99,11 @@ export function SensorCard({
               checked={watching ?? false}
               onClick={stopPropagation}
               onChange={(_, checked) => onToggleWatch(checked)}
-              aria-label={`${watching ? "Stop" : "Start"} ${title}`}
+              aria-label={
+                watching
+                  ? t("sensors.stopNamed", { title })
+                  : t("sensors.startNamed", { title })
+              }
             />
           ) : null}
         </Stack>

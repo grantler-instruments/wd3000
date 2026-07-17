@@ -16,6 +16,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { SavedMonitorLog } from "../lib/monitorLog";
 import {
   isMonitorLogReplayActive,
@@ -34,6 +35,7 @@ interface MonitorReplaySectionProps {
 }
 
 export function MonitorReplaySection({ log, incomingCount }: MonitorReplaySectionProps) {
+  const { t } = useTranslation();
   const output = useAppStore((state) => state.output);
   const midiPorts = useAppStore((state) => state.midiPorts);
   const setMidiPorts = useAppStore((state) => state.setMidiPorts);
@@ -41,7 +43,8 @@ export function MonitorReplaySection({ log, incomingCount }: MonitorReplaySectio
   const native = isNativeApp();
 
   const protocol = log?.protocol ?? "midi";
-  const protocolLabel = protocol === "midi" ? "MIDI" : "OSC";
+  const protocolLabel =
+    protocol === "midi" ? t("protocols.midi") : t("protocols.osc");
 
   const [midiPortName, setMidiPortName] = useState(output.midiPortName ?? "");
   const [oscHost, setOscHost] = useState(output.oscHost);
@@ -128,26 +131,25 @@ export function MonitorReplaySection({ log, incomingCount }: MonitorReplaySectio
       sx={stackedAccordionSx}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant="subtitle2">Replay</Typography>
+        <Typography variant="subtitle2">{t("monitor.replay")}</Typography>
       </AccordionSummary>
 
       <AccordionDetails>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Re-sends incoming messages from the log below to a {protocolLabel} destination.
-          This is separate from the listen port above.
+          {t("monitor.replayDestinationNote", { protocol: protocolLabel })}
         </Typography>
 
         {protocol === "midi" ? (
         midiPorts.length === 0 ? (
           <Alert severity="info" sx={{ mb: 2 }}>
-            No MIDI output ports found.
+            {t("monitor.noMidiOutputs")}
           </Alert>
         ) : (
           <FormControl fullWidth size="small" sx={{ mb: 2, maxWidth: 480 }}>
-            <InputLabel id="monitor-replay-midi-out-label">Send to port</InputLabel>
+            <InputLabel id="monitor-replay-midi-out-label">{t("monitor.sendToPort")}</InputLabel>
             <Select
               labelId="monitor-replay-midi-out-label"
-              label="Send to port"
+              label={t("monitor.sendToPort")}
               value={midiPortName}
               onChange={(event) => setMidiPortName(event.target.value)}
             >
@@ -161,19 +163,19 @@ export function MonitorReplaySection({ log, incomingCount }: MonitorReplaySectio
         )
       ) : !native ? (
         <Alert severity="info" sx={{ mb: 2 }}>
-          OSC send is only available in the native app.
+          {t("monitor.oscSendNativeOnly")}
         </Alert>
       ) : (
         <Stack direction="row" spacing={1} sx={{ mb: 2, maxWidth: 360 }}>
           <TextField
-            label="Send to host"
+            label={t("monitor.sendToHost")}
             size="small"
             fullWidth
             value={oscHost}
             onChange={(event) => setOscHost(event.target.value)}
           />
           <TextField
-            label="Port"
+            label={t("common.port")}
             size="small"
             type="number"
             value={oscPort}
@@ -192,7 +194,7 @@ export function MonitorReplaySection({ log, incomingCount }: MonitorReplaySectio
             startIcon={<StopIcon />}
             onClick={handleStop}
           >
-            Stop
+            {t("common.stop")}
           </Button>
         ) : (
           <Button
@@ -202,12 +204,12 @@ export function MonitorReplaySection({ log, incomingCount }: MonitorReplaySectio
             onClick={handleSend}
             disabled={!canSend}
           >
-            Send {incomingCount} incoming
+            {t("monitor.sendIncoming", { count: incomingCount })}
           </Button>
         )}
         {incomingCount === 0 && (
           <Typography variant="body2" color="text.secondary">
-            No incoming messages captured yet.
+            {t("monitor.noIncomingYet")}
           </Typography>
         )}
       </Stack>
