@@ -11,6 +11,7 @@ import { HomePage } from "./components/HomePage";
 import { PlayModeBezelExit } from "./components/PlayModeBezelExit";
 import { ControlPerformerDialog } from "./components/ControlPerformer";
 import { DebuggerPanel } from "./components/DebuggerPanel";
+import { MediaPipePlayView } from "./components/mediapipe/MediaPipePlayView";
 import { PerformerPanel } from "./components/PerformerPanel";
 import { useInputControl } from "./hooks/useInputControl";
 import { useControlClipboardShortcuts } from "./hooks/useControlClipboardShortcuts";
@@ -27,6 +28,9 @@ function App() {
   const lastError = useAppStore((state) => state.lastError);
   const setLastError = useAppStore((state) => state.setLastError);
   const isEditMode = mode === "edit";
+  const canRunPerformer =
+    activeView === "performer" &&
+    (performerSubView === "ui" || performerSubView === "mediapipe");
 
   useInputControl();
   usePerformerHistory();
@@ -55,20 +59,24 @@ function App() {
         return;
       }
 
-      if (activeView === "performer" && performerSubView === "ui") {
+      if (canRunPerformer) {
         setMode("play");
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeView, mode, performerSubView, setMode]);
+  }, [canRunPerformer, mode, setMode]);
 
   if (!isEditMode) {
     return (
       <Box sx={{ display: "flex", flexDirection: "column", height: "100vh", width: "100%" }}>
         <ThemeProvider theme={playTheme}>
-          <ControlCanvas editable={false} />
+          {performerSubView === "mediapipe" ? (
+            <MediaPipePlayView />
+          ) : (
+            <ControlCanvas editable={false} />
+          )}
           <PlayModeBezelExit onExit={() => setMode("edit")} />
         </ThemeProvider>
 

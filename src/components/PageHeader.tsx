@@ -25,6 +25,9 @@ export function PageHeader() {
   const setActiveView = useAppStore((state) => state.setActiveView);
 
   const showUiEditor = activeView === "performer" && performerSubView === "ui";
+  const showRunButton =
+    activeView === "performer" &&
+    (performerSubView === "ui" || performerSubView === "mediapipe");
 
   return (
     <AppBar position="static" elevation={0} color="default">
@@ -49,7 +52,7 @@ export function PageHeader() {
           <Box sx={{ flex: 1 }} />
 
           <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-            {showUiEditor && (
+            {showRunButton && (
               isMobile ? (
                 <IconButton
                   aria-label={`Run ${formatShortcutKey("e")}`}

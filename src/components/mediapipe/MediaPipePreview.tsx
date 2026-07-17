@@ -18,8 +18,10 @@ function isVideoReady(video: HTMLVideoElement | null | undefined) {
 
 export function MediaPipePreview({
   onLiveValues,
+  fill = false,
 }: {
   onLiveValues?: (values: Record<string, MediaPipeLandmark>) => void;
+  fill?: boolean;
 }) {
   const theme = useTheme();
   const webcamRef = useRef<Webcam | null>(null);
@@ -91,16 +93,19 @@ export function MediaPipePreview({
   });
 
   return (
-    <Box>
+    <Box sx={fill ? { width: "100%", height: "100%", minHeight: 0 } : undefined}>
       <Box
         sx={{
           position: "relative",
           width: "100%",
-          aspectRatio: `${MEDIAPIPE_PREVIEW_WIDTH} / ${MEDIAPIPE_PREVIEW_HEIGHT}`,
+          height: fill ? "100%" : undefined,
+          aspectRatio: fill
+            ? undefined
+            : `${MEDIAPIPE_PREVIEW_WIDTH} / ${MEDIAPIPE_PREVIEW_HEIGHT}`,
           bgcolor: "background.default",
-          borderRadius: 1,
+          borderRadius: fill ? 0 : 1,
           overflow: "hidden",
-          border: 1,
+          border: fill ? 0 : 1,
           borderColor: "divider",
         }}
       >
