@@ -70,7 +70,15 @@ function App() {
 
   if (!isEditMode) {
     return (
-      <Box sx={{ display: "flex", flexDirection: "column", height: "100vh", width: "100%" }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100dvh",
+          maxHeight: "100%",
+          width: "100%",
+        }}
+      >
         <ThemeProvider theme={playTheme}>
           {performerSubView === "mediapipe" ? (
             <MediaPipePlayView />
@@ -95,14 +103,22 @@ function App() {
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100dvh",
+        maxHeight: "100%",
+        width: "100%",
+      }}
+    >
       {activeView === "home" ? (
         <HomePage />
       ) : (
         <>
           <PageHeader />
 
-          <Box sx={{ flex: 1, minHeight: 0, display: "flex" }}>
+          <Box sx={{ flex: 1, minHeight: 0, width: "100%", display: "flex" }}>
             {activeView === "performer" && <PerformerPanel />}
             {activeView === "debugger" && <DebuggerPanel />}
           </Box>

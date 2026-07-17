@@ -1,5 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
+import { addPluginListener, invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { getAppPlatform } from "../platform";
 import type { SensorDescriptor, SensorReading } from "./types";
 
 type RawSensorReading = SensorReading & {
@@ -14,6 +15,17 @@ function normalizeSensorReading(payload: RawSensorReading): SensorReading {
   };
 }
 
+function handleRawReading(
+  payload: RawSensorReading,
+  onReading: (reading: SensorReading) => void,
+) {
+  const reading = normalizeSensorReading(payload);
+  if (!reading.sensorId) {
+    return;
+  }
+  onReading(reading);
+}
+
 export async function listNativeSensors(): Promise<SensorDescriptor[]> {
   return invoke<SensorDescriptor[]>("list_sensors");
 }
@@ -26,14 +38,23 @@ export async function stopNativeSensorWatch(): Promise<void> {
   await invoke("stop_sensor_watch");
 }
 
-export function listenNativeSensorReadings(
+export async function listenNativeSensorReadings(
   onReading: (reading: SensorReading) => void,
 ): Promise<UnlistenFn> {
+  // Mobile plugins emit via trigger() → addPluginListener.
+  // Desktop (e.g. macOS lid angle) emits via app.emit() → listen().
+  if (getAppPlatform() === "mobile") {
+    const listener = await addPluginListener<RawSensorReading>(
+      "sensors",
+      "sensor-reading",
+      (payload) => handleRawReading(payload, onReading),
+    );
+    return () => {
+      void listener.unregister();
+    };
+  }
+
   return listen<RawSensorReading>("sensor-reading", (event) => {
-    const reading = normalizeSensorReading(event.payload);
-    if (!reading.sensorId) {
-      return;
-    }
-    onReading(reading);
+    handleRawReading(event.payload, onReading);
   });
 }

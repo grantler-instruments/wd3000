@@ -1,4 +1,4 @@
-name: tauri-app
+name: wd3000
 options:
   bundleIdPrefix: com.grantler-instruments.wd3000
   deploymentTarget:
@@ -24,20 +24,20 @@ targetTemplates:
     settings:
       groups: [app]
 targets:
-  tauri-app_iOS:
+  wd3000_iOS:
     type: application
     platform: iOS
     sources:
       - path: Sources
       - path: Assets.xcassets
       - path: Externals
-      - path: tauri-app_iOS
+      - path: wd3000_iOS
       - path: assets
         buildPhase: resources
         type: folder
       - path: LaunchScreen.storyboard
     info:
-      path: tauri-app_iOS/Info.plist
+      path: wd3000_iOS/Info.plist
       properties:
         LSRequiresIPhoneOS: true
         UILaunchStoryboardName: LaunchScreen
@@ -57,14 +57,14 @@ targets:
         NSLocalNetworkUsageDescription: WD3000 uses your local network to send and receive OSC, Art-Net, TUIO, and network MIDI messages.
         NSBluetoothAlwaysUsageDescription: WD3000 uses Bluetooth to connect to MIDI controllers and interfaces.
     entitlements:
-      path: tauri-app_iOS/tauri-app_iOS.entitlements
+      path: wd3000_iOS/wd3000_iOS.entitlements
     scheme:
       environmentVariables:
         RUST_BACKTRACE: full
         RUST_LOG: info
     settings:
       base:
-        DEVELOPMENT_TEAM: 6QBJR6369U
+        DEVELOPMENT_TEAM: DP9DFGMC65
         CODE_SIGN_STYLE: Automatic
         ENABLE_BITCODE: false
         ARCHS: [arm64]
@@ -88,7 +88,7 @@ targets:
     preBuildScripts:
       - script: |
           export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
-          npm run -- tauri ios xcode-script -v --platform ${PLATFORM_DISPLAY_NAME:?} --sdk-root ${SDKROOT:?} --framework-search-paths "${FRAMEWORK_SEARCH_PATHS:?}" --header-search-paths "${HEADER_SEARCH_PATHS:?}" --gcc-preprocessor-definitions "${GCC_PREPROCESSOR_DEFINITIONS:-}" --configuration ${CONFIGURATION:?} ${FORCE_COLOR} ${ARCHS:?}
+          npm run -- tauri ios xcode-script -v --platform ${PLATFORM_DISPLAY_NAME:?} --sdk-root ${SDKROOT:?} --framework-search-paths "${FRAMEWORK_SEARCH_PATHS:?}" --header-search-paths "${HEADER_SEARCH_PATHS:?}" --gcc-preprocessor-definitions "${GCC_PREPROCESSOR_DEFINITIONS:-}" --configuration ${CONFIGURATION:?} ${ARCHS:?}
         name: Build Rust Code
         basedOnDependencyAnalysis: false
         outputFiles:

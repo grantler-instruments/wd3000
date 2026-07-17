@@ -4,6 +4,7 @@ import { useAppStore } from "../store/useAppStore";
 import { settingsTheme } from "../theme";
 import { ControlCanvas } from "./ControlCanvas";
 import { MediaPipePerformerPanel } from "./MediaPipePerformerPanel";
+import { PanelErrorBoundary } from "./PanelErrorBoundary";
 import { SensorsPanel } from "./sensors/SensorsPanel";
 
 export function PerformerPanel() {
@@ -14,61 +15,72 @@ export function PerformerPanel() {
       sx={{
         flex: 1,
         minHeight: 0,
+        width: "100%",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
       }}
     >
-      <Box
-        sx={{
-          flex: 1,
-          minHeight: 0,
-          display: tab === "ui" ? "flex" : "none",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
-        <ThemeProvider theme={settingsTheme}>
+      <PanelErrorBoundary title="Performer panel crashed.">
+        {tab === "ui" ? (
           <Box
             sx={{
               flex: 1,
               minHeight: 0,
               display: "flex",
               flexDirection: "column",
+              overflow: "hidden",
             }}
           >
-            <ControlCanvas editable />
+            <ThemeProvider theme={settingsTheme}>
+              <Box
+                sx={{
+                  flex: 1,
+                  minHeight: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <ControlCanvas editable />
+              </Box>
+            </ThemeProvider>
           </Box>
-        </ThemeProvider>
-      </Box>
+        ) : null}
 
-      <Box
-        sx={{
-          flex: 1,
-          minHeight: 0,
-          display: tab === "sensors" ? "flex" : "none",
-          flexDirection: "column",
-          overflow: "auto",
-          p: 3,
-        }}
-      >
-        <SensorsPanel />
-      </Box>
+        {tab === "sensors" ? (
+          <Box
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "auto",
+              p: 3,
+              bgcolor: "background.default",
+            }}
+          >
+            <SensorsPanel />
+          </Box>
+        ) : null}
 
-      <Box
-        sx={{
-          flex: 1,
-          minHeight: 0,
-          display: tab === "mediapipe" ? "flex" : "none",
-          flexDirection: "column",
-          overflow: "auto",
-          p: 3,
-        }}
-      >
-        <ThemeProvider theme={settingsTheme}>
-          <MediaPipePerformerPanel />
-        </ThemeProvider>
-      </Box>
+        {tab === "mediapipe" ? (
+          <Box
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "auto",
+              p: 3,
+            }}
+          >
+            <ThemeProvider theme={settingsTheme}>
+              <MediaPipePerformerPanel />
+            </ThemeProvider>
+          </Box>
+        ) : null}
+      </PanelErrorBoundary>
     </Box>
   );
 }

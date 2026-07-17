@@ -96,11 +96,13 @@ export function NativeSensorsPanel() {
   }, []);
 
   const applySensorWatch = useCallback(async (nextIds: string[]) => {
+    // Update the ref before native watch starts so early readings are not dropped.
+    activeSensorIdsRef.current = nextIds;
+    setActiveSensorIds(nextIds);
     await stopNativeSensorWatch();
     if (nextIds.length > 0) {
       await startNativeSensorWatch(nextIds);
     }
-    setActiveSensorIds(nextIds);
   }, []);
 
   const handleToggleSensor = useCallback(

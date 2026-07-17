@@ -74,6 +74,11 @@ export function MediaPipePerformerPanel() {
   );
 
   useEffect(() => {
+    if (!navigator.mediaDevices?.enumerateDevices) {
+      setCameraError("Camera APIs are unavailable in this environment.");
+      return;
+    }
+
     void navigator.mediaDevices
       .enumerateDevices()
       .then(handleDevices)

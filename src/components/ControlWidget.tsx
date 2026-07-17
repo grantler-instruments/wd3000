@@ -7,6 +7,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { sendButtonValue, sendSliderValue } from "../lib/output";
 import {
@@ -38,11 +39,17 @@ export function ControlWidget({
   const setLastError = useAppStore((state) => state.setLastError);
   const sliderValue = useAppStore((state) => state.controlValues[control.id] ?? 0);
   const buttonPressed = sliderValue > 0;
+  const buttonHeldRef = useRef(false);
 
   const handleButtonPress = async (pressed: boolean) => {
     if (editable) {
       return;
     }
+
+    if (buttonHeldRef.current === pressed) {
+      return;
+    }
+    buttonHeldRef.current = pressed;
 
     setControlValue(control.id, pressed ? 100 : 0);
 
@@ -128,23 +135,23 @@ export function ControlWidget({
                 : accentSx
             }
             onClick={(event) => event.stopPropagation()}
-            onMouseDown={(event) => {
+            onPointerDown={(event) => {
+              if (event.button !== 0) {
+                return;
+              }
+              event.preventDefault();
               event.stopPropagation();
+              event.currentTarget.setPointerCapture(event.pointerId);
               void handleButtonPress(true);
             }}
-            onMouseUp={(event) => {
+            onPointerUp={(event) => {
               event.stopPropagation();
+              if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                event.currentTarget.releasePointerCapture(event.pointerId);
+              }
               void handleButtonPress(false);
             }}
-            onMouseLeave={() => void handleButtonPress(false)}
-            onTouchStart={(event) => {
-              event.stopPropagation();
-              void handleButtonPress(true);
-            }}
-            onTouchEnd={(event) => {
-              event.stopPropagation();
-              void handleButtonPress(false);
-            }}
+            onPointerCancel={() => void handleButtonPress(false)}
           >
             {t("control.trigger")}
           </Button>
