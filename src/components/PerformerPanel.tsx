@@ -65,7 +65,9 @@ export function PerformerPanel() {
           p: 3,
         }}
       >
-        <MediaPipePerformerPanel />
+        <ThemeProvider theme={settingsTheme}>
+          <MediaPipePerformerPanel />
+        </ThemeProvider>
       </Box>
     </Box>
   );

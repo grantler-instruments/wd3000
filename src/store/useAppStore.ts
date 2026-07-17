@@ -10,8 +10,17 @@ import {
 } from "../lib/sensors/types";
 import {
   clearRemovedEndpointReferences,
+  clearRemovedMediaPipeEndpointReferences,
   clearRemovedSensorEndpointReferences,
 } from "../lib/performerIo";
+import {
+  defaultMediaPipeConfig,
+  defaultMediaPipeLandmarkMapping,
+  normalizeMediaPipeLandmarkMapping,
+  type MediaPipeConfig,
+  type MediaPipeLandmarkMapping,
+  type MediaPipeTracker,
+} from "../lib/mediapipe/types";
 import { replacePerformerWithoutHistory, clearPerformerHistory } from "../lib/performer-history";
 import {
   cloneControlSubtree,
@@ -80,6 +89,8 @@ interface AppState {
   tabDropPreview: TabDropPreview | null;
   controlClipboard: ControlClipboard | null;
   sensorMappings: Record<string, SensorAxisMapping>;
+  mediapipeConfig: MediaPipeConfig;
+  mediapipeMappings: Record<string, MediaPipeLandmarkMapping>;
   lastError: string | null;
   setMode: (mode: AppMode) => void;
   setActiveView: (
@@ -137,6 +148,21 @@ interface AppState {
     patch: {
       osc?: Partial<SensorAxisMapping["osc"]>;
       midi?: Partial<SensorMidiMapping>;
+    },
+  ) => void;
+  setMediaPipeTracker: (tracker: MediaPipeTracker) => void;
+  setMediaPipeVideoDevice: (videoDeviceId: string | null) => void;
+  setMediaPipeActive: (active: boolean) => void;
+  toggleMediaPipeLandmark: (landmark: string) => void;
+  clearMediaPipeLandmarks: () => void;
+  addMediaPipeLandmarks: (landmarks: string[]) => void;
+  getMediaPipeLandmarkMapping: (key: string) => MediaPipeLandmarkMapping;
+  updateMediaPipeLandmarkMapping: (
+    key: string,
+    patch: {
+      osc?: Partial<MediaPipeLandmarkMapping["osc"]>;
+      midi?: Partial<MediaPipeLandmarkMapping["midi"]>;
+      mqtt?: Partial<MediaPipeLandmarkMapping["mqtt"]>;
     },
   ) => void;
   setLastError: (message: string | null) => void;
@@ -229,6 +255,8 @@ export const useAppStore = create<AppState>()(
       tabDropPreview: null,
       controlClipboard: null,
       sensorMappings: {},
+      mediapipeConfig: defaultMediaPipeConfig(),
+      mediapipeMappings: {},
       lastError: null,
       setMode: (mode) => set({ mode }),
       setActiveView: (view, subView) =>
@@ -542,6 +570,10 @@ export const useAppStore = create<AppState>()(
             state.sensorMappings,
             new Set([id]),
           ),
+          mediapipeMappings: clearRemovedMediaPipeEndpointReferences(
+            state.mediapipeMappings,
+            new Set([id]),
+          ),
         })),
       addOscReceiver: (patch) =>
         set((state) => {
@@ -609,6 +641,10 @@ export const useAppStore = create<AppState>()(
           controls: clearRemovedEndpointReferences(state.controls, new Set([id])),
           sensorMappings: clearRemovedSensorEndpointReferences(
             state.sensorMappings,
+            new Set([id]),
+          ),
+          mediapipeMappings: clearRemovedMediaPipeEndpointReferences(
+            state.mediapipeMappings,
             new Set([id]),
           ),
         })),
@@ -680,6 +716,10 @@ export const useAppStore = create<AppState>()(
             ),
           },
           controls: clearRemovedEndpointReferences(state.controls, new Set([id])),
+          mediapipeMappings: clearRemovedMediaPipeEndpointReferences(
+            state.mediapipeMappings,
+            new Set([id]),
+          ),
         })),
       setMidiPorts: (ports) => set({ midiPorts: ports }),
       setMidiInputPorts: (ports) => set({ midiInputPorts: ports }),
@@ -754,6 +794,85 @@ export const useAppStore = create<AppState>()(
           },
         }));
       },
+      setMediaPipeTracker: (tracker) =>
+        set((state) => ({
+          mediapipeConfig: {
+            ...state.mediapipeConfig,
+            tracker,
+            selectedLandmarks: [],
+          },
+        })),
+      setMediaPipeVideoDevice: (videoDeviceId) =>
+        set((state) => ({
+          mediapipeConfig: {
+            ...state.mediapipeConfig,
+            videoDeviceId,
+          },
+        })),
+      setMediaPipeActive: (active) =>
+        set((state) => ({
+          mediapipeConfig: {
+            ...state.mediapipeConfig,
+            active,
+          },
+        })),
+      toggleMediaPipeLandmark: (landmark) =>
+        set((state) => {
+          const selected = state.mediapipeConfig.selectedLandmarks;
+          const next = selected.includes(landmark)
+            ? selected.filter((value) => value !== landmark)
+            : [...selected, landmark];
+
+          return {
+            mediapipeConfig: {
+              ...state.mediapipeConfig,
+              selectedLandmarks: next,
+            },
+          };
+        }),
+      clearMediaPipeLandmarks: () =>
+        set((state) => ({
+          mediapipeConfig: {
+            ...state.mediapipeConfig,
+            selectedLandmarks: [],
+          },
+        })),
+      addMediaPipeLandmarks: (landmarks) =>
+        set((state) => ({
+          mediapipeConfig: {
+            ...state.mediapipeConfig,
+            selectedLandmarks: [
+              ...new Set([...state.mediapipeConfig.selectedLandmarks, ...landmarks]),
+            ],
+          },
+        })),
+      getMediaPipeLandmarkMapping: (key) => {
+        const { performerIo } = get();
+        const stored = get().mediapipeMappings[key];
+        return stored
+          ? normalizeMediaPipeLandmarkMapping(stored, performerIo, key)
+          : defaultMediaPipeLandmarkMapping(key, performerIo);
+      },
+      updateMediaPipeLandmarkMapping: (key, patch) => {
+        const { performerIo } = get();
+        const stored = get().mediapipeMappings[key];
+        const current = stored
+          ? normalizeMediaPipeLandmarkMapping(stored, performerIo, key)
+          : defaultMediaPipeLandmarkMapping(key, performerIo);
+
+        set((state) => ({
+          mediapipeMappings: {
+            ...state.mediapipeMappings,
+            [key]: {
+              ...current,
+              ...patch,
+              osc: { ...current.osc, ...patch.osc },
+              midi: { ...current.midi, ...patch.midi },
+              mqtt: { ...current.mqtt, ...patch.mqtt },
+            },
+          },
+        }));
+      },
       setLastError: (message) => set({ lastError: message }),
       importConfig: (config) =>
         replacePerformerWithoutHistory(() => {
@@ -790,7 +909,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "wd3000-layout",
-      version: 9,
+      version: 10,
       migrate: (persistedState, version) => {
         const state = persistedState as {
           controls?: Array<
@@ -805,6 +924,8 @@ export const useAppStore = create<AppState>()(
           performerIo?: Partial<PerformerIoConfig>;
           layoutSettings?: LayoutSettings & { mode?: string };
           sensorMappings?: Record<string, SensorAxisMapping>;
+          mediapipeConfig?: Partial<MediaPipeConfig>;
+          mediapipeMappings?: Record<string, MediaPipeLandmarkMapping>;
         };
 
         const legacyProtocol = state.output?.protocol ?? "osc";
@@ -888,6 +1009,19 @@ export const useAppStore = create<AppState>()(
           }),
         );
 
+        const mediapipeConfig = {
+          ...defaultMediaPipeConfig(),
+          ...state.mediapipeConfig,
+          selectedLandmarks: state.mediapipeConfig?.selectedLandmarks ?? [],
+        };
+
+        const mediapipeMappings = Object.fromEntries(
+          Object.entries(state.mediapipeMappings ?? {}).map(([key, mapping]) => [
+            key,
+            normalizeMediaPipeLandmarkMapping(mapping, performerIo, key),
+          ]),
+        );
+
         if (version < 7) {
           const rawLayoutSettings = state.layoutSettings;
           const layoutSettings: LayoutSettings = {
@@ -903,6 +1037,8 @@ export const useAppStore = create<AppState>()(
             performerIo,
             controls,
             sensorMappings,
+            mediapipeConfig,
+            mediapipeMappings,
             layoutSettings,
           };
         }
@@ -913,6 +1049,8 @@ export const useAppStore = create<AppState>()(
           performerIo,
           controls,
           sensorMappings,
+          mediapipeConfig,
+          mediapipeMappings,
           layoutSettings: {
             gridSize:
               typeof state.layoutSettings?.gridSize === "number"
@@ -925,7 +1063,13 @@ export const useAppStore = create<AppState>()(
         const persisted = persistedState as Partial<
           Pick<
             AppState,
-            "controls" | "output" | "performerIo" | "layoutSettings" | "sensorMappings"
+            | "controls"
+            | "output"
+            | "performerIo"
+            | "layoutSettings"
+            | "sensorMappings"
+            | "mediapipeConfig"
+            | "mediapipeMappings"
           >
         >;
 
@@ -946,6 +1090,8 @@ export const useAppStore = create<AppState>()(
         performerIo: state.performerIo,
         layoutSettings: state.layoutSettings,
         sensorMappings: state.sensorMappings,
+        mediapipeConfig: state.mediapipeConfig,
+        mediapipeMappings: state.mediapipeMappings,
       }),
       onRehydrateStorage: () => () => {
         clearPerformerHistory();

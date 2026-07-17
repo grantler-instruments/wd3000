@@ -1,5 +1,6 @@
 import type { Control, PerformerIoConfig } from "../types";
 import { findMidiInputEndpoint, findOscReceiver } from "../types";
+import type { MediaPipeLandmarkMapping } from "./mediapipe/types";
 import type { SensorAxisMapping } from "./sensors/types";
 
 export function collectPerformerListenPorts(
@@ -101,6 +102,46 @@ export function clearRemovedSensorEndpointReferences(
           mapping.midi.outputId && removedIds.has(mapping.midi.outputId)
             ? null
             : mapping.midi.outputId,
+      },
+    };
+  }
+
+  return next;
+}
+
+export function clearRemovedMediaPipeEndpointReferences(
+  mediapipeMappings: Record<string, MediaPipeLandmarkMapping>,
+  removedIds: Set<string>,
+): Record<string, MediaPipeLandmarkMapping> {
+  if (removedIds.size === 0) {
+    return mediapipeMappings;
+  }
+
+  const next: Record<string, MediaPipeLandmarkMapping> = {};
+
+  for (const [key, mapping] of Object.entries(mediapipeMappings)) {
+    next[key] = {
+      ...mapping,
+      osc: {
+        ...mapping.osc,
+        senderId:
+          mapping.osc.senderId && removedIds.has(mapping.osc.senderId)
+            ? null
+            : mapping.osc.senderId,
+      },
+      midi: {
+        ...mapping.midi,
+        outputId:
+          mapping.midi.outputId && removedIds.has(mapping.midi.outputId)
+            ? null
+            : mapping.midi.outputId,
+      },
+      mqtt: {
+        ...mapping.mqtt,
+        connectionId:
+          mapping.mqtt.connectionId && removedIds.has(mapping.mqtt.connectionId)
+            ? null
+            : mapping.mqtt.connectionId,
       },
     };
   }
