@@ -9,6 +9,7 @@ import { AddControlMenu } from "./AddControlMenu";
 import { AddWidgetMenu } from "./AddWidgetMenu";
 import { ControlWidgetMenu } from "./ControlWidgetMenu";
 import { useDragPosition } from "../hooks/useDragPosition";
+import { useLongPress } from "../hooks/useLongPress";
 import { useViewportSize } from "../hooks/useViewportSize";
 import { useWidgetContextMenu } from "../hooks/useWidgetContextMenu";
 import {
@@ -140,12 +141,14 @@ function ControlItem({
   gridSize,
   canvasSize,
   onContextMenu,
+  onLongPressMenu,
 }: {
   control: ReturnType<typeof topLevelControls>[number];
   editable: boolean;
   gridSize: number;
   canvasSize: { width: number; height: number };
   onContextMenu: (event: React.MouseEvent<HTMLElement>, controlId: string) => void;
+  onLongPressMenu: (controlId: string, clientX: number, clientY: number) => void;
 }) {
   const updateControlLayout = useAppStore((state) => state.updateControlLayout);
   const draggingControlId = useAppStore((state) => state.draggingControlId);
@@ -174,6 +177,12 @@ function ControlItem({
     onCommit: handleCommit,
   });
 
+  const longPressHandlers = useLongPress(
+    editable
+      ? (point) => onLongPressMenu(control.id, point.clientX, point.clientY)
+      : null,
+  );
+
   useEffect(() => {
     if (!dragging) {
       return;
@@ -201,6 +210,7 @@ function ControlItem({
     <Box
       data-control-frame={control.id}
       onContextMenu={(event) => onContextMenu(event, control.id)}
+      {...longPressHandlers}
       sx={{
         position: "absolute",
         left: position.x,
@@ -208,6 +218,7 @@ function ControlItem({
         zIndex: dragging || selected ? 2 : 1,
         opacity: dragging ? 0.92 : isCanvasDragging ? 0.35 : 1,
         pointerEvents: dragging ? "none" : "auto",
+        WebkitTouchCallout: "none",
       }}
     >
       <ResizableControlFrame
@@ -231,12 +242,14 @@ function FreeLayoutCanvas({
   canvasRef,
   onContextMenu,
   onWidgetContextMenu,
+  onWidgetLongPressMenu,
 }: {
   editable: boolean;
   gridSize: number;
   canvasRef: React.RefObject<HTMLDivElement | null>;
   onContextMenu: (event: React.MouseEvent<HTMLElement>) => void;
   onWidgetContextMenu: (event: React.MouseEvent<HTMLElement>, controlId: string) => void;
+  onWidgetLongPressMenu: (controlId: string, clientX: number, clientY: number) => void;
 }) {
   const controls = useAppStore((state) => state.controls);
   const selectControl = useAppStore((state) => state.selectControl);
@@ -314,6 +327,7 @@ function FreeLayoutCanvas({
             gridSize={gridSize}
             canvasSize={{ width, height }}
             onContextMenu={onWidgetContextMenu}
+            onLongPressMenu={onWidgetLongPressMenu}
           />
         ))}
       </Box>
@@ -337,6 +351,7 @@ export function ControlCanvas({ editable }: ControlCanvasProps) {
   } = useCanvasContextMenu(editable, gridSize);
   const {
     menu: widgetMenu,
+    openMenuAt,
     handleWidgetContextMenu,
     closeMenu: closeWidgetMenu,
   } = useWidgetContextMenu(editable);
@@ -355,6 +370,14 @@ export function ControlCanvas({ editable }: ControlCanvasProps) {
       handleWidgetContextMenu(event, controlId);
     },
     [closeContextMenu, handleWidgetContextMenu],
+  );
+
+  const handleWidgetLongPressMenu = useCallback(
+    (controlId: string, clientX: number, clientY: number) => {
+      closeContextMenu();
+      openMenuAt(controlId, clientX, clientY);
+    },
+    [closeContextMenu, openMenuAt],
   );
 
   if (!hasTopLevelControls) {
@@ -412,6 +435,7 @@ export function ControlCanvas({ editable }: ControlCanvasProps) {
         canvasRef={canvasRef}
         onContextMenu={handleCanvasContextMenu}
         onWidgetContextMenu={handleWidgetContextMenuWithClose}
+        onWidgetLongPressMenu={handleWidgetLongPressMenu}
       />
       <AddWidgetMenu
         id="canvas-context-menu"

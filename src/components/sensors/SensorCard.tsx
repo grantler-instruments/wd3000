@@ -73,10 +73,12 @@ export function SensorCard({
       onChange={(_, isExpanded) => setExpanded(isExpanded)}
       disableGutters
       elevation={0}
+      square
       sx={{
         border: 1,
-        borderColor: watching ? "primary.main" : "divider",
+        borderColor: "divider",
         borderRadius: 2,
+        overflow: "hidden",
         "&:before": { display: "none" },
         "&.Mui-expanded": { margin: 0 },
       }}

@@ -140,7 +140,7 @@ fn emit_cc(app: &AppHandle, channel: u8, cc: u8, value: u8, bytes: &[u8]) {
     );
 }
 
-fn parse_and_emit(app: &AppHandle, message: &[u8]) {
+pub(crate) fn parse_and_emit(app: &AppHandle, message: &[u8]) {
     if message.is_empty() {
         return;
     }
@@ -252,18 +252,36 @@ fn parse_and_emit(app: &AppHandle, message: &[u8]) {
 }
 
 #[tauri::command]
-pub fn list_midi_inputs() -> Result<Vec<String>, String> {
-    MidiInputState::list_inputs()
+pub fn list_midi_inputs(
+    virtual_state: State<'_, crate::midi_virtual::VirtualMidiState>,
+) -> Result<Vec<String>, String> {
+    let mut ports = MidiInputState::list_inputs()?;
+    let virtual_ports = virtual_state.list()?;
+    for name in virtual_ports.inputs {
+        if !ports.iter().any(|port| port == &name) {
+            ports.push(name);
+        }
+    }
+    Ok(ports)
 }
 
 #[tauri::command]
 pub fn start_midi_input(
     app: AppHandle,
     state: State<'_, MidiInputState>,
+    virtual_state: State<'_, crate::midi_virtual::VirtualMidiState>,
     port_name: Option<String>,
 ) -> Result<(), String> {
     match port_name {
-        Some(name) if !name.is_empty() => state.start(app, name.trim()),
+        Some(name) if !name.is_empty() => {
+            let trimmed = name.trim();
+            // Virtual inputs are already listening once created.
+            if virtual_state.has_input(trimmed)? {
+                state.stop()?;
+                return Ok(());
+            }
+            state.start(app, trimmed)
+        }
         _ => state.stop(),
     }
 }

@@ -1,6 +1,8 @@
 use midir::{MidiOutput, MidiOutputConnection};
 use std::sync::Mutex;
 
+use crate::midi_virtual::VirtualMidiState;
+
 pub struct MidiState {
     connection: Mutex<Option<MidiConnection>>,
 }
@@ -57,7 +59,16 @@ impl MidiState {
         send(&mut connection.conn)
     }
 
-    fn send_bytes(&self, port_name: &str, bytes: &[u8]) -> Result<(), String> {
+    fn send_bytes(
+        &self,
+        virtual_midi: &VirtualMidiState,
+        port_name: &str,
+        bytes: &[u8],
+    ) -> Result<(), String> {
+        if virtual_midi.try_send(port_name, bytes)? {
+            return Ok(());
+        }
+
         self.with_connection(port_name, |conn| {
             conn.send(bytes).map_err(|e| e.to_string())
         })
@@ -65,6 +76,7 @@ impl MidiState {
 
     pub fn send_note(
         &self,
+        virtual_midi: &VirtualMidiState,
         port_name: &str,
         channel: u8,
         note: u8,
@@ -75,43 +87,47 @@ impl MidiState {
         } else {
             0x90 | channel_mask(channel)
         };
-        self.send_bytes(port_name, &[status, note, velocity])
+        self.send_bytes(virtual_midi, port_name, &[status, note, velocity])
     }
 
     pub fn send_note_off(
         &self,
+        virtual_midi: &VirtualMidiState,
         port_name: &str,
         channel: u8,
         note: u8,
         velocity: u8,
     ) -> Result<(), String> {
         let status = 0x80 | channel_mask(channel);
-        self.send_bytes(port_name, &[status, note, velocity])
+        self.send_bytes(virtual_midi, port_name, &[status, note, velocity])
     }
 
     pub fn send_cc(
         &self,
+        virtual_midi: &VirtualMidiState,
         port_name: &str,
         channel: u8,
         cc: u8,
         value: u8,
     ) -> Result<(), String> {
         let status = 0xB0 | channel_mask(channel);
-        self.send_bytes(port_name, &[status, cc, value])
+        self.send_bytes(virtual_midi, port_name, &[status, cc, value])
     }
 
     pub fn send_program_change(
         &self,
+        virtual_midi: &VirtualMidiState,
         port_name: &str,
         channel: u8,
         program: u8,
     ) -> Result<(), String> {
         let status = 0xC0 | channel_mask(channel);
-        self.send_bytes(port_name, &[status, program])
+        self.send_bytes(virtual_midi, port_name, &[status, program])
     }
 
     pub fn send_pitch_bend(
         &self,
+        virtual_midi: &VirtualMidiState,
         port_name: &str,
         channel: u8,
         value: u16,
@@ -120,36 +136,43 @@ impl MidiState {
         let status = 0xE0 | channel_mask(channel);
         let lsb = (value & 0x7F) as u8;
         let msb = ((value >> 7) & 0x7F) as u8;
-        self.send_bytes(port_name, &[status, lsb, msb])
+        self.send_bytes(virtual_midi, port_name, &[status, lsb, msb])
     }
 
     pub fn send_channel_pressure(
         &self,
+        virtual_midi: &VirtualMidiState,
         port_name: &str,
         channel: u8,
         pressure: u8,
     ) -> Result<(), String> {
         let status = 0xD0 | channel_mask(channel);
-        self.send_bytes(port_name, &[status, pressure])
+        self.send_bytes(virtual_midi, port_name, &[status, pressure])
     }
 
     pub fn send_poly_pressure(
         &self,
+        virtual_midi: &VirtualMidiState,
         port_name: &str,
         channel: u8,
         note: u8,
         pressure: u8,
     ) -> Result<(), String> {
         let status = 0xA0 | channel_mask(channel);
-        self.send_bytes(port_name, &[status, note, pressure])
+        self.send_bytes(virtual_midi, port_name, &[status, note, pressure])
     }
 
-    pub fn send_raw(&self, port_name: &str, bytes: Vec<u8>) -> Result<(), String> {
+    pub fn send_raw(
+        &self,
+        virtual_midi: &VirtualMidiState,
+        port_name: &str,
+        bytes: Vec<u8>,
+    ) -> Result<(), String> {
         if bytes.is_empty() {
             return Err("MIDI message cannot be empty".to_string());
         }
 
-        self.send_bytes(port_name, &bytes)
+        self.send_bytes(virtual_midi, port_name, &bytes)
     }
 }
 

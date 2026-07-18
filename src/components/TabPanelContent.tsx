@@ -2,6 +2,7 @@ import { Box, Typography, alpha } from "@mui/material";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDragPosition } from "../hooks/useDragPosition";
+import { useLongPress } from "../hooks/useLongPress";
 import {
   assignControlToHoveredTab,
   dropPositionInElement,
@@ -97,6 +98,7 @@ function TabChildItem({
   gridSize,
   panelSize,
   onContextMenu,
+  onLongPressMenu,
 }: {
   control: Control;
   parentControl: Control;
@@ -105,6 +107,7 @@ function TabChildItem({
   gridSize: number;
   panelSize: { width: number; height: number };
   onContextMenu: (event: React.MouseEvent<HTMLElement>, controlId: string) => void;
+  onLongPressMenu: (controlId: string, clientX: number, clientY: number) => void;
 }) {
   const updateControlLayout = useAppStore((state) => state.updateControlLayout);
   const draggingControlId = useAppStore((state) => state.draggingControlId);
@@ -137,6 +140,12 @@ function TabChildItem({
     onCommit: handleCommit,
   });
 
+  const longPressHandlers = useLongPress(
+    editable
+      ? (point) => onLongPressMenu(control.id, point.clientX, point.clientY)
+      : null,
+  );
+
   useEffect(() => {
     if (!dragging) {
       return;
@@ -164,6 +173,7 @@ function TabChildItem({
     <Box
       data-control-frame={control.id}
       onContextMenu={(event) => onContextMenu(event, control.id)}
+      {...longPressHandlers}
       sx={{
         position: "absolute",
         left: position.x,
@@ -171,6 +181,7 @@ function TabChildItem({
         zIndex: dragging || selected ? 2 : 1,
         opacity: dragging ? 0.92 : isDragging ? 0.35 : 1,
         pointerEvents: dragging ? "none" : "auto",
+        WebkitTouchCallout: "none",
       }}
     >
       <ResizableControlFrame
@@ -209,8 +220,12 @@ export function TabPanelContent({
   const [dragOverPanel, setDragOverPanel] = useState(false);
   const children = tabChildControls(controls, parentControl.id, tab.id);
   const contentSize = tabPanelContentSize(children, panelSize);
-  const { menu: widgetMenu, handleWidgetContextMenu, closeMenu: closeWidgetMenu } =
-    useWidgetContextMenu(editable);
+  const {
+    menu: widgetMenu,
+    openMenuAt,
+    handleWidgetContextMenu,
+    closeMenu: closeWidgetMenu,
+  } = useWidgetContextMenu(editable);
   const previewForPanel =
     tabDropPreview?.tabsControlId === parentControl.id &&
     tabDropPreview.tabId === tab.id
@@ -443,6 +458,7 @@ export function TabPanelContent({
             gridSize={gridSize}
             panelSize={contentSize}
             onContextMenu={handleWidgetContextMenu}
+            onLongPressMenu={openMenuAt}
           />
         ))}
 

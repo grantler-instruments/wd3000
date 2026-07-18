@@ -30,6 +30,7 @@ import { MonitorReplaySection } from "./MonitorReplaySection";
 import { SavedMonitorLogTab } from "./SavedMonitorLogTab";
 import { useOpenSavedLogOnReplay } from "./useOpenSavedLogOnReplay";
 import { DebuggerSection } from "./DebuggerSection";
+import { debuggerFillSx, debuggerLogSx } from "./debuggerLayoutSx";
 
 type MonitorTab = "live" | "saved";
 
@@ -59,6 +60,10 @@ export function OscMonitor() {
 
   const incomingCount = useMemo(
     () => entries.filter((entry) => entry.direction === "in").length,
+    [entries],
+  );
+  const outgoingCount = useMemo(
+    () => entries.filter((entry) => entry.direction === "out").length,
     [entries],
   );
 
@@ -104,16 +109,7 @@ export function OscMonitor() {
 
   return (
     <DebuggerSection title={t("monitor.monitor")} flexGrow>
-      <Stack
-        spacing={2}
-        sx={{
-          flex: 1,
-          minHeight: 0,
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+      <Stack spacing={2} sx={debuggerFillSx}>
         <Tabs
           value={tab}
           onChange={(_, value: MonitorTab) => setTab(value)}
@@ -129,16 +125,7 @@ export function OscMonitor() {
         </Tabs>
 
         {tab === "live" ? (
-          <Stack
-            spacing={2}
-            sx={{
-              flex: 1,
-              minHeight: 0,
-              overflow: "hidden",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
+          <Stack spacing={2} sx={debuggerFillSx}>
             <Stack
               direction="row"
               spacing={1}
@@ -184,20 +171,14 @@ export function OscMonitor() {
                 onDirectionFilterChange={setDirectionFilter}
               />
 
-              <MonitorReplaySection log={liveLog} incomingCount={incomingCount} />
+              <MonitorReplaySection
+                log={liveLog}
+                incomingCount={incomingCount}
+                outgoingCount={outgoingCount}
+              />
             </Stack>
 
-            <Box
-              sx={{
-                flex: 1,
-                minHeight: 0,
-                overflow: "auto",
-                border: 1,
-                borderColor: "divider",
-                borderRadius: 1,
-                bgcolor: "background.paper",
-              }}
-            >
+            <Box sx={debuggerLogSx}>
               <MonitorLogList
                 logId={liveLog.id}
                 entries={listEntries}
@@ -216,7 +197,7 @@ export function OscMonitor() {
             </Box>
           </Stack>
         ) : (
-          <Box sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+          <Box sx={debuggerLogSx}>
             <SavedMonitorLogTab protocol="osc" />
           </Box>
         )}

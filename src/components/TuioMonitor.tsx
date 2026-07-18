@@ -25,6 +25,7 @@ import {
 import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import { DebuggerSection } from "./DebuggerSection";
+import { debuggerFillSx } from "./debuggerLayoutSx";
 
 const DEFAULT_TUIO_PORT = 3333;
 
@@ -565,22 +566,13 @@ export function TuioMonitor() {
         sx={{
           flex: 1,
           minHeight: 0,
-          overflow: "hidden",
           display: "flex",
           flexDirection: "column",
+          overflow: "hidden",
         }}
       >
         <DebuggerSection title={t("monitor.monitor")} flexGrow>
-          <Stack
-            spacing={2}
-            sx={{
-              flex: 1,
-              minHeight: 0,
-              overflow: "hidden",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
+          <Stack spacing={2} sx={debuggerFillSx}>
             <TextField
               label={t("common.listenPort")}
               size="small"
@@ -598,7 +590,11 @@ export function TuioMonitor() {
             <Stack
               direction={{ xs: "column", lg: "row" }}
               spacing={2}
-              sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}
+              sx={{
+                flex: { xs: "0 0 auto", md: 1 },
+                minHeight: { xs: "auto", md: 0 },
+                overflow: { xs: "visible", md: "hidden" },
+              }}
             >
         <Box
           ref={surfaceRef}
@@ -660,7 +656,15 @@ export function TuioMonitor() {
           )}
         </Box>
 
-        <Stack spacing={2} sx={{ flex: 1, minWidth: 240, minHeight: 0, overflow: "hidden" }}>
+        <Stack
+          spacing={2}
+          sx={{
+            flex: { xs: "0 0 auto", md: 1 },
+            minWidth: { xs: 0, lg: 240 },
+            minHeight: { xs: "auto", md: 0 },
+            overflow: { xs: "visible", md: "hidden" },
+          }}
+        >
           <Box
             sx={{
               border: 1,
@@ -791,20 +795,35 @@ export function TuioMonitor() {
                     key={entry.id}
                     direction="row"
                     spacing={1.5}
-                    sx={{ px: 2, py: 1, fontFamily: "monospace", fontSize: "0.8125rem" }}
+                    sx={{
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      rowGap: 0.5,
+                      px: { xs: 1.5, sm: 2 },
+                      py: 1,
+                      fontFamily: "monospace",
+                      fontSize: "0.8125rem",
+                      minWidth: 0,
+                    }}
                   >
                     <Typography
                       component="span"
                       variant="body2"
                       color="text.secondary"
-                      sx={{ fontFamily: "inherit", minWidth: 108 }}
+                      sx={{ fontFamily: "inherit", minWidth: { xs: 72, sm: 108 }, flexShrink: 0 }}
                     >
                       {formatTime(entry.timestamp)}
                     </Typography>
                     <Typography
                       component="span"
                       variant="body2"
-                      sx={{ fontFamily: "inherit", flex: 1 }}
+                      sx={{
+                        fontFamily: "inherit",
+                        flex: "1 1 120px",
+                        minWidth: 0,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
                     >
                       {entry.summary}
                     </Typography>

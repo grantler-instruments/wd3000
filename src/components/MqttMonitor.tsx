@@ -46,6 +46,7 @@ import { MonitorFilterAccordion } from "./MonitorFilterAccordion";
 import { MonitorLogToolbar } from "./MonitorLogToolbar";
 import { MonitorReplaySection } from "./MonitorReplaySection";
 import { DebuggerSection } from "./DebuggerSection";
+import { debuggerFillSx, debuggerLogSx } from "./debuggerLayoutSx";
 import { MqttSubscriber } from "./MqttSubscriber";
 import { SavedMonitorLogTab } from "./SavedMonitorLogTab";
 import { useOpenSavedLogOnReplay } from "./useOpenSavedLogOnReplay";
@@ -129,6 +130,10 @@ export function MqttMonitor() {
     () => entries.filter((entry) => entry.direction === "in").length,
     [entries],
   );
+  const outgoingCount = useMemo(
+    () => entries.filter((entry) => entry.direction === "out").length,
+    [entries],
+  );
 
   const liveLog = useMemo(
     () => ({
@@ -202,12 +207,13 @@ export function MqttMonitor() {
   ]);
 
   return (
-    <DebuggerSection title={t("monitor.monitor")} defaultExpanded>
-      <Stack spacing={2}>
+    <DebuggerSection title={t("monitor.monitor")} flexGrow>
+      <Stack spacing={2} sx={debuggerFillSx}>
         <Tabs
           value={tab}
           onChange={(_, value: MonitorTab) => setTab(value)}
           sx={{
+            flexShrink: 0,
             minHeight: 36,
             borderBottom: 1,
             borderColor: "divider",
@@ -218,11 +224,12 @@ export function MqttMonitor() {
         </Tabs>
 
         {tab === "live" ? (
-          <Stack spacing={2}>
+          <Stack spacing={2} sx={debuggerFillSx}>
             <Stack
               direction="row"
               spacing={1}
               sx={{
+                flexShrink: 0,
                 alignItems: "flex-start",
                 justifyContent: "flex-end",
                 flexWrap: "wrap",
@@ -238,7 +245,7 @@ export function MqttMonitor() {
               <MonitorLogToolbar protocol="mqtt" entries={entries} />
             </Stack>
 
-            <Stack spacing={1.5}>
+            <Stack spacing={1.5} sx={{ flexShrink: 0 }}>
               <Stack
                 direction="row"
                 spacing={1}
@@ -319,29 +326,25 @@ export function MqttMonitor() {
               </Stack>
             </Stack>
 
-            <MqttSubscriber />
+            <Box sx={{ flexShrink: 0 }}>
+              <MqttSubscriber />
+            </Box>
 
-            <Stack spacing={1}>
+            <Stack spacing={1} sx={{ flexShrink: 0 }}>
               <MonitorFilterAccordion
                 protocol="mqtt"
                 directionFilter={directionFilter}
                 onDirectionFilterChange={setDirectionFilter}
               />
 
-              <MonitorReplaySection log={liveLog} incomingCount={incomingCount} />
+              <MonitorReplaySection
+                log={liveLog}
+                incomingCount={incomingCount}
+                outgoingCount={outgoingCount}
+              />
             </Stack>
 
-            <Box
-              sx={{
-                minHeight: 200,
-                maxHeight: 360,
-                overflow: "auto",
-                border: 1,
-                borderColor: "divider",
-                borderRadius: 1,
-                bgcolor: "background.paper",
-              }}
-            >
+            <Box sx={debuggerLogSx}>
               <MonitorLogList
                 logId={liveLog.id}
                 entries={listEntries}
@@ -360,7 +363,9 @@ export function MqttMonitor() {
             </Box>
           </Stack>
         ) : (
-          <SavedMonitorLogTab protocol="mqtt" />
+          <Box sx={debuggerLogSx}>
+            <SavedMonitorLogTab protocol="mqtt" />
+          </Box>
         )}
       </Stack>
     </DebuggerSection>

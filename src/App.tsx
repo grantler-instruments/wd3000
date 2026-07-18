@@ -4,10 +4,11 @@ import {
   Snackbar,
   ThemeProvider,
 } from "@mui/material";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { PageHeader } from "./components/PageHeader";
 import { ControlCanvas } from "./components/ControlCanvas";
 import { HomePage } from "./components/HomePage";
+import { IoSettingsDialog } from "./components/IoSettingsDialog";
 import { PlayModeBezelExit } from "./components/PlayModeBezelExit";
 import { ControlPerformerDialog } from "./components/ControlPerformer";
 import { DebuggerPanel } from "./components/DebuggerPanel";
@@ -27,6 +28,7 @@ function App() {
   const performerSubView = useAppStore((state) => state.performerSubView);
   const lastError = useAppStore((state) => state.lastError);
   const setLastError = useAppStore((state) => state.setLastError);
+  const [ioSettingsOpen, setIoSettingsOpen] = useState(false);
   const isEditMode = mode === "edit";
   const canRunPerformer =
     activeView === "performer" &&
@@ -44,11 +46,19 @@ function App() {
         return;
       }
 
-      if (event.key !== "e") {
+      if (isTextInputTarget(event.target)) {
         return;
       }
 
-      if (isTextInputTarget(event.target)) {
+      const key = event.key.toLowerCase();
+
+      if (key === ",") {
+        event.preventDefault();
+        setIoSettingsOpen(true);
+        return;
+      }
+
+      if (key !== "e") {
         return;
       }
 
@@ -68,76 +78,81 @@ function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [canRunPerformer, mode, setMode]);
 
-  if (!isEditMode) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          height: "100dvh",
-          maxHeight: "100%",
-          width: "100%",
-        }}
-      >
-        <ThemeProvider theme={playTheme}>
-          {performerSubView === "mediapipe" ? (
-            <MediaPipePlayView />
-          ) : (
-            <ControlCanvas editable={false} />
-          )}
-          <PlayModeBezelExit onExit={() => setMode("edit")} />
-        </ThemeProvider>
-
-        <Snackbar
-          open={Boolean(lastError)}
-          autoHideDuration={20000}
-          onClose={() => setLastError(null)}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        >
-          <Alert severity="error" onClose={() => setLastError(null)} sx={{ width: "100%" }}>
-            {lastError}
-          </Alert>
-        </Snackbar>
-      </Box>
-    );
-  }
-
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100dvh",
-        maxHeight: "100%",
-        width: "100%",
-      }}
-    >
-      {activeView === "home" ? (
-        <HomePage />
-      ) : (
-        <>
-          <PageHeader />
+    <>
+      {!isEditMode ? (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            height: "100dvh",
+            maxHeight: "100%",
+            width: "100%",
+          }}
+        >
+          <ThemeProvider theme={playTheme}>
+            {performerSubView === "mediapipe" ? (
+              <MediaPipePlayView />
+            ) : (
+              <ControlCanvas editable={false} />
+            )}
+            <PlayModeBezelExit onExit={() => setMode("edit")} />
+          </ThemeProvider>
 
-          <Box sx={{ flex: 1, minHeight: 0, width: "100%", display: "flex" }}>
-            {activeView === "performer" && <PerformerPanel />}
-            {activeView === "debugger" && <DebuggerPanel />}
-          </Box>
-        </>
+          <Snackbar
+            open={Boolean(lastError)}
+            autoHideDuration={20000}
+            onClose={() => setLastError(null)}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          >
+            <Alert severity="error" onClose={() => setLastError(null)} sx={{ width: "100%" }}>
+              {lastError}
+            </Alert>
+          </Snackbar>
+        </Box>
+      ) : (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            height: "100dvh",
+            maxHeight: "100%",
+            width: "100%",
+          }}
+        >
+          {activeView === "home" ? (
+            <HomePage onOpenSettings={() => setIoSettingsOpen(true)} />
+          ) : (
+            <>
+              <PageHeader />
+
+              <Box sx={{ flex: 1, minHeight: 0, width: "100%", display: "flex" }}>
+                {activeView === "performer" && <PerformerPanel />}
+                {activeView === "debugger" && <DebuggerPanel />}
+              </Box>
+            </>
+          )}
+
+          <ControlPerformerDialog />
+
+          <Snackbar
+            open={Boolean(lastError)}
+            autoHideDuration={20000}
+            onClose={() => setLastError(null)}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          >
+            <Alert severity="error" onClose={() => setLastError(null)} sx={{ width: "100%" }}>
+              {lastError}
+            </Alert>
+          </Snackbar>
+        </Box>
       )}
 
-      <ControlPerformerDialog />
-
-      <Snackbar
-        open={Boolean(lastError)}
-        autoHideDuration={20000}
-        onClose={() => setLastError(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert severity="error" onClose={() => setLastError(null)} sx={{ width: "100%" }}>
-          {lastError}
-        </Alert>
-      </Snackbar>
-    </Box>
+      <IoSettingsDialog
+        open={ioSettingsOpen}
+        onClose={() => setIoSettingsOpen(false)}
+      />
+    </>
   );
 }
 

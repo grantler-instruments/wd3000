@@ -25,6 +25,7 @@ export function controlTypeLabel(type: ControlType): string {
   }
 }
 
+/** @deprecated Legacy exclusive protocol selector; migrated to per-mapping `enabled`. */
 export type ControlProtocol = "osc" | "midi" | "mqtt" | "both";
 
 export type AppMode = "edit" | "play";
@@ -36,22 +37,37 @@ export type PerformerSubView = "ui" | "sensors" | "mediapipe";
 export type DebuggerSubView = "midi" | "osc" | "tuio" | "artnet" | "mqtt";
 
 export interface MqttMapping {
+  enabled: boolean;
   topic: string;
   qos: 0 | 1 | 2;
   retain: boolean;
 }
 
 export interface OscMapping {
+  enabled: boolean;
   address: string;
 }
 
 export interface MidiMapping {
+  enabled: boolean;
   channel: number;
   note: number;
   cc: number;
   ccY?: number;
   octaves?: number;
   velocity?: number;
+}
+
+export function controlOutputsFromLegacyProtocol(protocol: ControlProtocol): {
+  oscEnabled: boolean;
+  midiEnabled: boolean;
+  mqttEnabled: boolean;
+} {
+  return {
+    oscEnabled: protocol === "osc" || protocol === "both",
+    midiEnabled: protocol === "midi" || protocol === "both",
+    mqttEnabled: protocol === "mqtt",
+  };
 }
 
 export interface ControlLayout {
@@ -90,7 +106,6 @@ export interface Control {
   tabs?: ControlTab[];
   parentId?: string;
   tabId?: string;
-  protocol: ControlProtocol;
   oscSenderId?: string | null;
   midiOutputId?: string | null;
   oscReceiverId?: string | null;
@@ -472,22 +487,14 @@ export function normalizePerformerIoConfig(
 
 export function defaultControlIoAssignments(
   performerIo: PerformerIoConfig,
-  protocol: ControlProtocol,
 ): Pick<
   Control,
   "oscSenderId" | "midiOutputId" | "oscReceiverId" | "midiInputId" | "mqttConnectionId"
 > {
   return {
-    oscSenderId:
-      protocol === "osc" || protocol === "both"
-        ? (performerIo.oscSenders[0]?.id ?? null)
-        : null,
-    midiOutputId:
-      protocol === "midi" || protocol === "both"
-        ? (performerIo.midiOutputs[0]?.id ?? null)
-        : null,
-    mqttConnectionId:
-      protocol === "mqtt" ? (performerIo.mqttConnections[0]?.id ?? null) : null,
+    oscSenderId: performerIo.oscSenders[0]?.id ?? null,
+    midiOutputId: performerIo.midiOutputs[0]?.id ?? null,
+    mqttConnectionId: performerIo.mqttConnections[0]?.id ?? null,
     oscReceiverId: performerIo.oscReceivers[0]?.id ?? null,
     midiInputId: performerIo.midiInputs[0]?.id ?? null,
   };
@@ -549,21 +556,15 @@ export function findMidiInputEndpoint(
 }
 
 export function controlUsesMqttOutput(control: Control): boolean {
-  return control.protocol === "mqtt" && !!control.mqttConnectionId;
+  return control.mqtt.enabled && !!control.mqttConnectionId;
 }
 
 export function controlUsesOscOutput(control: Control): boolean {
-  return (
-    (control.protocol === "osc" || control.protocol === "both") &&
-    !!control.oscSenderId
-  );
+  return control.osc.enabled && !!control.oscSenderId;
 }
 
 export function controlUsesMidiOutput(control: Control): boolean {
-  return (
-    (control.protocol === "midi" || control.protocol === "both") &&
-    !!control.midiOutputId
-  );
+  return control.midi.enabled && !!control.midiOutputId;
 }
 
 export function endpointLabel(name: string, detail: string): string {
@@ -745,8 +746,13 @@ function controlMqttTopic(type: ControlType, index: number): string {
   }
 }
 
-export function defaultMqttMapping(type: ControlType, index: number): MqttMapping {
+export function defaultMqttMapping(
+  type: ControlType,
+  index: number,
+  enabled = false,
+): MqttMapping {
   return {
+    enabled,
     topic: controlMqttTopic(type, index),
     qos: 0,
     retain: false,
@@ -774,21 +780,21 @@ export const createControl = (
   layoutIndex: number,
   performerIo?: PerformerIoConfig,
 ): Control => {
-  const protocol: ControlProtocol =
-    type === "keyboard" || type === "pad" ? "midi" : "osc";
+  const midiDefault = type === "keyboard" || type === "pad";
   const io = performerIo ?? defaultPerformerIoConfig();
 
   return {
     id: crypto.randomUUID(),
     type,
     label: controlLabel(type, index),
-    protocol,
-    ...defaultControlIoAssignments(io, protocol),
+    ...defaultControlIoAssignments(io),
     osc: {
+      enabled: !midiDefault,
       address: controlOscAddress(type, index),
     },
-    mqtt: defaultMqttMapping(type, index),
+    mqtt: defaultMqttMapping(type, index, false),
     midi: {
+      enabled: midiDefault,
       channel: 1,
       note: type === "keyboard" ? 48 : 60 + index,
       cc: type === "pad" ? index * 2 - 1 : index,
@@ -833,18 +839,7 @@ export function controlMappingLabel(
 ): string {
   const parts: string[] = [];
 
-  if (control.protocol === "mqtt") {
-    const connection = performerIo
-      ? findMqttConnection(performerIo, control.mqttConnectionId)
-      : null;
-    if (connection) {
-      parts.push(`${connection.name}: ${control.mqtt.topic}`);
-    } else {
-      parts.push(control.mqtt.topic);
-    }
-  }
-
-  if (control.protocol === "osc" || control.protocol === "both") {
+  if (control.osc.enabled) {
     const sender = performerIo
       ? findOscSender(performerIo, control.oscSenderId)
       : null;
@@ -855,7 +850,7 @@ export function controlMappingLabel(
     }
   }
 
-  if (control.protocol === "midi" || control.protocol === "both") {
+  if (control.midi.enabled) {
     const midiPrefix = performerIo
       ? findMidiOutputEndpoint(performerIo, control.midiOutputId)?.name
       : null;
@@ -877,18 +872,24 @@ export function controlMappingLabel(
     }
   }
 
+  if (control.mqtt.enabled) {
+    const connection = performerIo
+      ? findMqttConnection(performerIo, control.mqttConnectionId)
+      : null;
+    if (connection) {
+      parts.push(`${connection.name}: ${control.mqtt.topic}`);
+    } else {
+      parts.push(control.mqtt.topic);
+    }
+  }
+
   return parts.join(" · ");
 }
 
-export function controlProtocolLabel(protocol: ControlProtocol): string {
-  switch (protocol) {
-    case "osc":
-      return i18n.t("protocols.osc");
-    case "midi":
-      return i18n.t("protocols.midi");
-    case "mqtt":
-      return i18n.t("protocols.mqtt");
-    case "both":
-      return i18n.t("protocols.both");
-  }
+export function controlActiveProtocolLabels(control: Control): string[] {
+  return [
+    control.osc.enabled ? i18n.t("protocols.osc") : null,
+    control.midi.enabled ? i18n.t("protocols.midi") : null,
+    control.mqtt.enabled ? i18n.t("protocols.mqtt") : null,
+  ].filter((label): label is string => label !== null);
 }

@@ -3,6 +3,7 @@ import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import {
   Box,
   Button,
+  Chip,
   FormControl,
   IconButton,
   InputLabel,
@@ -17,6 +18,16 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { listMidiInputs } from "../lib/input";
 import { listMidiOutputs } from "../lib/output";
+import {
+  closeVirtualMidiInput,
+  closeVirtualMidiOutput,
+  createVirtualMidiInput,
+  createVirtualMidiOutput,
+  listVirtualMidiPorts,
+  nextVirtualMidiPortName,
+  supportsVirtualMidi,
+  type VirtualMidiPorts,
+} from "../lib/virtualMidi";
 import { useAppStore } from "../store/useAppStore";
 import { LanguageSelect } from "./LanguageSelect";
 import { SettingsSectionNav } from "./SettingsSectionNav";
@@ -63,11 +74,17 @@ function SubsectionHeader({
   description,
   onAdd,
   addLabel,
+  secondaryAddLabel,
+  onSecondaryAdd,
+  secondaryAddDisabled,
 }: {
   title: string;
   description: string;
   onAdd: () => void;
   addLabel: string;
+  secondaryAddLabel?: string;
+  onSecondaryAdd?: () => void;
+  secondaryAddDisabled?: boolean;
 }) {
   return (
     <Stack
@@ -81,14 +98,25 @@ function SubsectionHeader({
           {description}
         </Typography>
       </Box>
-      <Button
-        size="small"
-        startIcon={<AddIcon />}
-        onClick={onAdd}
-        sx={{ flexShrink: 0, alignSelf: { xs: "flex-start", sm: "auto" }, mt: { xs: 0, sm: 0.25 } }}
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ flexShrink: 0, alignSelf: { xs: "flex-start", sm: "auto" }, mt: { xs: 0, sm: 0.25 }, flexWrap: "wrap" }}
       >
-        {addLabel}
-      </Button>
+        <Button size="small" startIcon={<AddIcon />} onClick={onAdd}>
+          {addLabel}
+        </Button>
+        {secondaryAddLabel && onSecondaryAdd ? (
+          <Button
+            size="small"
+            startIcon={<AddIcon />}
+            onClick={onSecondaryAdd}
+            disabled={secondaryAddDisabled}
+          >
+            {secondaryAddLabel}
+          </Button>
+        ) : null}
+      </Stack>
     </Stack>
   );
 }
@@ -447,6 +475,33 @@ function OscSettingsPanel() {
   );
 }
 
+function VirtualMidiPortRow({
+  name,
+  onRemove,
+}: {
+  name: string;
+  onRemove: () => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <EndpointCard
+      onRemove={onRemove}
+      removeLabel={t("common.removeNamed", { name })}
+    >
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
+        <Chip size="small" label={t("io.virtual")} />
+        <Typography
+          variant="body2"
+          sx={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}
+        >
+          {name}
+        </Typography>
+      </Stack>
+    </EndpointCard>
+  );
+}
+
 function MidiSettingsPanel() {
   const { t } = useTranslation();
   const performerIo = useAppStore((state) => state.performerIo);
@@ -454,6 +509,94 @@ function MidiSettingsPanel() {
   const addMidiInput = useAppStore((state) => state.addMidiInput);
   const midiPorts = useAppStore((state) => state.midiPorts);
   const midiInputPorts = useAppStore((state) => state.midiInputPorts);
+  const setMidiPorts = useAppStore((state) => state.setMidiPorts);
+  const setMidiInputPorts = useAppStore((state) => state.setMidiInputPorts);
+  const setLastError = useAppStore((state) => state.setLastError);
+  const [virtualSupported, setVirtualSupported] = useState(false);
+  const [virtualPorts, setVirtualPorts] = useState<VirtualMidiPorts>({
+    outputs: [],
+    inputs: [],
+  });
+  const [virtualBusy, setVirtualBusy] = useState(false);
+
+  const refreshSystemPorts = () => {
+    void Promise.all([listMidiOutputs(), listMidiInputs()])
+      .then(([outputs, inputs]) => {
+        setMidiPorts(outputs);
+        setMidiInputPorts(inputs);
+      })
+      .catch((error) => {
+        setLastError(error instanceof Error ? error.message : String(error));
+      });
+  };
+
+  const refreshVirtualPorts = async () => {
+    const next = await listVirtualMidiPorts();
+    setVirtualPorts(next);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void supportsVirtualMidi()
+      .then(async (value) => {
+        if (cancelled) {
+          return;
+        }
+        setVirtualSupported(value);
+        if (value) {
+          await refreshVirtualPorts();
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setVirtualSupported(false);
+          setLastError(error instanceof Error ? error.message : String(error));
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [setLastError]);
+
+  const createVirtualPort = async (direction: "output" | "input") => {
+    setVirtualBusy(true);
+    try {
+      if (direction === "output") {
+        await createVirtualMidiOutput(
+          nextVirtualMidiPortName(virtualPorts.outputs, t("io.defaultVirtualMidiOutput")),
+        );
+      } else {
+        await createVirtualMidiInput(
+          nextVirtualMidiPortName(virtualPorts.inputs, t("io.defaultVirtualMidiInput")),
+        );
+      }
+      await refreshVirtualPorts();
+      refreshSystemPorts();
+    } catch (error) {
+      setLastError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setVirtualBusy(false);
+    }
+  };
+
+  const closeVirtualPort = async (direction: "output" | "input", name: string) => {
+    setVirtualBusy(true);
+    try {
+      if (direction === "output") {
+        await closeVirtualMidiOutput(name);
+      } else {
+        await closeVirtualMidiInput(name);
+      }
+      await refreshVirtualPorts();
+      refreshSystemPorts();
+    } catch (error) {
+      setLastError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setVirtualBusy(false);
+    }
+  };
 
   return (
     <Stack spacing={3}>
@@ -477,9 +620,21 @@ function MidiSettingsPanel() {
               portName: midiPorts[0] ?? "",
             })
           }
+          secondaryAddLabel={virtualSupported ? t("io.addVirtualOutput") : undefined}
+          onSecondaryAdd={
+            virtualSupported ? () => void createVirtualPort("output") : undefined
+          }
+          secondaryAddDisabled={virtualBusy}
         />
         <Stack spacing={1}>
-          {performerIo.midiOutputs.length === 0 ? (
+          {virtualPorts.outputs.map((name) => (
+            <VirtualMidiPortRow
+              key={`virtual-out:${name}`}
+              name={name}
+              onRemove={() => void closeVirtualPort("output", name)}
+            />
+          ))}
+          {performerIo.midiOutputs.length === 0 && virtualPorts.outputs.length === 0 ? (
             <EmptyState message={t("io.noOutputs")} />
           ) : (
             performerIo.midiOutputs.map((endpoint) => (
@@ -500,9 +655,21 @@ function MidiSettingsPanel() {
               portName: midiInputPorts[0] ?? "",
             })
           }
+          secondaryAddLabel={virtualSupported ? t("io.addVirtualInput") : undefined}
+          onSecondaryAdd={
+            virtualSupported ? () => void createVirtualPort("input") : undefined
+          }
+          secondaryAddDisabled={virtualBusy}
         />
         <Stack spacing={1}>
-          {performerIo.midiInputs.length === 0 ? (
+          {virtualPorts.inputs.map((name) => (
+            <VirtualMidiPortRow
+              key={`virtual-in:${name}`}
+              name={name}
+              onRemove={() => void closeVirtualPort("input", name)}
+            />
+          ))}
+          {performerIo.midiInputs.length === 0 && virtualPorts.inputs.length === 0 ? (
             <EmptyState message={t("io.noInputs")} />
           ) : (
             performerIo.midiInputs.map((endpoint) => (

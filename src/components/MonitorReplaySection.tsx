@@ -22,6 +22,7 @@ import {
   isMonitorLogReplayActive,
   replayMonitorLog,
   stopMonitorLogReplay,
+  type MonitorReplayDirection,
   type MonitorReplayTarget,
 } from "../lib/monitorLogReplay";
 import { listMidiOutputs } from "../lib/output";
@@ -32,9 +33,14 @@ import { stackedAccordionSx } from "./stackedAccordionSx";
 interface MonitorReplaySectionProps {
   log: SavedMonitorLog | null;
   incomingCount: number;
+  outgoingCount: number;
 }
 
-export function MonitorReplaySection({ log, incomingCount }: MonitorReplaySectionProps) {
+export function MonitorReplaySection({
+  log,
+  incomingCount,
+  outgoingCount,
+}: MonitorReplaySectionProps) {
   const { t } = useTranslation();
   const output = useAppStore((state) => state.output);
   const midiPorts = useAppStore((state) => state.midiPorts);
@@ -91,14 +97,16 @@ export function MonitorReplaySection({ log, incomingCount }: MonitorReplaySectio
           oscPort,
         };
 
-  const canSend =
-    incomingCount > 0 &&
+  const destinationReady =
     log !== null &&
     (protocol === "midi"
       ? Boolean(midiPortName)
       : native && Boolean(oscHost.trim()) && oscPort > 0);
 
-  const handleSend = async () => {
+  const canSendIncoming = destinationReady && incomingCount > 0;
+  const canSendOutgoing = destinationReady && outgoingCount > 0;
+
+  const handleSend = async (direction: MonitorReplayDirection) => {
     if (!log) {
       return;
     }
@@ -107,7 +115,7 @@ export function MonitorReplaySection({ log, incomingCount }: MonitorReplaySectio
     setLastError(null);
 
     try {
-      await replayMonitorLog(log, replayTarget);
+      await replayMonitorLog(log, replayTarget, direction);
     } catch (error) {
       if (!(error instanceof DOMException && error.name === "AbortError")) {
         setLastError(error instanceof Error ? error.message : String(error));
@@ -197,19 +205,30 @@ export function MonitorReplaySection({ log, incomingCount }: MonitorReplaySectio
             {t("common.stop")}
           </Button>
         ) : (
-          <Button
-            size="small"
-            variant="contained"
-            startIcon={<PlayArrowIcon />}
-            onClick={handleSend}
-            disabled={!canSend}
-          >
-            {t("monitor.sendIncoming", { count: incomingCount })}
-          </Button>
+          <>
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<PlayArrowIcon />}
+              onClick={() => void handleSend("in")}
+              disabled={!canSendIncoming}
+            >
+              {t("monitor.sendIncoming", { count: incomingCount })}
+            </Button>
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<PlayArrowIcon />}
+              onClick={() => void handleSend("out")}
+              disabled={!canSendOutgoing}
+            >
+              {t("monitor.sendOutgoing", { count: outgoingCount })}
+            </Button>
+          </>
         )}
-        {incomingCount === 0 && (
+        {incomingCount === 0 && outgoingCount === 0 && (
           <Typography variant="body2" color="text.secondary">
-            {t("monitor.noIncomingYet")}
+            {t("monitor.noMessagesYet")}
           </Typography>
         )}
       </Stack>

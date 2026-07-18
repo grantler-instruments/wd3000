@@ -9,10 +9,9 @@ function control(
   return {
     id,
     label: id,
-    protocol: "osc",
-    osc: { address: `/${id}` },
+    osc: { enabled: true, address: `/${id}` },
     mqtt: defaultMqttMapping(overrides.type, 1),
-    midi: { channel: 1, note: 60, cc: 0 },
+    midi: { enabled: false, channel: 1, note: 60, cc: 0 },
     layout: { x: 0, y: 0, width: 120, height: 80, order: 0 },
     ...overrides,
   };

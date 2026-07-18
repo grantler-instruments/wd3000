@@ -23,6 +23,7 @@ import {
 import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import { DebuggerSection } from "./DebuggerSection";
+import { debuggerComposerRowSx } from "./debuggerLayoutSx";
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
@@ -126,7 +127,11 @@ export function ArtNetComposer() {
 
   return (
     <DebuggerSection title={t("monitor.composer")}>
-      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={1}
+        sx={debuggerComposerRowSx}
+      >
         <TextField
           label={t("common.universe")}
           value={universeField.input}
@@ -134,7 +139,7 @@ export function ArtNetComposer() {
           onBlur={universeField.handleBlur}
           inputMode="numeric"
           size="small"
-          sx={{ width: 104 }}
+          sx={{ width: { xs: "100%", sm: 104 } }}
         />
 
         <TextField
@@ -144,7 +149,7 @@ export function ArtNetComposer() {
           onBlur={channelField.handleBlur}
           inputMode="numeric"
           size="small"
-          sx={{ width: 104 }}
+          sx={{ width: { xs: "100%", sm: 104 } }}
         />
 
         <TextField
@@ -154,17 +159,17 @@ export function ArtNetComposer() {
           onBlur={valueField.handleBlur}
           inputMode="numeric"
           size="small"
-          sx={{ width: 104 }}
+          sx={{ width: { xs: "100%", sm: 104 } }}
         />
 
-        <Box sx={{ flex: 1 }} />
+        <Box sx={{ flex: { xs: "0 0 auto", sm: 1 }, display: { xs: "none", sm: "block" } }} />
 
         <TextField
           label={t("common.host")}
           size="small"
           value={host}
           onChange={(event) => setHost(event.target.value)}
-          sx={{ minWidth: 180, maxWidth: 240 }}
+          sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 180 }, maxWidth: { sm: 240 } }}
         />
 
         <TextField
@@ -174,7 +179,7 @@ export function ArtNetComposer() {
           onBlur={portField.handleBlur}
           inputMode="numeric"
           size="small"
-          sx={{ width: 96 }}
+          sx={{ width: { xs: "100%", sm: 96 } }}
         />
 
         <Button
@@ -182,7 +187,7 @@ export function ArtNetComposer() {
           startIcon={<SendIcon />}
           onClick={handleSend}
           disabled={!native || sending || !host.trim()}
-          sx={{ flexShrink: 0 }}
+          sx={{ flexShrink: 0, width: { xs: "100%", sm: "auto" } }}
         >
             {t("common.send")}
         </Button>

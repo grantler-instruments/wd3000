@@ -8,12 +8,11 @@ import {
   Typography,
 } from "@mui/material";
 import type { ReactNode } from "react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { formatShortcutKey } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import type { DebuggerSubView, PerformerSubView } from "../types";
 import { GrantlerLogo } from "./GrantlerLogo";
-import { IoSettingsDialog } from "./IoSettingsDialog";
 
 const PERFORMER_ITEMS: { value: PerformerSubView; labelKey: string }[] = [
   { value: "ui", labelKey: "home.ui" },
@@ -97,84 +96,80 @@ function HomeNavButton({
   );
 }
 
-export function HomePage() {
+export function HomePage({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { t } = useTranslation();
   const setActiveView = useAppStore((state) => state.setActiveView);
-  const [ioSettingsOpen, setIoSettingsOpen] = useState(false);
 
   return (
-    <>
-      <Box
+    <Box
+      sx={{
+        flex: 1,
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        p: 3,
+        overflow: "auto",
+      }}
+    >
+      <Stack
+        spacing={5}
         sx={{
-          flex: 1,
-          minHeight: 0,
-          display: "flex",
-          flexDirection: "column",
+          width: "100%",
+          maxWidth: 720,
           alignItems: "center",
-          justifyContent: "center",
-          p: 3,
-          overflow: "auto",
         }}
       >
-        <Stack
-          spacing={5}
-          sx={{
-            width: "100%",
-            maxWidth: 720,
-            alignItems: "center",
-          }}
-        >
-          <GrantlerLogo height={56} />
+        <GrantlerLogo height={56} />
 
-          <Stack spacing={4} sx={{ width: "100%" }}>
-            <HomeSection
-              icon={<DashboardIcon fontSize="small" color="action" />}
-              title={t("home.performer")}
-            >
-              <HomeNavGrid columns={{ xs: 1, sm: 3 }}>
-                {PERFORMER_ITEMS.map((item) => (
-                  <HomeNavButton
-                    key={item.value}
-                    label={t(item.labelKey)}
-                    onClick={() => setActiveView("performer", item.value)}
-                  />
-                ))}
-              </HomeNavGrid>
-            </HomeSection>
+        <Stack spacing={4} sx={{ width: "100%" }}>
+          <HomeSection
+            icon={<DashboardIcon fontSize="small" color="action" />}
+            title={t("home.performer")}
+          >
+            <HomeNavGrid columns={{ xs: 1, sm: 3 }}>
+              {PERFORMER_ITEMS.map((item) => (
+                <HomeNavButton
+                  key={item.value}
+                  label={t(item.labelKey)}
+                  onClick={() => setActiveView("performer", item.value)}
+                />
+              ))}
+            </HomeNavGrid>
+          </HomeSection>
 
-            <HomeSection
-              icon={<BugReportIcon fontSize="small" color="action" />}
-              title={t("home.debugger")}
-            >
-              <HomeNavGrid columns={{ xs: 1, sm: 5 }}>
-                {DEBUGGER_ITEMS.map((item) => (
-                  <HomeNavButton
-                    key={item.value}
-                    label={t(item.labelKey)}
-                    onClick={() => setActiveView("debugger", item.value)}
-                  />
-                ))}
-              </HomeNavGrid>
-            </HomeSection>
+          <HomeSection
+            icon={<BugReportIcon fontSize="small" color="action" />}
+            title={t("home.debugger")}
+          >
+            <HomeNavGrid columns={{ xs: 1, sm: 5 }}>
+              {DEBUGGER_ITEMS.map((item) => (
+                <HomeNavButton
+                  key={item.value}
+                  label={t(item.labelKey)}
+                  onClick={() => setActiveView("debugger", item.value)}
+                />
+              ))}
+            </HomeNavGrid>
+          </HomeSection>
 
-            <HomeSection
-              icon={<SettingsIcon fontSize="small" color="action" />}
-              title={t("home.settings")}
+          <HomeSection
+            icon={<SettingsIcon fontSize="small" color="action" />}
+            title={t("home.settings")}
+          >
+            <Button
+              variant="outlined"
+              startIcon={<SettingsIcon />}
+              onClick={onOpenSettings}
+              aria-label={`${t("home.settings")} (${formatShortcutKey(",")})`}
+              sx={{ minWidth: 160 }}
             >
-              <Button
-                variant="outlined"
-                startIcon={<SettingsIcon />}
-                onClick={() => setIoSettingsOpen(true)}
-                sx={{ minWidth: 160 }}
-              >
-                {t("home.settings")}
-              </Button>
-            </HomeSection>
-          </Stack>
+              {t("home.settings")} ({formatShortcutKey(",")})
+            </Button>
+          </HomeSection>
         </Stack>
-      </Box>
-
-      <IoSettingsDialog open={ioSettingsOpen} onClose={() => setIoSettingsOpen(false)} />
-    </>
+      </Stack>
+    </Box>
   );
 }

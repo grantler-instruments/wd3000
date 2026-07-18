@@ -12,6 +12,7 @@ import {
   OutputConfig,
   PerformerIoConfig,
   SliderOrientation,
+  controlOutputsFromLegacyProtocol,
   createControlLayout,
   createDefaultTabs,
   defaultLayoutSettings,
@@ -169,60 +170,85 @@ function parseControl(value: unknown, index: number, legacyProtocol: ControlProt
     ...(value.midiInputId === null ? { midiInputId: null } : {}),
     ...(typeof value.mqttConnectionId === "string" ? { mqttConnectionId: value.mqttConnectionId } : {}),
     ...(value.mqttConnectionId === null ? { mqttConnectionId: null } : {}),
-    protocol: isControlProtocol(value.protocol) ? value.protocol : legacyProtocol,
-    osc: {
-      address:
-        typeof osc.address === "string"
-          ? osc.address
-          : value.type === "button"
-            ? "/button"
-            : value.type === "slider"
-              ? "/slider"
-              : value.type === "pad"
-                ? "/pad"
-                : value.type === "tabs"
-                  ? "/tabs"
-                  : "/keyboard",
-    },
-    midi: {
-      channel: typeof midi.channel === "number" ? midi.channel : 1,
-      note: typeof midi.note === "number" ? midi.note : value.type === "keyboard" ? 48 : 60,
-      cc: typeof midi.cc === "number" ? midi.cc : index,
-      ...(value.type === "keyboard"
-        ? {
-            octaves:
-              typeof midi.octaves === "number"
-                ? Math.min(
-                    KEYBOARD_MAX_OCTAVES,
-                    Math.max(KEYBOARD_MIN_OCTAVES, midi.octaves),
-                  )
-                : KEYBOARD_DEFAULT_OCTAVES,
-            velocity:
-              typeof midi.velocity === "number"
-                ? Math.min(127, Math.max(1, midi.velocity))
-                : KEYBOARD_DEFAULT_VELOCITY,
-          }
-        : {}),
-      ...(value.type === "pad"
-        ? {
-            ccY:
-              typeof midi.ccY === "number"
-                ? Math.min(127, Math.max(0, midi.ccY))
-                : (typeof midi.cc === "number" ? midi.cc : index) + 1,
-          }
-        : {}),
-    },
-    mqtt: {
-      topic:
-        typeof mqtt.topic === "string" && mqtt.topic.trim()
-          ? mqtt.topic
-          : defaultMqttMapping(value.type, index + 1).topic,
-      qos:
-        mqtt.qos === 0 || mqtt.qos === 1 || mqtt.qos === 2
-          ? mqtt.qos
-          : 0,
-      retain: typeof mqtt.retain === "boolean" ? mqtt.retain : false,
-    },
+    ...(() => {
+      const protocol = isControlProtocol(value.protocol) ? value.protocol : legacyProtocol;
+      const fromProtocol = controlOutputsFromLegacyProtocol(protocol);
+      const hasExplicitEnabled =
+        typeof osc.enabled === "boolean" ||
+        typeof midi.enabled === "boolean" ||
+        typeof mqtt.enabled === "boolean";
+
+      return {
+        osc: {
+          enabled: typeof osc.enabled === "boolean"
+            ? osc.enabled
+            : hasExplicitEnabled
+              ? false
+              : fromProtocol.oscEnabled,
+          address:
+            typeof osc.address === "string"
+              ? osc.address
+              : value.type === "button"
+                ? "/button"
+                : value.type === "slider"
+                  ? "/slider"
+                  : value.type === "pad"
+                    ? "/pad"
+                    : value.type === "tabs"
+                      ? "/tabs"
+                      : "/keyboard",
+        },
+        midi: {
+          enabled: typeof midi.enabled === "boolean"
+            ? midi.enabled
+            : hasExplicitEnabled
+              ? false
+              : fromProtocol.midiEnabled,
+          channel: typeof midi.channel === "number" ? midi.channel : 1,
+          note: typeof midi.note === "number" ? midi.note : value.type === "keyboard" ? 48 : 60,
+          cc: typeof midi.cc === "number" ? midi.cc : index,
+          ...(value.type === "keyboard"
+            ? {
+                octaves:
+                  typeof midi.octaves === "number"
+                    ? Math.min(
+                        KEYBOARD_MAX_OCTAVES,
+                        Math.max(KEYBOARD_MIN_OCTAVES, midi.octaves),
+                      )
+                    : KEYBOARD_DEFAULT_OCTAVES,
+                velocity:
+                  typeof midi.velocity === "number"
+                    ? Math.min(127, Math.max(1, midi.velocity))
+                    : KEYBOARD_DEFAULT_VELOCITY,
+              }
+            : {}),
+          ...(value.type === "pad"
+            ? {
+                ccY:
+                  typeof midi.ccY === "number"
+                    ? Math.min(127, Math.max(0, midi.ccY))
+                    : (typeof midi.cc === "number" ? midi.cc : index) + 1,
+              }
+            : {}),
+        },
+        mqtt: {
+          enabled: typeof mqtt.enabled === "boolean"
+            ? mqtt.enabled
+            : hasExplicitEnabled
+              ? false
+              : fromProtocol.mqttEnabled,
+          topic:
+            typeof mqtt.topic === "string" && mqtt.topic.trim()
+              ? mqtt.topic
+              : defaultMqttMapping(value.type, index + 1).topic,
+          qos:
+            mqtt.qos === 0 || mqtt.qos === 1 || mqtt.qos === 2
+              ? mqtt.qos
+              : 0,
+          retain: typeof mqtt.retain === "boolean" ? mqtt.retain : false,
+        },
+      };
+    })(),
     layout: parseControlLayout(value.layout, index),
   };
 }

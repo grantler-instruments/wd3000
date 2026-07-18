@@ -12,8 +12,8 @@ import { useTranslation } from "react-i18next";
 import { sendButtonValue, sendSliderValue } from "../lib/output";
 import {
   Control,
+  controlActiveProtocolLabels,
   controlMappingLabel,
-  controlProtocolLabel,
 } from "../types";
 import { useAppStore } from "../store/useAppStore";
 import { KeyboardWidget } from "./KeyboardWidget";
@@ -107,7 +107,9 @@ export function ControlWidget({
               <Typography variant="subtitle2" color="text.secondary" sx={{ flex: 1 }}>
                 {control.label}
               </Typography>
-              <Chip label={controlProtocolLabel(control.protocol)} size="small" />
+              {controlActiveProtocolLabels(control).map((label) => (
+                <Chip key={label} label={label} size="small" variant="outlined" />
+              ))}
             </Stack>
           ) : (
             <Typography variant="subtitle2" color="text.secondary">
@@ -139,19 +141,30 @@ export function ControlWidget({
               if (event.button !== 0) {
                 return;
               }
+              // In edit mode, let the press bubble so long-press can open the widget menu.
+              if (editable) {
+                return;
+              }
               event.preventDefault();
               event.stopPropagation();
               event.currentTarget.setPointerCapture(event.pointerId);
               void handleButtonPress(true);
             }}
             onPointerUp={(event) => {
+              if (editable) {
+                return;
+              }
               event.stopPropagation();
               if (event.currentTarget.hasPointerCapture(event.pointerId)) {
                 event.currentTarget.releasePointerCapture(event.pointerId);
               }
               void handleButtonPress(false);
             }}
-            onPointerCancel={() => void handleButtonPress(false)}
+            onPointerCancel={() => {
+              if (!editable) {
+                void handleButtonPress(false);
+              }
+            }}
           >
             {t("control.trigger")}
           </Button>

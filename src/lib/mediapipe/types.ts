@@ -52,7 +52,6 @@ export interface MediaPipeLandmarkMapping {
 export interface MediaPipeConfig {
   tracker: MediaPipeTracker;
   videoDeviceId: string | null;
-  active: boolean;
   selectedLandmarks: string[];
 }
 
@@ -60,7 +59,6 @@ export function defaultMediaPipeConfig(): MediaPipeConfig {
   return {
     tracker: "hands",
     videoDeviceId: null,
-    active: false,
     selectedLandmarks: [],
   };
 }

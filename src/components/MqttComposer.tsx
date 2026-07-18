@@ -22,6 +22,7 @@ import { sendMqttMessage } from "../lib/output";
 import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import { DebuggerSection } from "./DebuggerSection";
+import { debuggerComposerRowSx } from "./debuggerLayoutSx";
 
 const QOS_OPTIONS: MqttQoS[] = [0, 1, 2];
 const PROTOCOL_OPTIONS: MqttTransportProtocol[] = ["tcp", "ws"];
@@ -72,8 +73,12 @@ export function MqttComposer() {
   return (
     <DebuggerSection title={t("monitor.composer")}>
       <Stack spacing={1.5}>
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
-          <FormControl size="small" sx={{ minWidth: 100 }}>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1}
+          sx={debuggerComposerRowSx}
+        >
+          <FormControl size="small" sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 100 } }}>
             <InputLabel id="mqtt-protocol-label">{t("common.protocol")}</InputLabel>
             <Select
               labelId="mqtt-protocol-label"
@@ -104,7 +109,7 @@ export function MqttComposer() {
               setOutput({ mqttComposerHost: nextHost });
             }}
             disabled={!native}
-            sx={{ minWidth: 180, flex: 1 }}
+            sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 180 }, flex: { sm: 1 } }}
           />
 
           <TextField
@@ -118,21 +123,25 @@ export function MqttComposer() {
               setOutput({ mqttComposerPort: nextPort });
             }}
             disabled={!native}
-            sx={{ width: 120 }}
+            sx={{ width: { xs: "100%", sm: 120 } }}
             slotProps={{
               htmlInput: { min: 1, max: 65535 },
             }}
           />
         </Stack>
 
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1}
+          sx={debuggerComposerRowSx}
+        >
           <TextField
             label={t("common.topic")}
             size="small"
             value={topic}
             onChange={(event) => setTopic(event.target.value)}
             disabled={!native}
-            sx={{ minWidth: 220, flex: 1 }}
+            sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 220 }, flex: { sm: 1 } }}
           />
 
           <TextField
@@ -141,10 +150,10 @@ export function MqttComposer() {
             value={payload}
             onChange={(event) => setPayload(event.target.value)}
             disabled={!native}
-            sx={{ minWidth: 220, flex: 1 }}
+            sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 220 }, flex: { sm: 1 } }}
           />
 
-          <FormControl size="small" sx={{ minWidth: 88 }}>
+          <FormControl size="small" sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 88 } }}>
             <InputLabel id="mqtt-qos-label">{t("common.qos")}</InputLabel>
             <Select
               labelId="mqtt-qos-label"
@@ -178,7 +187,7 @@ export function MqttComposer() {
             startIcon={<SendIcon />}
             onClick={handleSend}
             disabled={!native || sending || !topic.trim() || !host.trim()}
-            sx={{ flexShrink: 0 }}
+            sx={{ flexShrink: 0, width: { xs: "100%", sm: "auto" } }}
           >
             {t("monitor.publish")}
           </Button>

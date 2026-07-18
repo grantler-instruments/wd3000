@@ -14,8 +14,9 @@ import { OscComposer } from "./OscComposer";
 import { OscMonitor } from "./OscMonitor";
 import { TuioMonitor } from "./TuioMonitor";
 
+/** Fill the viewport; monitor details scroll inside their panel. */
 const debuggerStackSx = {
-  height: "100%",
+  flex: 1,
   minHeight: 0,
   display: "flex",
   flexDirection: "column",
@@ -49,8 +50,10 @@ export function DebuggerPanel() {
           sx={{
             flex: 1,
             minHeight: 0,
-            overflow: "auto",
-            p: 3,
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+            p: { xs: 1.5, sm: 3 },
           }}
         >
           {tab === "midi" ? (
@@ -78,11 +81,15 @@ export function DebuggerPanel() {
               </Box>
             </Stack>
           ) : tab === "mqtt" ? (
-            <Stack spacing={1}>
+            <Stack spacing={1} sx={debuggerStackSx}>
               <NativeOnlyAlert protocol="mqtt" />
               <MqttComposer />
-              <MqttMonitor />
-              <MqttBroker />
+              <Box sx={debuggerMonitorSx}>
+                <MqttMonitor />
+              </Box>
+              <Box sx={{ flexShrink: 0 }}>
+                <MqttBroker />
+              </Box>
             </Stack>
           ) : tab === "tuio" ? (
             <Stack spacing={1} sx={debuggerStackSx}>

@@ -41,6 +41,7 @@ import { MonitorReplaySection } from "./MonitorReplaySection";
 import { SavedMonitorLogTab } from "./SavedMonitorLogTab";
 import { useOpenSavedLogOnReplay } from "./useOpenSavedLogOnReplay";
 import { DebuggerSection } from "./DebuggerSection";
+import { debuggerFillSx, debuggerLogSx } from "./debuggerLayoutSx";
 
 type MonitorTab = "live" | "saved";
 
@@ -86,6 +87,10 @@ export function MidiMonitor() {
 
   const incomingCount = useMemo(
     () => entries.filter((entry) => entry.direction === "in").length,
+    [entries],
+  );
+  const outgoingCount = useMemo(
+    () => entries.filter((entry) => entry.direction === "out").length,
     [entries],
   );
 
@@ -140,16 +145,7 @@ export function MidiMonitor() {
 
   return (
     <DebuggerSection title={t("monitor.monitor")} flexGrow>
-      <Stack
-        spacing={2}
-        sx={{
-          flex: 1,
-          minHeight: 0,
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+      <Stack spacing={2} sx={debuggerFillSx}>
         {!isNativeApp() && !isWebMidiSupported() && (
           <Alert severity="warning">
             {t("monitor.webMidiUnsupported")}
@@ -171,16 +167,7 @@ export function MidiMonitor() {
         </Tabs>
 
         {tab === "live" ? (
-          <Stack
-            spacing={2}
-            sx={{
-              flex: 1,
-              minHeight: 0,
-              overflow: "hidden",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
+          <Stack spacing={2} sx={debuggerFillSx}>
             <Stack
               direction="row"
               spacing={1}
@@ -242,20 +229,14 @@ export function MidiMonitor() {
                 midiPorts={availablePorts}
               />
 
-              <MonitorReplaySection log={liveLog} incomingCount={incomingCount} />
+              <MonitorReplaySection
+                log={liveLog}
+                incomingCount={incomingCount}
+                outgoingCount={outgoingCount}
+              />
             </Stack>
 
-            <Box
-              sx={{
-                flex: 1,
-                minHeight: 0,
-                overflow: "auto",
-                border: 1,
-                borderColor: "divider",
-                borderRadius: 1,
-                bgcolor: "background.paper",
-              }}
-            >
+            <Box sx={debuggerLogSx}>
               <MonitorLogList
                 logId={liveLog.id}
                 entries={listEntries}
@@ -274,7 +255,7 @@ export function MidiMonitor() {
             </Box>
           </Stack>
         ) : (
-          <Box sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+          <Box sx={debuggerLogSx}>
             <SavedMonitorLogTab protocol="midi" />
           </Box>
         )}

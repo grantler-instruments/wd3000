@@ -30,9 +30,11 @@ import {
 } from "../lib/input";
 import { isNativeApp } from "../lib/platform";
 import { DebuggerSection } from "./DebuggerSection";
+import { debuggerFillSx, debuggerLogSx } from "./debuggerLayoutSx";
 
 const DMX_CHANNEL_COUNT = 512;
 const GRID_COLUMNS = 32;
+const GRID_CELL_MIN = 28;
 
 type ListenerStatus = "stopped" | "starting" | "listening" | "error";
 
@@ -42,42 +44,45 @@ function createEmptyChannels() {
 
 function ArtNetChannelGrid({ channels }: { channels: Uint8Array }) {
   return (
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: `repeat(${GRID_COLUMNS}, 1fr)`,
-        gap: "1px",
-        bgcolor: "divider",
-        border: 1,
-        borderColor: "divider",
-        borderRadius: 1,
-        overflow: "hidden",
-      }}
-    >
-      {Array.from({ length: DMX_CHANNEL_COUNT }, (_, index) => {
-        const value = channels[index] ?? 0;
-        return (
-          <Box
-            key={index}
-            sx={{
-              aspectRatio: "1",
-              bgcolor: `rgb(${value}, ${value}, ${value})`,
-              color: value > 127 ? "common.black" : "common.white",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "0.5rem",
-              lineHeight: 1.1,
-              fontFamily: "monospace",
-              minWidth: 0,
-            }}
-          >
-            <span>{index + 1}</span>
-            <span>{value}</span>
-          </Box>
-        );
-      })}
+    <Box sx={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${GRID_COLUMNS}, minmax(${GRID_CELL_MIN}px, 1fr))`,
+          gap: "1px",
+          bgcolor: "divider",
+          border: 1,
+          borderColor: "divider",
+          borderRadius: 1,
+          overflow: "hidden",
+          minWidth: GRID_COLUMNS * GRID_CELL_MIN,
+        }}
+      >
+        {Array.from({ length: DMX_CHANNEL_COUNT }, (_, index) => {
+          const value = channels[index] ?? 0;
+          return (
+            <Box
+              key={index}
+              sx={{
+                aspectRatio: "1",
+                bgcolor: `rgb(${value}, ${value}, ${value})`,
+                color: value > 127 ? "common.black" : "common.white",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "0.5rem",
+                lineHeight: 1.1,
+                fontFamily: "monospace",
+                minWidth: 0,
+              }}
+            >
+              <span>{index + 1}</span>
+              <span>{value}</span>
+            </Box>
+          );
+        })}
+      </Box>
     </Box>
   );
 }
@@ -270,16 +275,7 @@ export function ArtNetMonitor() {
 
   return (
     <DebuggerSection title={t("monitor.monitor")} flexGrow>
-      <Stack
-        spacing={2}
-        sx={{
-          flex: 1,
-          minHeight: 0,
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+      <Stack spacing={2} sx={debuggerFillSx}>
         <Stack
           direction="row"
           spacing={1}
@@ -383,17 +379,7 @@ export function ArtNetMonitor() {
         <ArtNetChannelGrid channels={channels} />
       </Box>
 
-      <Box
-        sx={{
-          flex: 1,
-          minHeight: 0,
-          overflow: "auto",
-          border: 1,
-          borderColor: "divider",
-          borderRadius: 1,
-          bgcolor: "background.paper",
-        }}
-      >
+      <Box sx={debuggerLogSx}>
         {entries.length === 0 ? (
           <Typography
             variant="body2"
@@ -427,17 +413,20 @@ export function ArtNetMonitor() {
                 spacing={1.5}
                 sx={{
                   alignItems: "center",
-                  px: 2,
+                  flexWrap: "wrap",
+                  rowGap: 0.5,
+                  px: { xs: 1.5, sm: 2 },
                   py: 1,
                   fontFamily: "monospace",
                   fontSize: "0.8125rem",
+                  minWidth: 0,
                 }}
               >
                 <Typography
                   component="span"
                   variant="body2"
                   color="text.secondary"
-                  sx={{ fontFamily: "inherit", minWidth: 108 }}
+                  sx={{ fontFamily: "inherit", minWidth: { xs: 72, sm: 108 }, flexShrink: 0 }}
                 >
                   {formatTime(entry.timestamp)}
                 </Typography>
@@ -445,13 +434,19 @@ export function ArtNetMonitor() {
                   label={entry.direction === "in" ? "IN" : "OUT"}
                   size="small"
                   color={entry.direction === "in" ? "info" : "success"}
-                  sx={{ minWidth: 48 }}
+                  sx={{ minWidth: 48, flexShrink: 0 }}
                 />
-                <Chip label={t("protocols.artnet")} size="small" variant="outlined" />
+                <Chip label={t("protocols.artnet")} size="small" variant="outlined" sx={{ flexShrink: 0 }} />
                 <Typography
                   component="span"
                   variant="body2"
-                  sx={{ fontFamily: "inherit", flex: 1 }}
+                  sx={{
+                    fontFamily: "inherit",
+                    flex: "1 1 120px",
+                    minWidth: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
                 >
                   {entry.summary}
                 </Typography>

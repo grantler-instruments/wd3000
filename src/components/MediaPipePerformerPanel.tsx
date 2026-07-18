@@ -6,7 +6,6 @@ import {
   MenuItem,
   Select,
   Stack,
-  Switch,
   Tab,
   Tabs,
   Typography,
@@ -27,14 +26,13 @@ import type { MediaPipeLandmark } from "../lib/mediapipe/types";
 import { useAppStore } from "../store/useAppStore";
 import { LandmarkMappingEditor } from "./mediapipe/LandmarkMappingEditor";
 import { LandmarkPicker } from "./mediapipe/LandmarkPicker";
-import { MediaPipePreview, stopMediaPipeTracking } from "./mediapipe/MediaPipePreview";
+import { MediaPipePreview } from "./mediapipe/MediaPipePreview";
 
 export function MediaPipePerformerPanel() {
   const { t } = useTranslation();
   const mediapipeConfig = useAppStore((state) => state.mediapipeConfig);
   const setMediaPipeTracker = useAppStore((state) => state.setMediaPipeTracker);
   const setMediaPipeVideoDevice = useAppStore((state) => state.setMediaPipeVideoDevice);
-  const setMediaPipeActive = useAppStore((state) => state.setMediaPipeActive);
   const toggleMediaPipeLandmark = useAppStore((state) => state.toggleMediaPipeLandmark);
   const clearMediaPipeLandmarks = useAppStore((state) => state.clearMediaPipeLandmarks);
   const addMediaPipeLandmarks = useAppStore((state) => state.addMediaPipeLandmarks);
@@ -85,13 +83,7 @@ export function MediaPipePerformerPanel() {
       .catch((error) => {
         setCameraError(error instanceof Error ? error.message : String(error));
       });
-  }, [handleDevices, mediapipeConfig.active]);
-
-  useEffect(() => {
-    if (!mediapipeConfig.active) {
-      stopMediaPipeTracking();
-    }
-  }, [mediapipeConfig.active, mediapipeConfig.tracker, mediapipeConfig.videoDeviceId]);
+  }, [handleDevices]);
 
   const mappingKeys = useMemo(
     () =>
@@ -240,15 +232,6 @@ export function MediaPipePerformerPanel() {
             ))}
           </Select>
         </FormControl>
-
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          <Typography variant="body2">{t("mediapipe.tracking")}</Typography>
-          <Switch
-            checked={mediapipeConfig.active}
-            onChange={(_, checked) => setMediaPipeActive(checked)}
-            aria-label={t("mediapipe.toggleTracking")}
-          />
-        </Stack>
       </Stack>
 
       <Stack

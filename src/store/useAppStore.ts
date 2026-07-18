@@ -60,6 +60,7 @@ import {
   createMqttConnection,
   createOscReceiver,
   createOscSender,
+  controlOutputsFromLegacyProtocol,
   defaultControlIoAssignments,
   defaultLayoutSettings,
   defaultMqttMapping,
@@ -67,6 +68,7 @@ import {
   normalizeOutputConfig,
   normalizePerformerIoConfig,
   defaultPerformerIoConfig,
+  type ControlProtocol,
   isTopLevelControl,
   pruneOrphanTabChildren,
   tabChildControls,
@@ -160,7 +162,6 @@ interface AppState {
   ) => void;
   setMediaPipeTracker: (tracker: MediaPipeTracker) => void;
   setMediaPipeVideoDevice: (videoDeviceId: string | null) => void;
-  setMediaPipeActive: (active: boolean) => void;
   toggleMediaPipeLandmark: (landmark: string) => void;
   clearMediaPipeLandmarks: () => void;
   addMediaPipeLandmarks: (landmarks: string[]) => void;
@@ -842,13 +843,6 @@ export const useAppStore = create<AppState>()(
             videoDeviceId,
           },
         })),
-      setMediaPipeActive: (active) =>
-        set((state) => ({
-          mediapipeConfig: {
-            ...state.mediapipeConfig,
-            active,
-          },
-        })),
       toggleMediaPipeLandmark: (landmark) =>
         set((state) => {
           const selected = state.mediapipeConfig.selectedLandmarks;
@@ -942,18 +936,22 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "wd3000-layout",
-      version: 11,
+      version: 12,
       migrate: (persistedState, version) => {
         const state = persistedState as {
           controls?: Array<
-            Control & {
-              protocol?: Control["protocol"];
+            Partial<Control> & {
+              id?: string;
+              type: Control["type"];
+              protocol?: ControlProtocol;
               layout?: Partial<ControlLayout>;
-              mqtt?: Control["mqtt"];
+              mqtt?: Partial<Control["mqtt"]>;
+              osc?: Partial<Control["osc"]>;
+              midi?: Partial<Control["midi"]>;
               mqttConnectionId?: string | null;
             }
           >;
-          output?: OutputConfig & { protocol?: Control["protocol"] };
+          output?: OutputConfig & { protocol?: ControlProtocol };
           performerIo?: Partial<PerformerIoConfig>;
           layoutSettings?: LayoutSettings & { mode?: string };
           sensorMappings?: Record<string, SensorAxisMapping>;
@@ -965,7 +963,7 @@ export const useAppStore = create<AppState>()(
         const legacyProtocol = state.output?.protocol ?? "osc";
         const rawOutput = state.output ?? defaultOutputConfig();
         const { protocol: _legacyProtocol, ...connectionSettings } = rawOutput as OutputConfig & {
-          protocol?: Control["protocol"];
+          protocol?: ControlProtocol;
         };
         const output = normalizeOutputConfig(connectionSettings);
 
@@ -980,6 +978,11 @@ export const useAppStore = create<AppState>()(
 
         const controls = (state.controls ?? []).map((control, index) => {
           const protocol = control.protocol ?? legacyProtocol;
+          const fromProtocol = controlOutputsFromLegacyProtocol(protocol);
+          const hasExplicitEnabled =
+            typeof control.osc?.enabled === "boolean" ||
+            typeof control.midi?.enabled === "boolean" ||
+            typeof control.mqtt?.enabled === "boolean";
           const ioAssignments =
             version >= 8
               ? {
@@ -989,13 +992,47 @@ export const useAppStore = create<AppState>()(
                   midiInputId: control.midiInputId ?? null,
                   mqttConnectionId: control.mqttConnectionId ?? null,
                 }
-              : defaultControlIoAssignments(performerIo, protocol);
+              : defaultControlIoAssignments(performerIo);
+          const {
+            protocol: _legacyControlProtocol,
+            osc: storedOsc,
+            midi: storedMidi,
+            mqtt: storedMqtt,
+            ...controlRest
+          } = control;
 
           return {
-            ...control,
-            protocol,
+            ...controlRest,
             ...ioAssignments,
-            mqtt: control.mqtt ?? defaultMqttMapping(control.type, index + 1),
+            osc: {
+              address: storedOsc?.address ?? `/control/${index + 1}`,
+              ...storedOsc,
+              enabled: typeof storedOsc?.enabled === "boolean"
+                ? storedOsc.enabled
+                : hasExplicitEnabled
+                  ? false
+                  : fromProtocol.oscEnabled,
+            },
+            midi: {
+              channel: 1,
+              note: 60,
+              cc: index,
+              ...storedMidi,
+              enabled: typeof storedMidi?.enabled === "boolean"
+                ? storedMidi.enabled
+                : hasExplicitEnabled
+                  ? false
+                  : fromProtocol.midiEnabled,
+            },
+            mqtt: {
+              ...defaultMqttMapping(control.type, index + 1),
+              ...storedMqtt,
+              enabled: typeof storedMqtt?.enabled === "boolean"
+                ? storedMqtt.enabled
+                : hasExplicitEnabled
+                  ? false
+                  : fromProtocol.mqttEnabled,
+            },
             layout: {
               ...createControlLayout(index),
               ...control.layout,
@@ -1043,10 +1080,16 @@ export const useAppStore = create<AppState>()(
           }),
         );
 
+        const {
+          active: _legacyMediaPipeActive,
+          ...persistedMediaPipeConfig
+        } = (state.mediapipeConfig ?? {}) as Partial<MediaPipeConfig> & {
+          active?: boolean;
+        };
         const mediapipeConfig = {
           ...defaultMediaPipeConfig(),
-          ...state.mediapipeConfig,
-          selectedLandmarks: state.mediapipeConfig?.selectedLandmarks ?? [],
+          ...persistedMediaPipeConfig,
+          selectedLandmarks: persistedMediaPipeConfig.selectedLandmarks ?? [],
         };
 
         const mediapipeMappings = Object.fromEntries(

@@ -1,5 +1,12 @@
+import AddIcon from "@mui/icons-material/Add";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import { Button, ButtonProps } from "@mui/material";
+import {
+  Button,
+  ButtonProps,
+  IconButton,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ControlType } from "../types";
@@ -16,27 +23,52 @@ export function AddControlMenu({
   variant = "outlined",
 }: AddControlMenuProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const addControl = useAppStore((state) => state.addControl);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = anchorEl !== null;
+  const label = t("control.addWidget");
 
   const handleAdd = (type: ControlType) => {
     addControl(type);
   };
 
+  const menuProps = {
+    "aria-haspopup": "menu" as const,
+    "aria-expanded": open ? ("true" as const) : undefined,
+    "aria-controls": open ? "add-control-menu" : undefined,
+    onClick: (event: React.MouseEvent<HTMLElement>) => {
+      setAnchorEl(event.currentTarget);
+    },
+  };
+
   return (
     <>
-      <Button
-        variant={variant}
-        size={size}
-        endIcon={<ArrowDropDownIcon />}
-        onClick={(event) => setAnchorEl(event.currentTarget)}
-        aria-haspopup="menu"
-        aria-expanded={open ? "true" : undefined}
-        aria-controls={open ? "add-control-menu" : undefined}
-      >
-        {t("control.addWidget")}
-      </Button>
+      {isMobile ? (
+        <IconButton
+          {...menuProps}
+          aria-label={label}
+          color="primary"
+          size={size}
+          sx={{
+            border: 1,
+            borderColor: "divider",
+            borderRadius: 1,
+          }}
+        >
+          <AddIcon />
+        </IconButton>
+      ) : (
+        <Button
+          {...menuProps}
+          variant={variant}
+          size={size}
+          endIcon={<ArrowDropDownIcon />}
+        >
+          {label}
+        </Button>
+      )}
       <AddWidgetMenu
         id="add-control-menu"
         open={open}

@@ -9,6 +9,18 @@ export function useWidgetContextMenu(editable: boolean) {
     controlId: string;
   } | null>(null);
 
+  const openMenuAt = useCallback(
+    (controlId: string, clientX: number, clientY: number) => {
+      if (!editable) {
+        return;
+      }
+
+      selectControl(controlId);
+      setMenu({ top: clientY, left: clientX, controlId });
+    },
+    [editable, selectControl],
+  );
+
   const handleWidgetContextMenu = useCallback(
     (event: React.MouseEvent<HTMLElement>, controlId: string) => {
       if (!editable) {
@@ -17,10 +29,9 @@ export function useWidgetContextMenu(editable: boolean) {
 
       event.preventDefault();
       event.stopPropagation();
-      selectControl(controlId);
-      setMenu({ top: event.clientY, left: event.clientX, controlId });
+      openMenuAt(controlId, event.clientX, event.clientY);
     },
-    [editable, selectControl],
+    [editable, openMenuAt],
   );
 
   const closeMenu = useCallback(() => {
@@ -29,6 +40,7 @@ export function useWidgetContextMenu(editable: boolean) {
 
   return {
     menu,
+    openMenuAt,
     handleWidgetContextMenu,
     closeMenu,
   };

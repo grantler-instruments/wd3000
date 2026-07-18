@@ -32,6 +32,7 @@ import {
 } from "../lib/oscTypes";
 import { useAppStore } from "../store/useAppStore";
 import { DebuggerSection } from "./DebuggerSection";
+import { debuggerComposerRowSx } from "./debuggerLayoutSx";
 
 const OSC_ARG_TYPE_KEYS: Record<OscArgType, string> = {
   int: "oscComposer.int",
@@ -149,11 +150,12 @@ function OscArgRow({
 
   return (
     <Stack
-      direction="row"
+      direction={{ xs: "column", sm: "row" }}
       spacing={1}
       data-reorder-id={arg.id}
       sx={{
-        alignItems: "center",
+        alignItems: { xs: "stretch", sm: "center" },
+        flexWrap: "wrap",
         opacity: dragging ? 0.55 : 1,
         outline: dragOver ? 2 : 0,
         outlineColor: "primary.main",
@@ -161,46 +163,48 @@ function OscArgRow({
         borderRadius: 1,
       }}
     >
-      <Box
-        aria-label={t("oscComposer.reorderArgument", { n: index + 1 })}
-        role="button"
-        tabIndex={canReorder ? 0 : -1}
-        onPointerDown={(event) => {
-          if (!canReorder || event.button !== 0) {
-            return;
-          }
-          event.preventDefault();
-          onDragStart();
-        }}
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: 28,
-          height: 28,
-          flexShrink: 0,
-          cursor: canReorder ? "grab" : "default",
-          color: canReorder ? "text.secondary" : "action.disabled",
-          borderRadius: 1,
-          touchAction: "none",
-          userSelect: "none",
-          "&:active": {
-            cursor: canReorder ? "grabbing" : "default",
-          },
-        }}
-      >
-        <DragIndicatorIcon fontSize="small" />
-      </Box>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexShrink: 0 }}>
+        <Box
+          aria-label={t("oscComposer.reorderArgument", { n: index + 1 })}
+          role="button"
+          tabIndex={canReorder ? 0 : -1}
+          onPointerDown={(event) => {
+            if (!canReorder || event.button !== 0) {
+              return;
+            }
+            event.preventDefault();
+            onDragStart();
+          }}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 28,
+            height: 28,
+            flexShrink: 0,
+            cursor: canReorder ? "grab" : "default",
+            color: canReorder ? "text.secondary" : "action.disabled",
+            borderRadius: 1,
+            touchAction: "none",
+            userSelect: "none",
+            "&:active": {
+              cursor: canReorder ? "grabbing" : "default",
+            },
+          }}
+        >
+          <DragIndicatorIcon fontSize="small" />
+        </Box>
 
-      <Typography
-        variant="caption"
-        color="text.secondary"
-        sx={{ minWidth: 20, textAlign: "right" }}
-      >
-        {index + 1}
-      </Typography>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ minWidth: 20, textAlign: "right" }}
+        >
+          {index + 1}
+        </Typography>
+      </Stack>
 
-      <FormControl size="small" sx={{ width: 140 }}>
+      <FormControl size="small" sx={{ width: { xs: "100%", sm: 140 } }}>
         <InputLabel id={`osc-composer-type-label-${arg.id}`}>{t("common.type")}</InputLabel>
         <Select
           labelId={`osc-composer-type-label-${arg.id}`}
@@ -227,7 +231,7 @@ function OscArgRow({
           onBlur={floatField.handleBlur}
           inputMode="decimal"
           placeholder="0.5"
-          sx={{ width: 120 }}
+          sx={{ width: { xs: "100%", sm: 120 } }}
         />
       )}
 
@@ -240,7 +244,7 @@ function OscArgRow({
           onBlur={intField.handleBlur}
           inputMode="numeric"
           placeholder="0"
-          sx={{ width: 120 }}
+          sx={{ width: { xs: "100%", sm: 120 } }}
         />
       )}
 
@@ -253,23 +257,24 @@ function OscArgRow({
             onChange({ ...arg, stringValue: event.target.value })
           }
           placeholder="hello"
-          sx={{ width: 220 }}
+          sx={{ width: { xs: "100%", sm: 220 }, flex: { sm: 1 } }}
         />
       )}
 
       {!oscArgTypeRequiresValue(arg.type) && (
-        <Typography variant="body2" color="text.secondary" sx={{ minWidth: 120 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ minWidth: { sm: 120 } }}>
           {t("oscComposer.noValuePayload")}
         </Typography>
       )}
 
-      <Box sx={{ flex: 1 }} />
+      <Box sx={{ flex: { xs: "0 0 auto", sm: 1 }, display: { xs: "none", sm: "block" } }} />
 
       <IconButton
         size="small"
         aria-label={t("oscComposer.removeArgument", { n: index + 1 })}
         onClick={onRemove}
         disabled={!canRemove}
+        sx={{ alignSelf: { xs: "flex-end", sm: "center" } }}
       >
         <DeleteOutlinedIcon fontSize="small" />
       </IconButton>
@@ -344,17 +349,21 @@ export function OscComposer() {
   return (
     <DebuggerSection title={t("monitor.composer")}>
       <Stack spacing={1}>
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1}
+          sx={debuggerComposerRowSx}
+        >
           <TextField
             label={t("common.address")}
             size="small"
             value={address}
             onChange={(event) => setAddress(event.target.value)}
             placeholder="/test"
-            sx={{ width: 220 }}
+            sx={{ width: { xs: "100%", sm: 220 } }}
           />
 
-          <Box sx={{ flex: 1 }} />
+          <Box sx={{ flex: { xs: "0 0 auto", sm: 1 }, display: { xs: "none", sm: "block" } }} />
 
           <TextField
             label={t("common.host")}
@@ -365,7 +374,7 @@ export function OscComposer() {
               setHost(nextHost);
               setOutput({ oscHost: nextHost });
             }}
-            sx={{ width: 140 }}
+            sx={{ width: { xs: "100%", sm: 140 } }}
           />
           <TextField
             label={t("common.port")}
@@ -377,7 +386,7 @@ export function OscComposer() {
               setPort(nextPort);
               setOutput({ oscPort: nextPort });
             }}
-            sx={{ width: 96 }}
+            sx={{ width: { xs: "100%", sm: 96 } }}
           />
 
           <Button
@@ -391,7 +400,7 @@ export function OscComposer() {
               !address.trim() ||
               args.length === 0
             }
-            sx={{ flexShrink: 0 }}
+            sx={{ flexShrink: 0, width: { xs: "100%", sm: "auto" } }}
           >
             {t("common.send")}
           </Button>

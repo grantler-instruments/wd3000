@@ -26,18 +26,22 @@ const idleReplaySession: ReplaySession = {
 
 let replaySession: ReplaySession = idleReplaySession;
 
+export type MonitorReplayDirection = "in" | "out";
+
 export interface MonitorReplayProgress {
   active: boolean;
   logId: string | null;
-  completedIncoming: number;
-  totalIncoming: number;
+  direction: MonitorReplayDirection | null;
+  completed: number;
+  total: number;
 }
 
 const idleReplayProgress: MonitorReplayProgress = {
   active: false,
   logId: null,
-  completedIncoming: 0,
-  totalIncoming: 0,
+  direction: null,
+  completed: 0,
+  total: 0,
 };
 
 let replayProgress: MonitorReplayProgress = idleReplayProgress;
@@ -73,7 +77,7 @@ export function useMonitorLogReplayProgress() {
 
 export function replayProgressFillFraction(
   entryCount: number,
-  incomingRowFills: number[],
+  rowFills: number[],
   progress: MonitorReplayProgress,
   logId?: string,
 ): number {
@@ -81,26 +85,26 @@ export function replayProgressFillFraction(
     !progress.active ||
     !logId ||
     progress.logId !== logId ||
-    progress.totalIncoming === 0 ||
+    progress.total === 0 ||
     entryCount === 0
   ) {
     return 0;
   }
 
-  if (progress.completedIncoming >= progress.totalIncoming) {
+  if (progress.completed >= progress.total) {
     return 1;
   }
 
-  if (progress.completedIncoming === 0) {
+  if (progress.completed === 0) {
     return 0;
   }
 
-  const fill = incomingRowFills[progress.completedIncoming - 1];
+  const fill = rowFills[progress.completed - 1];
   if (fill !== undefined) {
     return fill;
   }
 
-  return progress.completedIncoming / progress.totalIncoming;
+  return progress.completed / progress.total;
 }
 
 export interface MonitorLogProgressLayout {
@@ -108,8 +112,9 @@ export interface MonitorLogProgressLayout {
   fromBottom: boolean;
 }
 
-export function incomingRowProgressLayout(
+export function directionRowProgressLayout(
   entries: Array<{ id: string; direction: "in" | "out"; timestamp: number }>,
+  direction: MonitorReplayDirection,
 ): MonitorLogProgressLayout {
   if (entries.length === 0) {
     return { fills: [], fromBottom: true };
@@ -119,12 +124,12 @@ export function incomingRowProgressLayout(
     entries.length < 2 ||
     entries[0].timestamp > entries[entries.length - 1].timestamp;
 
-  const incomingChronological = entries
-    .filter((entry) => entry.direction === "in")
+  const chronological = entries
+    .filter((entry) => entry.direction === direction)
     .sort((left, right) => left.timestamp - right.timestamp);
 
-  const fills = incomingChronological.map((incoming) => {
-    const index = entries.findIndex((entry) => entry.id === incoming.id);
+  const fills = chronological.map((replayEntry) => {
+    const index = entries.findIndex((entry) => entry.id === replayEntry.id);
     if (index === -1) {
       return 0;
     }
@@ -152,20 +157,21 @@ export function getReplayRowStatuses(
     !progress.active ||
     !logId ||
     progress.logId !== logId ||
-    progress.totalIncoming === 0
+    !progress.direction ||
+    progress.total === 0
   ) {
     return statuses;
   }
 
-  const incomingChronological = entries
-    .filter((entry) => entry.direction === "in")
+  const chronological = entries
+    .filter((entry) => entry.direction === progress.direction)
     .sort((left, right) => left.timestamp - right.timestamp);
 
-  for (let index = 0; index < incomingChronological.length; index++) {
-    const entry = incomingChronological[index];
-    if (index < progress.completedIncoming) {
+  for (let index = 0; index < chronological.length; index++) {
+    const entry = chronological[index];
+    if (index < progress.completed) {
       statuses.set(entry.id, "sent");
-    } else if (index === progress.completedIncoming) {
+    } else if (index === progress.completed) {
       statuses.set(entry.id, "next");
     } else {
       statuses.set(entry.id, "pending");
@@ -233,21 +239,35 @@ function persistReplayOutput() {
   useMonitorLogStore.getState().saveLogAndSelect(log);
 }
 
-export function incomingReplayEvents(events: MonitorLogEvent[]): MonitorLogEvent[] {
-  const incoming = events.filter((event) => event.direction === "in");
-  if (incoming.length === 0) {
+export function directionReplayEvents(
+  events: MonitorLogEvent[],
+  direction: MonitorReplayDirection,
+): MonitorLogEvent[] {
+  const matching = events.filter((event) => event.direction === direction);
+  if (matching.length === 0) {
     return [];
   }
 
-  const firstTimestamp = incoming[0].timestamp;
-  return incoming.map((event) => ({
+  const firstTimestamp = matching[0].timestamp;
+  return matching.map((event) => ({
     ...event,
     deltaMs: event.timestamp - firstTimestamp,
   }));
 }
 
+export function countMonitorEventsByDirection(
+  events: MonitorLogEvent[],
+  direction: MonitorReplayDirection,
+) {
+  return events.filter((event) => event.direction === direction).length;
+}
+
 export function countIncomingMonitorEvents(events: MonitorLogEvent[]) {
-  return events.filter((event) => event.direction === "in").length;
+  return countMonitorEventsByDirection(events, "in");
+}
+
+export function countOutgoingMonitorEvents(events: MonitorLogEvent[]) {
+  return countMonitorEventsByDirection(events, "out");
 }
 
 function sleep(ms: number, signal: AbortSignal) {
@@ -356,10 +376,15 @@ async function replayMidiEventAsOutput(
 export async function replayMonitorLog(
   log: SavedMonitorLog,
   target: MonitorReplayTarget,
+  direction: MonitorReplayDirection = "in",
 ) {
-  const events = incomingReplayEvents(log.events);
+  const events = directionReplayEvents(log.events, direction);
   if (events.length === 0) {
-    throw new Error("No incoming messages to send.");
+    throw new Error(
+      direction === "in"
+        ? "No incoming messages to send."
+        : "No outgoing messages to send.",
+    );
   }
 
   if (target.protocol === "midi" && !target.midiPortName) {
@@ -386,8 +411,9 @@ export async function replayMonitorLog(
   setReplayProgress({
     active: true,
     logId: log.id,
-    completedIncoming: 0,
-    totalIncoming: events.length,
+    direction,
+    completed: 0,
+    total: events.length,
   });
 
   try {
@@ -407,8 +433,9 @@ export async function replayMonitorLog(
       setReplayProgress({
         active: true,
         logId: log.id,
-        completedIncoming: index + 1,
-        totalIncoming: events.length,
+        direction,
+        completed: index + 1,
+        total: events.length,
       });
     }
   } finally {

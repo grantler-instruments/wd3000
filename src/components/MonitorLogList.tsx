@@ -132,13 +132,16 @@ export function MonitorLogList({ entries, emptyMessage, logId }: MonitorLogListP
           spacing={1.5}
           sx={{
             alignItems: "center",
-            px: 2,
+            flexWrap: "wrap",
+            rowGap: 0.5,
+            px: { xs: 1.5, sm: 2 },
             py: 1,
             fontFamily: "monospace",
             fontSize: "0.8125rem",
+            minWidth: 0,
           }}
         >
-          {showReplayStatus && entry.direction === "in" ? (
+          {showReplayStatus && entry.direction === replayProgress.direction ? (
             <ReplayStatusIcon status={replayStatuses.get(entry.id)} />
           ) : (
             <Box aria-hidden sx={{ width: 20, flexShrink: 0 }} />
@@ -147,7 +150,7 @@ export function MonitorLogList({ entries, emptyMessage, logId }: MonitorLogListP
             component="span"
             variant="body2"
             color="text.secondary"
-            sx={{ fontFamily: "inherit", minWidth: 108 }}
+            sx={{ fontFamily: "inherit", minWidth: { xs: 72, sm: 108 }, flexShrink: 0 }}
           >
             {formatTime(entry.timestamp)}
           </Typography>
@@ -155,13 +158,19 @@ export function MonitorLogList({ entries, emptyMessage, logId }: MonitorLogListP
             label={entry.direction === "in" ? "IN" : "OUT"}
             size="small"
             color={entry.direction === "in" ? "info" : "success"}
-            sx={{ minWidth: 48 }}
+            sx={{ minWidth: 48, flexShrink: 0 }}
           />
-          <Chip label={kindLabel(entry.kind)} size="small" variant="outlined" />
+          <Chip label={kindLabel(entry.kind)} size="small" variant="outlined" sx={{ flexShrink: 0 }} />
           <Typography
             component="span"
             variant="body2"
-            sx={{ fontFamily: "inherit", flex: 1 }}
+            sx={{
+              fontFamily: "inherit",
+              flex: "1 1 120px",
+              minWidth: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
           >
             {entry.summary}
           </Typography>

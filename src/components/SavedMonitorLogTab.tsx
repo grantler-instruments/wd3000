@@ -36,6 +36,7 @@ import {
 } from "../lib/monitorLogFilter";
 import {
   countIncomingMonitorEvents,
+  countOutgoingMonitorEvents,
   isMonitorLogReplayActive,
   useMonitorLogReplayProgress,
 } from "../lib/monitorLogReplay";
@@ -86,6 +87,7 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
     logs.find((log) => log.id === selectedId)?.id ?? logs[0]?.id ?? "";
   const selectedLog = logs.find((log) => log.id === selectValue) ?? null;
   const incomingCount = selectedLog ? countIncomingMonitorEvents(selectedLog.events) : 0;
+  const outgoingCount = selectedLog ? countOutgoingMonitorEvents(selectedLog.events) : 0;
 
   const allPreviewEntries = useMemo(
     () => monitorEventsToListItems(selectedLog?.id ?? "saved", selectedLog?.events ?? []),
@@ -245,7 +247,11 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
         </Alert>
       )}
 
-      <MonitorReplaySection log={selectedLog} incomingCount={incomingCount} />
+      <MonitorReplaySection
+        log={selectedLog}
+        incomingCount={incomingCount}
+        outgoingCount={outgoingCount}
+      />
 
       <MonitorFilterAccordion
         protocol={protocol}

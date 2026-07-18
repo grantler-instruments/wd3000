@@ -75,10 +75,7 @@ function midiCcToControlValue(value: number): number {
 }
 
 function matchesOsc(control: Control, address: string): boolean {
-  return (
-    (control.protocol === "osc" || control.protocol === "both") &&
-    control.osc.address === address
-  );
+  return control.osc.enabled && control.osc.address === address;
 }
 
 export interface ControlValueUpdate {
@@ -121,7 +118,7 @@ function isKeyboardNoteInRange(control: Control, note: number): boolean {
 }
 
 function matchesMidiNote(control: Control, channel: number, note: number): boolean {
-  if (!(control.protocol === "midi" || control.protocol === "both")) {
+  if (!control.midi.enabled) {
     return false;
   }
 
@@ -137,7 +134,7 @@ function matchesMidiNote(control: Control, channel: number, note: number): boole
 }
 
 function matchesMidiCc(control: Control, channel: number, cc: number): boolean {
-  if (!(control.protocol === "midi" || control.protocol === "both")) {
+  if (!control.midi.enabled) {
     return false;
   }
 
@@ -156,7 +153,7 @@ function matchesMidiCc(control: Control, channel: number, cc: number): boolean {
 }
 
 function matchesPadOsc(control: Control, address: string): "x" | "y" | null {
-  if (control.type !== "pad") {
+  if (control.type !== "pad" || !control.osc.enabled) {
     return null;
   }
 

@@ -31,6 +31,7 @@ import { listMidiOutputs, sendMidiRaw } from "../lib/output";
 import { isNativeApp, isWebMidiSupported } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import { DebuggerSection } from "./DebuggerSection";
+import { debuggerComposerRowSx } from "./debuggerLayoutSx";
 
 const MIDI_COMPOSER_TYPE_KEYS: Record<MidiComposerType, string> = {
   "note-on": "midiComposer.noteOn",
@@ -194,9 +195,13 @@ export function MidiComposer() {
 
   return (
     <DebuggerSection title={t("monitor.composer")}>
-      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={1}
+        sx={debuggerComposerRowSx}
+      >
         {showChannel && (
-          <FormControl size="small" sx={{ width: 96 }}>
+          <FormControl size="small" sx={{ width: { xs: "100%", sm: 96 } }}>
             <InputLabel id="midi-composer-channel-label">{t("common.channel")}</InputLabel>
             <Select
               labelId="midi-composer-channel-label"
@@ -218,7 +223,7 @@ export function MidiComposer() {
           </FormControl>
         )}
 
-        <FormControl size="small" sx={{ width: 180 }}>
+        <FormControl size="small" sx={{ width: { xs: "100%", sm: 180 } }}>
           <InputLabel id="midi-composer-type-label">{t("common.type")}</InputLabel>
           <Select
             labelId="midi-composer-type-label"
@@ -241,7 +246,7 @@ export function MidiComposer() {
               value="F0"
               disabled
               size="small"
-              sx={{ width: 72 }}
+              sx={{ width: { xs: "100%", sm: 72 } }}
             />
             <TextField
               label={t("midiComposer.manufacturer")}
@@ -254,7 +259,7 @@ export function MidiComposer() {
               }
               placeholder="FD"
               size="small"
-              sx={{ width: 120 }}
+              sx={{ width: { xs: "100%", sm: 120 } }}
             />
             <TextField
               label={t("midiComposer.data")}
@@ -267,14 +272,14 @@ export function MidiComposer() {
               }
               placeholder="43 12 00"
               size="small"
-              sx={{ width: 220 }}
+              sx={{ width: { xs: "100%", sm: 220 }, flex: { sm: 1 } }}
             />
             <TextField
               label={t("midiComposer.end")}
               value="F7"
               disabled
               size="small"
-              sx={{ width: 72 }}
+              sx={{ width: { xs: "100%", sm: 72 } }}
             />
           </>
         )}
@@ -287,7 +292,7 @@ export function MidiComposer() {
             onBlur={noteOrCcField.handleBlur}
             inputMode="numeric"
             size="small"
-            sx={{ width: 104 }}
+            sx={{ width: { xs: "100%", sm: 104 } }}
           />
         )}
 
@@ -299,12 +304,16 @@ export function MidiComposer() {
             onBlur={velocityField.handleBlur}
             inputMode="numeric"
             size="small"
-            sx={{ width: 104 }}
+            sx={{ width: { xs: "100%", sm: 104 } }}
           />
         )}
 
         {messageType === "pitch-bend" && (
-          <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
+          <Stack
+            direction="row"
+            spacing={0.75}
+            sx={{ alignItems: "center", width: { xs: "100%", sm: "auto" }, flexWrap: "wrap" }}
+          >
             <Typography
               variant="caption"
               color="text.secondary"
@@ -320,7 +329,7 @@ export function MidiComposer() {
               inputMode="numeric"
               size="small"
               placeholder={String(PITCH_BEND_CENTER)}
-              sx={{ width: 88 }}
+              sx={{ width: 88, flex: { xs: 1, sm: "none" } }}
               slotProps={{
                 htmlInput: { min: PITCH_BEND_MIN, max: PITCH_BEND_MAX },
               }}
@@ -334,9 +343,9 @@ export function MidiComposer() {
           </Stack>
         )}
 
-        <Box sx={{ flex: 1 }} />
+        <Box sx={{ flex: { xs: "0 0 auto", sm: 1 }, display: { xs: "none", sm: "block" } }} />
 
-        <FormControl size="small" sx={{ minWidth: 200, maxWidth: 320 }}>
+        <FormControl size="small" sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 200 }, maxWidth: { sm: 320 } }}>
           <InputLabel id="midi-composer-device-label">{t("common.device")}</InputLabel>
           <Select
             labelId="midi-composer-device-label"
@@ -361,7 +370,7 @@ export function MidiComposer() {
           startIcon={<SendIcon />}
           onClick={handleSend}
           disabled={sending || !portName}
-          sx={{ flexShrink: 0 }}
+          sx={{ flexShrink: 0, width: { xs: "100%", sm: "auto" } }}
         >
           {t("common.send")}
         </Button>

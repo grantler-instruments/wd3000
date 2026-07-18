@@ -2,6 +2,7 @@ mod artnet;
 mod artnet_listen;
 mod midi;
 mod midi_input;
+mod midi_virtual;
 mod mqtt;
 mod network;
 mod osc;
@@ -13,6 +14,7 @@ mod tuio_send;
 use artnet_listen::ArtNetListenerState;
 use midi::MidiState;
 use midi_input::MidiInputState;
+use midi_virtual::VirtualMidiState;
 use mqtt::MqttState;
 use osc_listen::OscListenerState;
 use tuio_listen::TuioListenerState;
@@ -40,91 +42,108 @@ fn send_osc(
 }
 
 #[tauri::command]
-fn list_midi_outputs() -> Result<Vec<String>, String> {
-    MidiState::list_outputs()
+fn list_midi_outputs(
+    virtual_state: tauri::State<'_, VirtualMidiState>,
+) -> Result<Vec<String>, String> {
+    let mut ports = MidiState::list_outputs()?;
+    let virtual_ports = virtual_state.list()?;
+    for name in virtual_ports.outputs {
+        if !ports.iter().any(|port| port == &name) {
+            ports.push(name);
+        }
+    }
+    Ok(ports)
 }
 
 #[tauri::command]
 fn send_midi_note(
     state: tauri::State<'_, MidiState>,
+    virtual_state: tauri::State<'_, VirtualMidiState>,
     port_name: String,
     channel: u8,
     note: u8,
     velocity: u8,
 ) -> Result<(), String> {
-    state.send_note(&port_name, channel, note, velocity)
+    state.send_note(&virtual_state, &port_name, channel, note, velocity)
 }
 
 #[tauri::command]
 fn send_midi_cc(
     state: tauri::State<'_, MidiState>,
+    virtual_state: tauri::State<'_, VirtualMidiState>,
     port_name: String,
     channel: u8,
     cc: u8,
     value: u8,
 ) -> Result<(), String> {
-    state.send_cc(&port_name, channel, cc, value)
+    state.send_cc(&virtual_state, &port_name, channel, cc, value)
 }
 
 #[tauri::command]
 fn send_midi_note_off(
     state: tauri::State<'_, MidiState>,
+    virtual_state: tauri::State<'_, VirtualMidiState>,
     port_name: String,
     channel: u8,
     note: u8,
     velocity: u8,
 ) -> Result<(), String> {
-    state.send_note_off(&port_name, channel, note, velocity)
+    state.send_note_off(&virtual_state, &port_name, channel, note, velocity)
 }
 
 #[tauri::command]
 fn send_midi_program_change(
     state: tauri::State<'_, MidiState>,
+    virtual_state: tauri::State<'_, VirtualMidiState>,
     port_name: String,
     channel: u8,
     program: u8,
 ) -> Result<(), String> {
-    state.send_program_change(&port_name, channel, program)
+    state.send_program_change(&virtual_state, &port_name, channel, program)
 }
 
 #[tauri::command]
 fn send_midi_pitch_bend(
     state: tauri::State<'_, MidiState>,
+    virtual_state: tauri::State<'_, VirtualMidiState>,
     port_name: String,
     channel: u8,
     value: u16,
 ) -> Result<(), String> {
-    state.send_pitch_bend(&port_name, channel, value)
+    state.send_pitch_bend(&virtual_state, &port_name, channel, value)
 }
 
 #[tauri::command]
 fn send_midi_channel_pressure(
     state: tauri::State<'_, MidiState>,
+    virtual_state: tauri::State<'_, VirtualMidiState>,
     port_name: String,
     channel: u8,
     pressure: u8,
 ) -> Result<(), String> {
-    state.send_channel_pressure(&port_name, channel, pressure)
+    state.send_channel_pressure(&virtual_state, &port_name, channel, pressure)
 }
 
 #[tauri::command]
 fn send_midi_poly_pressure(
     state: tauri::State<'_, MidiState>,
+    virtual_state: tauri::State<'_, VirtualMidiState>,
     port_name: String,
     channel: u8,
     note: u8,
     pressure: u8,
 ) -> Result<(), String> {
-    state.send_poly_pressure(&port_name, channel, note, pressure)
+    state.send_poly_pressure(&virtual_state, &port_name, channel, note, pressure)
 }
 
 #[tauri::command]
 fn send_midi_raw(
     state: tauri::State<'_, MidiState>,
+    virtual_state: tauri::State<'_, VirtualMidiState>,
     port_name: String,
     bytes: Vec<u8>,
 ) -> Result<(), String> {
-    state.send_raw(&port_name, bytes)
+    state.send_raw(&virtual_state, &port_name, bytes)
 }
 
 #[tauri::command]
@@ -132,6 +151,7 @@ fn start_input_listeners(
     app: tauri::AppHandle,
     osc_state: tauri::State<'_, OscListenerState>,
     midi_state: tauri::State<'_, MidiInputState>,
+    virtual_state: tauri::State<'_, VirtualMidiState>,
     osc_listen_port: u16,
     midi_input_port_name: Option<String>,
 ) -> Result<(), String> {
@@ -142,7 +162,14 @@ fn start_input_listeners(
     }
 
     match midi_input_port_name {
-        Some(name) if !name.trim().is_empty() => midi_state.start(app, name.trim())?,
+        Some(name) if !name.trim().is_empty() => {
+            let trimmed = name.trim();
+            if virtual_state.has_input(trimmed)? {
+                midi_state.stop()?;
+            } else {
+                midi_state.start(app, trimmed)?;
+            }
+        }
         _ => midi_state.stop()?,
     }
 
@@ -166,6 +193,7 @@ pub fn run() {
         .plugin(tauri_plugin_sensors::init())
         .manage(MidiState::new())
         .manage(MidiInputState::new())
+        .manage(VirtualMidiState::new())
         .manage(OscListenerState::new())
         .manage(ArtNetListenerState::new())
         .manage(TuioListenerState::new())
@@ -184,6 +212,12 @@ pub fn run() {
             send_midi_poly_pressure,
             send_midi_raw,
             midi_input::list_midi_inputs,
+            midi_virtual::supports_virtual_midi,
+            midi_virtual::list_virtual_midi_ports,
+            midi_virtual::create_virtual_midi_output,
+            midi_virtual::create_virtual_midi_input,
+            midi_virtual::close_virtual_midi_output,
+            midi_virtual::close_virtual_midi_input,
             osc_listen::start_osc_listener,
             osc_listen::stop_osc_listener,
             artnet_listen::start_artnet_listener,

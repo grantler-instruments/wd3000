@@ -33,18 +33,13 @@ export function MediaPipePreview({
   const mediapipeConfig = useAppStore((state) => state.mediapipeConfig);
   const performerIo = useAppStore((state) => state.performerIo);
   const mediapipeMappings = useAppStore((state) => state.mediapipeMappings);
-  const trackingActive = mediapipeConfig.active;
+  const trackingActive = mediapipeConfig.selectedLandmarks.length > 0;
 
   useEffect(() => {
     setCameraReady(false);
   }, [mediapipeConfig.videoDeviceId, mediapipeConfig.tracker]);
 
   useEffect(() => {
-    if (!trackingActive) {
-      setCameraReady(false);
-      return;
-    }
-
     const syncCameraReady = () => {
       const video = webcamRef.current?.video ?? null;
       setCameraReady(isVideoReady(video));
@@ -61,7 +56,13 @@ export function MediaPipePreview({
       video?.removeEventListener("loadeddata", syncCameraReady);
       window.clearInterval(intervalId);
     };
-  }, [trackingActive, mediapipeConfig.videoDeviceId]);
+  }, [mediapipeConfig.videoDeviceId]);
+
+  useEffect(() => {
+    if (!trackingActive) {
+      resetMediaPipeOutputThrottles();
+    }
+  }, [trackingActive, mediapipeConfig.tracker, mediapipeConfig.videoDeviceId]);
 
   const handleLandmarkValues = useCallback(
     (values: Record<string, MediaPipeLandmark>) => {
@@ -111,29 +112,27 @@ export function MediaPipePreview({
           borderColor: "divider",
         }}
       >
-        {trackingActive ? (
-          <Webcam
-            ref={webcamRef}
-            audio={false}
-            mirrored
-            width={MEDIAPIPE_PREVIEW_WIDTH}
-            height={MEDIAPIPE_PREVIEW_HEIGHT}
-            onUserMedia={() => setCameraReady(true)}
-            onUserMediaError={() => setCameraReady(false)}
-            videoConstraints={
-              mediapipeConfig.videoDeviceId
-                ? { deviceId: mediapipeConfig.videoDeviceId }
-                : { facingMode: "user" }
-            }
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-          />
-        ) : null}
+        <Webcam
+          ref={webcamRef}
+          audio={false}
+          mirrored
+          width={MEDIAPIPE_PREVIEW_WIDTH}
+          height={MEDIAPIPE_PREVIEW_HEIGHT}
+          onUserMedia={() => setCameraReady(true)}
+          onUserMediaError={() => setCameraReady(false)}
+          videoConstraints={
+            mediapipeConfig.videoDeviceId
+              ? { deviceId: mediapipeConfig.videoDeviceId }
+              : { facingMode: "user" }
+          }
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
 
         <Box
           component="canvas"
@@ -150,24 +149,7 @@ export function MediaPipePreview({
           }}
         />
 
-        {!trackingActive ? (
-          <Box
-            sx={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              bgcolor: "rgba(0, 0, 0, 0.55)",
-              color: "text.secondary",
-              typography: "body2",
-              px: 2,
-              textAlign: "center",
-            }}
-          >
-            {t("mediapipe.enableToStart")}
-          </Box>
-        ) : !cameraReady ? (
+        {!cameraReady ? (
           <Box
             sx={{
               position: "absolute",
@@ -188,8 +170,4 @@ export function MediaPipePreview({
       </Box>
     </Box>
   );
-}
-
-export function stopMediaPipeTracking() {
-  resetMediaPipeOutputThrottles();
 }
