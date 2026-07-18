@@ -19,6 +19,7 @@
     "tauri:ios:sync-export-options": "cp src-tauri/ExportOptions.ios.plist src-tauri/gen/apple/ExportOptions.plist",
     "tauri:ios:bundle": "npm run tauri:ios:sync-export-options && tauri ios build --debug --open --export-method debugging",
     "tauri:ios:build": "npm run tauri:ios:sync-export-options && tauri ios build -- --export-method app-store-connect",
+    "tauri:ios:open-archive": "open src-tauri/gen/apple/build/wd3000_iOS.xcarchive",
     "tauri:android": "tauri android dev"
   },
   "dependencies": {

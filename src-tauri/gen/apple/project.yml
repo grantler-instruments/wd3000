@@ -30,7 +30,8 @@ targets:
     sources:
       - path: Sources
       - path: Assets.xcassets
-      - path: Externals
+      # Externals holds libapp.a for linking only — do not copy into the app bundle
+      # (App Store rejects standalone .a files in the IPA).
       - path: wd3000_iOS
       - path: assets
         buildPhase: resources
@@ -52,7 +53,7 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
         CFBundleShortVersionString: 0.0.1
-        CFBundleVersion: "0.0.1"
+        CFBundleVersion: "2"
         NSCameraUsageDescription: WD3000 uses the camera for MediaPipe pose and hand tracking.
         NSMotionUsageDescription: WD3000 uses motion, fitness, and barometer sensors for performer input mapping.
         NSLocalNetworkUsageDescription: WD3000 uses your local network to send and receive OSC, Art-Net, TUIO, and network MIDI messages.
