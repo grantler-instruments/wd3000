@@ -50,7 +50,9 @@ function isSliderOrientation(value: unknown): value is SliderOrientation {
 function isControlType(value: unknown): value is ControlType {
   return (
     value === "button" ||
+    value === "switch" ||
     value === "slider" ||
+    value === "rotary" ||
     value === "keyboard" ||
     value === "pad" ||
     value === "tabs"

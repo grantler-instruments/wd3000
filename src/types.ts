@@ -1,10 +1,12 @@
 import i18n from "./i18n";
 
-export type ControlType = "button" | "slider" | "keyboard" | "pad" | "tabs";
+export type ControlType = "button" | "switch" | "slider" | "rotary" | "keyboard" | "pad" | "tabs";
 
 export const CONTROL_WIDGET_TYPES = [
   "button",
+  "switch",
   "slider",
+  "rotary",
   "keyboard",
   "pad",
   "tabs",
@@ -14,8 +16,12 @@ export function controlTypeLabel(type: ControlType): string {
   switch (type) {
     case "button":
       return i18n.t("controlTypes.button");
+    case "switch":
+      return i18n.t("controlTypes.switch");
     case "slider":
       return i18n.t("controlTypes.slider");
+    case "rotary":
+      return i18n.t("controlTypes.rotary");
     case "keyboard":
       return i18n.t("controlTypes.keyboard");
     case "pad":
@@ -208,6 +214,8 @@ export const KEYBOARD_DEFAULT_VELOCITY = 100;
 export const KEYBOARD_BODY_HEIGHT = 120;
 export const PAD_BODY_HEIGHT = 160;
 export const PAD_ESTIMATED_HEIGHT = 200;
+export const ROTARY_ESTIMATED_HEIGHT = 200;
+export const ROTARY_MIN_HEIGHT = 160;
 export const TABS_ESTIMATED_HEIGHT = 240;
 export const TABS_MIN_HEIGHT = 160;
 export function createTabChildLayout(
@@ -599,6 +607,8 @@ function defaultHeightForType(type: ControlType, control?: Control): number {
       return KEYBOARD_ESTIMATED_HEIGHT;
     case "pad":
       return PAD_ESTIMATED_HEIGHT;
+    case "rotary":
+      return ROTARY_ESTIMATED_HEIGHT;
     case "tabs":
       return TABS_ESTIMATED_HEIGHT;
     default:
@@ -616,6 +626,8 @@ export function controlMinHeight(control: Control): number {
       return 140;
     case "pad":
       return 140;
+    case "rotary":
+      return ROTARY_MIN_HEIGHT;
     case "tabs":
       return TABS_MIN_HEIGHT;
     case "slider":
@@ -695,8 +707,12 @@ function controlLabel(type: ControlType, index: number): string {
   switch (type) {
     case "button":
       return i18n.t("controlTypes.buttonN", { n: index });
+    case "switch":
+      return i18n.t("controlTypes.switchN", { n: index });
     case "slider":
       return i18n.t("controlTypes.sliderN", { n: index });
+    case "rotary":
+      return i18n.t("controlTypes.rotaryN", { n: index });
     case "keyboard":
       return i18n.t("controlTypes.keyboardN", { n: index });
     case "pad":
@@ -710,8 +726,12 @@ function controlMqttTopic(type: ControlType, index: number): string {
   switch (type) {
     case "button":
       return `button/${index}`;
+    case "switch":
+      return `switch/${index}`;
     case "slider":
       return `slider/${index}`;
+    case "rotary":
+      return `rotary/${index}`;
     case "keyboard":
       return `keyboard/${index}`;
     case "pad":
@@ -734,8 +754,12 @@ function controlOscAddress(type: ControlType, index: number): string {
   switch (type) {
     case "button":
       return `/button/${index}`;
+    case "switch":
+      return `/switch/${index}`;
     case "slider":
       return `/slider/${index}`;
+    case "rotary":
+      return `/rotary/${index}`;
     case "keyboard":
       return `/keyboard/${index}`;
     case "pad":
@@ -821,7 +845,7 @@ export function controlMappingLabel(control: Control, performerIo?: PerformerIoC
       : null;
     const prefix = midiPrefix ? `${midiPrefix} · ` : "";
 
-    if (control.type === "button") {
+    if (control.type === "button" || control.type === "switch") {
       parts.push(`${prefix}Ch${control.midi.channel} N${control.midi.note}`);
     } else if (control.type === "keyboard") {
       const octaves = control.midi.octaves ?? KEYBOARD_DEFAULT_OCTAVES;

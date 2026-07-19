@@ -122,7 +122,7 @@ function matchesMidiNote(control: Control, channel: number, note: number): boole
     return false;
   }
 
-  if (control.type === "button") {
+  if (control.type === "button" || control.type === "switch") {
     return control.midi.note === note;
   }
 
@@ -143,7 +143,9 @@ function matchesMidiCc(control: Control, channel: number, cc: number): boolean {
     return control.midi.cc === cc || ccY === cc;
   }
 
-  return control.type === "slider" || control.type === "tabs" ? control.midi.cc === cc : false;
+  return control.type === "slider" || control.type === "rotary" || control.type === "tabs"
+    ? control.midi.cc === cc
+    : false;
 }
 
 function matchesPadOsc(control: Control, address: string): "x" | "y" | null {
@@ -183,7 +185,7 @@ export function routeOscMessage(
       continue;
     }
 
-    if (control.type === "button") {
+    if (control.type === "button" || control.type === "switch") {
       updates.push({
         controlId: control.id,
         value: message.value >= 0.5 ? 100 : 0,

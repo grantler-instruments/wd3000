@@ -200,7 +200,9 @@ function GeneralSection({ control, compact = false }: { control: Control; compac
           }
         >
           <MenuItem value="button">{t("controlTypes.button")}</MenuItem>
+          <MenuItem value="switch">{t("controlTypes.switch")}</MenuItem>
           <MenuItem value="slider">{t("controlTypes.slider")}</MenuItem>
+          <MenuItem value="rotary">{t("controlTypes.rotary")}</MenuItem>
           <MenuItem value="keyboard">{t("controlTypes.keyboard")}</MenuItem>
           <MenuItem value="pad">{t("controlTypes.pad")}</MenuItem>
           <MenuItem value="tabs">{t("controlTypes.tabs")}</MenuItem>
@@ -549,7 +551,7 @@ function MidiMappingFields({ control }: { control: Control }) {
   const { t } = useTranslation();
   const updateControl = useAppStore((state) => state.updateControl);
 
-  if (control.type === "button") {
+  if (control.type === "button" || control.type === "switch") {
     return (
       <TextField
         label={t("common.note")}

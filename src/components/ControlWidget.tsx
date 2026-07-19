@@ -1,4 +1,14 @@
-import { Box, Button, Chip, Paper, Slider, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Chip,
+  FormControlLabel,
+  Paper,
+  Slider,
+  Stack,
+  Switch,
+  Typography,
+} from "@mui/material";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { sendButtonValue, sendSliderValue } from "../lib/output";
@@ -6,6 +16,7 @@ import { useAppStore } from "../store/useAppStore";
 import { type Control, controlActiveProtocolLabels, controlMappingLabel } from "../types";
 import { KeyboardWidget } from "./KeyboardWidget";
 import { PadWidget } from "./PadWidget";
+import { RotaryWidget } from "./RotaryWidget";
 import { TabsWidget } from "./TabsWidget";
 
 interface ControlWidgetProps {
@@ -27,6 +38,7 @@ export function ControlWidget({
   const setLastError = useAppStore((state) => state.setLastError);
   const sliderValue = useAppStore((state) => state.controlValues[control.id] ?? 0);
   const buttonPressed = sliderValue > 0;
+  const switchOn = sliderValue > 0;
   const buttonHeldRef = useRef(false);
 
   const handleButtonPress = async (pressed: boolean) => {
@@ -43,6 +55,21 @@ export function ControlWidget({
 
     try {
       await sendButtonValue(control, performerIo, pressed);
+      setLastError(null);
+    } catch (error) {
+      setLastError(error instanceof Error ? error.message : String(error));
+    }
+  };
+
+  const handleSwitchChange = async (checked: boolean) => {
+    setControlValue(control.id, checked ? 100 : 0);
+
+    if (editable) {
+      return;
+    }
+
+    try {
+      await sendButtonValue(control, performerIo, checked);
       setLastError(null);
     } catch (error) {
       setLastError(error instanceof Error ? error.message : String(error));
@@ -156,6 +183,44 @@ export function ControlWidget({
           >
             {t("control.trigger")}
           </Button>
+        ) : control.type === "switch" ? (
+          <Box
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onClick={(event) => event.stopPropagation()}
+            onPointerDown={(event) => event.stopPropagation()}
+          >
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={switchOn}
+                  disabled={editable && !layoutPreview}
+                  onChange={(_, checked) => {
+                    void handleSwitchChange(checked);
+                  }}
+                  sx={
+                    accentColor
+                      ? {
+                          "& .MuiSwitch-switchBase.Mui-checked": {
+                            color: accentColor,
+                          },
+                          "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                            backgroundColor: accentColor,
+                          },
+                        }
+                      : undefined
+                  }
+                />
+              }
+              label={switchOn ? t("control.on") : t("control.off")}
+              sx={{ m: 0 }}
+            />
+          </Box>
         ) : control.type === "keyboard" ? (
           <Box sx={{ flex: 1, minHeight: 0, display: "flex" }}>
             <KeyboardWidget
@@ -172,6 +237,12 @@ export function ControlWidget({
               accentColor={accentColor}
             />
           </Box>
+        ) : control.type === "rotary" ? (
+          <RotaryWidget
+            control={control}
+            editable={editable && !layoutPreview}
+            accentColor={accentColor}
+          />
         ) : control.type === "tabs" ? (
           <Box sx={{ flex: 1, minHeight: 0, display: "flex" }}>
             <TabsWidget
