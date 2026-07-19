@@ -91,6 +91,16 @@ const es: TranslationSchema = {
     newProjectConfirmTitle: "¿Nuevo proyecto?",
     newProjectConfirmBody:
       "Esto borra el diseño, los controles y los ajustes de conexión actuales. Exporta primero si quieres una copia de seguridad.",
+    save: "Guardar",
+    saveTitle: "Guardar proyecto",
+    saveNamePlaceholder: "Mi diseño",
+    saveOverwriteHint: "Ya existe un proyecto llamado «{{name}}» y se reemplazará.",
+    open: "Abrir",
+    openTitle: "Abrir proyecto guardado",
+    openEmpty: "Aún no hay proyectos guardados. Usa Guardar para almacenar uno en este navegador.",
+    openConfirmTitle: "¿Abrir proyecto?",
+    openConfirmBody:
+      "¿Abrir «{{name}}»? Esto sustituye el diseño, los controles y los ajustes de conexión actuales.",
     importConfirmTitle: "¿Importar proyecto?",
     importConfirmBody:
       "Esto sustituye el diseño, los controles y los ajustes de conexión actuales. Exporta primero si quieres una copia de seguridad.",

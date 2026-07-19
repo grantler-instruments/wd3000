@@ -6,5 +6,9 @@
 	<string>WD3000 uses your local network to send and receive OSC, Art-Net, TUIO, and network MIDI messages.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>WD3000 uses Bluetooth to connect to MIDI controllers and interfaces.</string>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
+	<key>UIStatusBarHidden</key>
+	<true/>
 </dict>
 </plist>

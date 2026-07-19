@@ -487,7 +487,7 @@ function legacyProtocolFromOutput(value: unknown): ControlProtocol {
   return "osc";
 }
 
-function parsePersistedConfig(value: unknown): PersistedAppConfig {
+export function parsePersistedConfig(value: unknown): PersistedAppConfig {
   if (!isRecord(value)) {
     throw new Error("Config must be a JSON object.");
   }

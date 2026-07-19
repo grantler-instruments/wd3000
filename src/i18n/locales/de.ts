@@ -91,6 +91,16 @@ const de: TranslationSchema = {
     newProjectConfirmTitle: "Neues Projekt?",
     newProjectConfirmBody:
       "Dadurch werden aktuelles Layout, Controls und Verbindungseinstellungen gelöscht. Exportiere zuerst, wenn du ein Backup behalten möchtest.",
+    save: "Speichern",
+    saveTitle: "Projekt speichern",
+    saveNamePlaceholder: "Mein Layout",
+    saveOverwriteHint: "Ein Projekt namens „{{name}}“ existiert bereits und wird ersetzt.",
+    open: "Öffnen",
+    openTitle: "Gespeichertes Projekt öffnen",
+    openEmpty: "Noch keine gespeicherten Projekte. Speichere eines in diesem Browser.",
+    openConfirmTitle: "Projekt öffnen?",
+    openConfirmBody:
+      "„{{name}}“ öffnen? Dadurch werden aktuelles Layout, Controls und Verbindungseinstellungen ersetzt.",
     importConfirmTitle: "Projekt importieren?",
     importConfirmBody:
       "Dadurch werden aktuelles Layout, Controls und Verbindungseinstellungen ersetzt. Exportiere zuerst, wenn du ein Backup behalten möchtest.",

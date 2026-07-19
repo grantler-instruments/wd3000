@@ -89,6 +89,16 @@ const en = {
     newProjectConfirmTitle: "New project?",
     newProjectConfirmBody:
       "This clears your current layout, controls, and connection settings. Export first if you want to keep a backup.",
+    save: "Save",
+    saveTitle: "Save project",
+    saveNamePlaceholder: "My layout",
+    saveOverwriteHint: "A project named “{{name}}” already exists and will be replaced.",
+    open: "Open",
+    openTitle: "Open saved project",
+    openEmpty: "No saved projects yet. Use Save to store one in this browser.",
+    openConfirmTitle: "Open project?",
+    openConfirmBody:
+      "Open “{{name}}”? This replaces your current layout, controls, and connection settings.",
     importConfirmTitle: "Import project?",
     importConfirmBody:
       "This replaces your current layout, controls, and connection settings. Export first if you want to keep a backup.",
