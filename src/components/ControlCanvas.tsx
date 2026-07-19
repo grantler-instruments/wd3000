@@ -11,8 +11,9 @@ import {
   resolveTabDropAtPoint,
   setTabDropHover,
 } from "../lib/controlDrag";
+import { layoutOverlapsAny, peerRects } from "../lib/layoutCollision";
 import { useAppStore } from "../store/useAppStore";
-import { type ControlType, topLevelControls } from "../types";
+import { type ControlType, controlLayoutHeight, topLevelControls } from "../types";
 import { AddControlMenu } from "./AddControlMenu";
 import { AddWidgetMenu } from "./AddWidgetMenu";
 import { ControlWidgetMenu } from "./ControlWidgetMenu";
@@ -114,11 +115,26 @@ function ControlItem({
     [control.id, updateControlLayout],
   );
 
+  const isPositionAllowed = useCallback(
+    (x: number, y: number) =>
+      !layoutOverlapsAny(
+        {
+          x,
+          y,
+          width: control.layout.width,
+          height: controlLayoutHeight(control),
+        },
+        peerRects(useAppStore.getState().controls, control),
+      ),
+    [control],
+  );
+
   const { position, dragging, startDrag } = useDragPosition({
     enabled: editable,
     x: control.layout.x,
     y: control.layout.y,
     gridSize,
+    isPositionAllowed,
     onCommit: handleCommit,
   });
 

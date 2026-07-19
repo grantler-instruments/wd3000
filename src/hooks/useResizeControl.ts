@@ -10,6 +10,7 @@ interface UseResizeControlOptions {
   minHeight: number;
   maxHeight: number;
   gridSize: number;
+  constrainSize?: (width: number, height: number) => { width: number; height: number };
   onCommit: (width: number, height: number) => void;
 }
 
@@ -26,6 +27,7 @@ export function useResizeControl({
   minHeight,
   maxHeight,
   gridSize,
+  constrainSize,
   onCommit,
 }: UseResizeControlOptions) {
   const [resizing, setResizing] = useState(false);
@@ -48,11 +50,12 @@ export function useResizeControl({
     const handlePointerMove = (event: PointerEvent) => {
       const deltaX = event.clientX - origin.current.pointerX;
       const deltaY = event.clientY - origin.current.pointerY;
-
-      setSize({
+      const next = {
         width: clamp(snapToGrid(origin.current.width + deltaX, gridSize), minWidth, maxWidth),
         height: clamp(snapToGrid(origin.current.height + deltaY, gridSize), minHeight, maxHeight),
-      });
+      };
+
+      setSize(constrainSize ? constrainSize(next.width, next.height) : next);
     };
 
     const handlePointerUp = () => {
@@ -67,7 +70,7 @@ export function useResizeControl({
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [gridSize, maxHeight, maxWidth, minHeight, minWidth, onCommit, resizing]);
+  }, [constrainSize, gridSize, maxHeight, maxWidth, minHeight, minWidth, onCommit, resizing]);
 
   const startResize = useCallback(
     (event: React.PointerEvent<HTMLElement>) => {

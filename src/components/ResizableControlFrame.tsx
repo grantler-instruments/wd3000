@@ -3,6 +3,11 @@ import { Box } from "@mui/material";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useResizeControl } from "../hooks/useResizeControl";
+import {
+  peerRects,
+  resizeLimitsAgainstPeers,
+  resolveNonOverlappingSize,
+} from "../lib/layoutCollision";
 import { useAppStore } from "../store/useAppStore";
 import {
   type Control,
@@ -40,14 +45,37 @@ export function ResizableControlFrame({
   const selectControl = useAppStore((state) => state.selectControl);
   const openControlInspector = useAppStore((state) => state.openControlInspector);
   const selectedControlId = useAppStore((state) => state.selectedControlId);
+  const controls = useAppStore((state) => state.controls);
   const selected = editable && selectedControlId === control.id;
-  const limits = controlCanvasSizeLimits(control, canvasSize, subtractPosition);
+  const obstacles = peerRects(controls, control);
+  const limits = resizeLimitsAgainstPeers(
+    control,
+    controlCanvasSizeLimits(control, canvasSize, subtractPosition),
+    obstacles,
+  );
 
   const handleCommit = useCallback(
     (width: number, height: number) => {
       updateControlLayout(control.id, { width, height });
     },
     [control.id, updateControlLayout],
+  );
+
+  const constrainSize = useCallback(
+    (width: number, height: number) =>
+      resolveNonOverlappingSize(
+        {
+          x: control.layout.x,
+          y: control.layout.y,
+          width,
+          height,
+        },
+        peerRects(useAppStore.getState().controls, control),
+        limits.minWidth,
+        limits.minHeight,
+        gridSize,
+      ),
+    [control, gridSize, limits.minHeight, limits.minWidth],
   );
 
   const { size, resizing, startResize } = useResizeControl({
@@ -59,6 +87,7 @@ export function ResizableControlFrame({
     minHeight: limits.minHeight,
     maxHeight: limits.maxHeight,
     gridSize,
+    constrainSize,
     onCommit: handleCommit,
   });
 

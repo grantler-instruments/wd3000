@@ -5,10 +5,16 @@ import {
   collectControlSubtree,
 } from "../../lib/controlClipboard";
 import {
+  peerRects,
+  resolveControlLayout,
+  resolveNonOverlappingPosition,
+} from "../../lib/layoutCollision";
+import {
   type Control,
   type ControlLayout,
   type ControlPadValue,
   type ControlType,
+  controlLayoutHeight,
   controlTabs,
   createControl,
   createTabChildLayout,
@@ -66,6 +72,39 @@ export interface PerformerSlice {
   setTabDropPreview: (preview: TabDropPreview | null) => void;
 }
 
+function placeClonedRoot(
+  existing: Control[],
+  cloned: Control[],
+  rootId: string | null,
+  gridSize: number,
+): Control[] {
+  if (!rootId) {
+    return cloned;
+  }
+
+  const root = cloned.find((control) => control.id === rootId);
+  if (!root) {
+    return cloned;
+  }
+
+  const position = resolveNonOverlappingPosition(
+    {
+      x: root.layout.x,
+      y: root.layout.y,
+      width: root.layout.width,
+      height: controlLayoutHeight(root),
+    },
+    peerRects(existing, root),
+    gridSize,
+  );
+
+  return cloned.map((control) =>
+    control.id === rootId
+      ? { ...control, layout: { ...control.layout, x: position.x, y: position.y } }
+      : control,
+  );
+}
+
 export const createPerformerSlice: StateCreator<AppStore, [], [], PerformerSlice> = (set, get) => ({
   controls: [],
   layoutSettings: defaultLayoutSettings(),
@@ -81,11 +120,13 @@ export const createPerformerSlice: StateCreator<AppStore, [], [], PerformerSlice
   addControl: (type, position) => {
     const controls = get().controls;
     const performerIo = get().performerIo;
+    const gridSize = get().layoutSettings.gridSize;
     const index = controls.filter((control) => control.type === type).length + 1;
     const control = createControl(type, index, topLevelControls(controls).length, performerIo);
     if (position) {
       control.layout = { ...control.layout, x: position.x, y: position.y };
     }
+    control.layout = resolveControlLayout(controls, control, control.layout, gridSize);
     set({
       controls: reindexOrders([...controls, control]),
       selectedControlId: control.id,
@@ -130,9 +171,10 @@ export const createPerformerSlice: StateCreator<AppStore, [], [], PerformerSlice
     const { controls: cloned, rootId: newRootId } = cloneControlSubtree(state.controls, id, {
       positionOffset: { x: gridSize, y: gridSize },
     });
+    const placed = placeClonedRoot(state.controls, cloned, newRootId, gridSize);
 
     set({
-      controls: reindexOrders([...state.controls, ...cloned]),
+      controls: reindexOrders([...state.controls, ...placed]),
       selectedControlId: newRootId,
     });
   },
@@ -154,9 +196,15 @@ export const createPerformerSlice: StateCreator<AppStore, [], [], PerformerSlice
         toTopLevel: position !== undefined,
       },
     );
+    const placed = placeClonedRoot(
+      state.controls,
+      cloned,
+      newRootId,
+      state.layoutSettings.gridSize,
+    );
 
     set({
-      controls: reindexOrders([...state.controls, ...cloned]),
+      controls: reindexOrders([...state.controls, ...placed]),
       selectedControlId: newRootId,
       controlClipboard: clipboard.mode === "cut" ? null : clipboard,
     });
@@ -202,11 +250,23 @@ export const createPerformerSlice: StateCreator<AppStore, [], [], PerformerSlice
       return { controls };
     }),
   updateControlLayout: (id, patch) =>
-    set((state) => ({
-      controls: state.controls.map((control) =>
-        control.id === id ? { ...control, layout: { ...control.layout, ...patch } } : control,
-      ),
-    })),
+    set((state) => {
+      const control = state.controls.find((entry) => entry.id === id);
+      if (!control) {
+        return state;
+      }
+
+      const layout = resolveControlLayout(
+        state.controls,
+        control,
+        { ...control.layout, ...patch },
+        state.layoutSettings.gridSize,
+      );
+
+      return {
+        controls: state.controls.map((entry) => (entry.id === id ? { ...entry, layout } : entry)),
+      };
+    }),
   reorderTabChildren: (sourceId, targetId) => {
     const controls = get().controls;
     const source = controls.find((control) => control.id === sourceId);
@@ -305,6 +365,16 @@ export const createPerformerSlice: StateCreator<AppStore, [], [], PerformerSlice
           },
         };
       }
+
+      nextControl = {
+        ...nextControl,
+        layout: resolveControlLayout(
+          withoutControl,
+          nextControl,
+          nextControl.layout,
+          state.layoutSettings.gridSize,
+        ),
+      };
 
       let nextControls = [...withoutControl, nextControl];
 
