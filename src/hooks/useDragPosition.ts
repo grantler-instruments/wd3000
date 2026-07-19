@@ -9,13 +9,7 @@ interface UseDragPositionOptions {
   onCommit: (x: number, y: number) => void;
 }
 
-export function useDragPosition({
-  enabled,
-  x,
-  y,
-  gridSize,
-  onCommit,
-}: UseDragPositionOptions) {
+export function useDragPosition({ enabled, x, y, gridSize, onCommit }: UseDragPositionOptions) {
   const [dragging, setDragging] = useState(false);
   const [position, setPosition] = useState({ x, y });
   const origin = useRef({ pointerX: 0, pointerY: 0, x: 0, y: 0 });

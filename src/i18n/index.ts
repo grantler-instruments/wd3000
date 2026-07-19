@@ -27,8 +27,7 @@ i18n.on("languageChanged", (language) => {
 });
 
 if (typeof document !== "undefined") {
-  document.documentElement.lang =
-    i18n.language === "zh" ? "zh-Hans" : i18n.language;
+  document.documentElement.lang = i18n.language === "zh" ? "zh-Hans" : i18n.language;
 }
 
 export default i18n;

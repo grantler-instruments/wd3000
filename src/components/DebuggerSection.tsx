@@ -143,11 +143,7 @@ export function DebuggerSection({
             minWidth: 0,
           }}
         >
-          {typeof title === "string" ? (
-            <Typography variant="subtitle2">{title}</Typography>
-          ) : (
-            title
-          )}
+          {typeof title === "string" ? <Typography variant="subtitle2">{title}</Typography> : title}
           {headerAction}
         </Stack>
       </AccordionSummary>

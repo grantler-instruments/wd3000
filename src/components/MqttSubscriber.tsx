@@ -1,11 +1,5 @@
 import CloseIcon from "@mui/icons-material/Close";
-import {
-  Button,
-  Chip,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Button, Chip, Stack, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { isNativeApp } from "../lib/platform";

@@ -14,10 +14,10 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import { Link as RouterLink, Outlet } from "react-router-dom";
+import { Outlet, Link as RouterLink } from "react-router-dom";
 import { GITHUB_RELEASES_URL, GITHUB_REPO_URL } from "./links";
-import { useWebsiteStore } from "./store/useWebsiteStore";
 import { SupportDialog } from "./SupportDialog";
+import { useWebsiteStore } from "./store/useWebsiteStore";
 
 const navLinks = [{ label: "Download", href: GITHUB_RELEASES_URL }] as const;
 
@@ -28,7 +28,14 @@ export function SiteLayout() {
   const openSupport = useWebsiteStore((state) => state.openSupport);
 
   return (
-    <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", bgcolor: "background.default" }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        bgcolor: "background.default",
+      }}
+    >
       <AppBar
         position="sticky"
         elevation={0}
@@ -66,7 +73,13 @@ export function SiteLayout() {
 
           <Stack direction="row" spacing={1} sx={{ display: { xs: "none", sm: "flex" } }}>
             {navLinks.map((link) => (
-              <Button key={link.label} color="inherit" href={link.href} target="_blank" rel="noreferrer">
+              <Button
+                key={link.label}
+                color="inherit"
+                href={link.href}
+                target="_blank"
+                rel="noreferrer"
+              >
                 {link.label}
               </Button>
             ))}
@@ -135,7 +148,13 @@ export function SiteLayout() {
               © {new Date().getFullYear()} Grantler Instruments · LGPL-3.0
             </Typography>
             <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap" }}>
-              <Link href={GITHUB_REPO_URL} target="_blank" rel="noreferrer" color="inherit" underline="hover">
+              <Link
+                href={GITHUB_REPO_URL}
+                target="_blank"
+                rel="noreferrer"
+                color="inherit"
+                underline="hover"
+              >
                 GitHub
               </Link>
               <Link

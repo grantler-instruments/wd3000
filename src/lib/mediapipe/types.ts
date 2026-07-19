@@ -1,5 +1,5 @@
-import type { MqttQoS } from "../mqtt";
 import type { PerformerIoConfig } from "../../types";
+import type { MqttQoS } from "../mqtt";
 
 export type MediaPipeTracker = "pose" | "hands";
 

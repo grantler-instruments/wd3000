@@ -1,4 +1,4 @@
-import { Control } from "../types";
+import type { Control } from "../types";
 
 export interface ControlClipboard {
   rootId: string;

@@ -1,28 +1,24 @@
-import {
-  Box,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AddControlMenu } from "./AddControlMenu";
-import { AddWidgetMenu } from "./AddWidgetMenu";
-import { ControlWidgetMenu } from "./ControlWidgetMenu";
 import { useDragPosition } from "../hooks/useDragPosition";
 import { useLongPress } from "../hooks/useLongPress";
 import { useViewportSize } from "../hooks/useViewportSize";
 import { useWidgetContextMenu } from "../hooks/useWidgetContextMenu";
 import {
   assignControlToHoveredTab,
+  assignDraggedControlToHoveredTab,
+  dropPositionInElement,
   endControlDrag,
   resolveDroppedControlId,
-  assignDraggedControlToHoveredTab,
   resolveTabDropAtPoint,
   setTabDropHover,
-  dropPositionInElement,
 } from "../lib/controlDrag";
-import { ControlType, topLevelControls } from "../types";
 import { useAppStore } from "../store/useAppStore";
+import { type ControlType, topLevelControls } from "../types";
+import { AddControlMenu } from "./AddControlMenu";
+import { AddWidgetMenu } from "./AddWidgetMenu";
+import { ControlWidgetMenu } from "./ControlWidgetMenu";
 import { ResizableControlFrame } from "./ResizableControlFrame";
 
 interface ControlCanvasProps {
@@ -178,9 +174,7 @@ function ControlItem({
   });
 
   const longPressHandlers = useLongPress(
-    editable
-      ? (point) => onLongPressMenu(control.id, point.clientX, point.clientY)
-      : null,
+    editable ? (point) => onLongPressMenu(control.id, point.clientX, point.clientY) : null,
   );
 
   useEffect(() => {
@@ -189,15 +183,8 @@ function ControlItem({
     }
 
     const handlePointerMove = (event: PointerEvent) => {
-      const preview = resolveTabDropAtPoint(
-        event.clientX,
-        event.clientY,
-        gridSize,
-        control.id,
-      );
-      setTabDropHover(
-        preview ? { ...preview, sourceControlId: control.id } : null,
-      );
+      const preview = resolveTabDropAtPoint(event.clientX, event.clientY, gridSize, control.id);
+      setTabDropHover(preview ? { ...preview, sourceControlId: control.id } : null);
     };
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -255,12 +242,8 @@ function FreeLayoutCanvas({
   const selectControl = useAppStore((state) => state.selectControl);
   const { width, height } = useViewportSize();
   const sortedControls = topLevelControls(controls);
-  const {
-    dragOverCanvas,
-    handleCanvasDragOver,
-    handleCanvasDragLeave,
-    handleCanvasDrop,
-  } = useCanvasDropHandlers(editable);
+  const { dragOverCanvas, handleCanvasDragOver, handleCanvasDragLeave, handleCanvasDrop } =
+    useCanvasDropHandlers(editable);
 
   useEffect(() => {
     if (!editable) {
@@ -397,15 +380,11 @@ export function ControlCanvas({ editable }: ControlCanvasProps) {
         >
           {editable ? (
             <Stack spacing={2} sx={{ alignItems: "center" }}>
-              <Typography color="text.secondary">
-                {t("control.emptyCanvasEdit")}
-              </Typography>
+              <Typography color="text.secondary">{t("control.emptyCanvasEdit")}</Typography>
               <AddControlMenu />
             </Stack>
           ) : (
-            <Typography color="text.secondary">
-              {t("control.emptyCanvasPlay")}
-            </Typography>
+            <Typography color="text.secondary">{t("control.emptyCanvasPlay")}</Typography>
           )}
         </Box>
         <AddWidgetMenu

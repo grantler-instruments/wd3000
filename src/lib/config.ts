@@ -1,17 +1,9 @@
 import {
-  Control,
-  ControlLayout,
-  ControlProtocol,
-  ControlTab,
-  ControlType,
-  KEYBOARD_DEFAULT_OCTAVES,
-  KEYBOARD_DEFAULT_VELOCITY,
-  KEYBOARD_MAX_OCTAVES,
-  KEYBOARD_MIN_OCTAVES,
-  LayoutSettings,
-  OutputConfig,
-  PerformerIoConfig,
-  SliderOrientation,
+  type Control,
+  type ControlLayout,
+  type ControlProtocol,
+  type ControlTab,
+  type ControlType,
   controlOutputsFromLegacyProtocol,
   createControlLayout,
   createDefaultTabs,
@@ -20,6 +12,14 @@ import {
   defaultOutputConfig,
   defaultPerformerIoConfig,
   isValidControlColor,
+  KEYBOARD_DEFAULT_OCTAVES,
+  KEYBOARD_DEFAULT_VELOCITY,
+  KEYBOARD_MAX_OCTAVES,
+  KEYBOARD_MIN_OCTAVES,
+  type LayoutSettings,
+  type OutputConfig,
+  type PerformerIoConfig,
+  type SliderOrientation,
 } from "../types";
 
 export const CONFIG_EXPORT_VERSION = 1;
@@ -74,10 +74,7 @@ function parseControlTabs(value: unknown): ControlTab[] | undefined {
       }
 
       return {
-        id:
-          typeof entry.id === "string" && entry.id.length > 0
-            ? entry.id
-            : crypto.randomUUID(),
+        id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : crypto.randomUUID(),
         label,
       };
     })
@@ -151,15 +148,11 @@ function parseControl(value: unknown, index: number, legacyProtocol: ControlProt
     ...(value.type === "slider" && isSliderOrientation(value.sliderOrientation)
       ? { sliderOrientation: value.sliderOrientation }
       : {}),
-    ...(value.type === "tabs"
-      ? { tabs: parseControlTabs(value.tabs) ?? createDefaultTabs() }
-      : {}),
+    ...(value.type === "tabs" ? { tabs: parseControlTabs(value.tabs) ?? createDefaultTabs() } : {}),
     ...(typeof value.parentId === "string" && value.parentId.length > 0
       ? { parentId: value.parentId }
       : {}),
-    ...(typeof value.tabId === "string" && value.tabId.length > 0
-      ? { tabId: value.tabId }
-      : {}),
+    ...(typeof value.tabId === "string" && value.tabId.length > 0 ? { tabId: value.tabId } : {}),
     ...(typeof value.oscSenderId === "string" ? { oscSenderId: value.oscSenderId } : {}),
     ...(typeof value.midiOutputId === "string" ? { midiOutputId: value.midiOutputId } : {}),
     ...(typeof value.oscReceiverId === "string" ? { oscReceiverId: value.oscReceiverId } : {}),
@@ -168,7 +161,9 @@ function parseControl(value: unknown, index: number, legacyProtocol: ControlProt
     ...(value.midiOutputId === null ? { midiOutputId: null } : {}),
     ...(value.oscReceiverId === null ? { oscReceiverId: null } : {}),
     ...(value.midiInputId === null ? { midiInputId: null } : {}),
-    ...(typeof value.mqttConnectionId === "string" ? { mqttConnectionId: value.mqttConnectionId } : {}),
+    ...(typeof value.mqttConnectionId === "string"
+      ? { mqttConnectionId: value.mqttConnectionId }
+      : {}),
     ...(value.mqttConnectionId === null ? { mqttConnectionId: null } : {}),
     ...(() => {
       const protocol = isControlProtocol(value.protocol) ? value.protocol : legacyProtocol;
@@ -180,11 +175,12 @@ function parseControl(value: unknown, index: number, legacyProtocol: ControlProt
 
       return {
         osc: {
-          enabled: typeof osc.enabled === "boolean"
-            ? osc.enabled
-            : hasExplicitEnabled
-              ? false
-              : fromProtocol.oscEnabled,
+          enabled:
+            typeof osc.enabled === "boolean"
+              ? osc.enabled
+              : hasExplicitEnabled
+                ? false
+                : fromProtocol.oscEnabled,
           address:
             typeof osc.address === "string"
               ? osc.address
@@ -199,11 +195,12 @@ function parseControl(value: unknown, index: number, legacyProtocol: ControlProt
                       : "/keyboard",
         },
         midi: {
-          enabled: typeof midi.enabled === "boolean"
-            ? midi.enabled
-            : hasExplicitEnabled
-              ? false
-              : fromProtocol.midiEnabled,
+          enabled:
+            typeof midi.enabled === "boolean"
+              ? midi.enabled
+              : hasExplicitEnabled
+                ? false
+                : fromProtocol.midiEnabled,
           channel: typeof midi.channel === "number" ? midi.channel : 1,
           note: typeof midi.note === "number" ? midi.note : value.type === "keyboard" ? 48 : 60,
           cc: typeof midi.cc === "number" ? midi.cc : index,
@@ -211,10 +208,7 @@ function parseControl(value: unknown, index: number, legacyProtocol: ControlProt
             ? {
                 octaves:
                   typeof midi.octaves === "number"
-                    ? Math.min(
-                        KEYBOARD_MAX_OCTAVES,
-                        Math.max(KEYBOARD_MIN_OCTAVES, midi.octaves),
-                      )
+                    ? Math.min(KEYBOARD_MAX_OCTAVES, Math.max(KEYBOARD_MIN_OCTAVES, midi.octaves))
                     : KEYBOARD_DEFAULT_OCTAVES,
                 velocity:
                   typeof midi.velocity === "number"
@@ -232,19 +226,17 @@ function parseControl(value: unknown, index: number, legacyProtocol: ControlProt
             : {}),
         },
         mqtt: {
-          enabled: typeof mqtt.enabled === "boolean"
-            ? mqtt.enabled
-            : hasExplicitEnabled
-              ? false
-              : fromProtocol.mqttEnabled,
+          enabled:
+            typeof mqtt.enabled === "boolean"
+              ? mqtt.enabled
+              : hasExplicitEnabled
+                ? false
+                : fromProtocol.mqttEnabled,
           topic:
             typeof mqtt.topic === "string" && mqtt.topic.trim()
               ? mqtt.topic
               : defaultMqttMapping(value.type, index + 1).topic,
-          qos:
-            mqtt.qos === 0 || mqtt.qos === 1 || mqtt.qos === 2
-              ? mqtt.qos
-              : 0,
+          qos: mqtt.qos === 0 || mqtt.qos === 1 || mqtt.qos === 2 ? mqtt.qos : 0,
           retain: typeof mqtt.retain === "boolean" ? mqtt.retain : false,
         },
       };
@@ -275,10 +267,7 @@ function parsePerformerIoConfig(value: unknown, output: OutputConfig): Performer
         }
 
         return {
-          id:
-            typeof entry.id === "string" && entry.id.length > 0
-              ? entry.id
-              : crypto.randomUUID(),
+          id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : crypto.randomUUID(),
           name,
           host: typeof entry.host === "string" ? entry.host : "127.0.0.1",
           port: typeof entry.port === "number" ? entry.port : 9000,
@@ -304,10 +293,7 @@ function parsePerformerIoConfig(value: unknown, output: OutputConfig): Performer
         }
 
         return {
-          id:
-            typeof entry.id === "string" && entry.id.length > 0
-              ? entry.id
-              : crypto.randomUUID(),
+          id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : crypto.randomUUID(),
           name,
           port: typeof entry.port === "number" ? entry.port : 9001,
         };
@@ -334,10 +320,7 @@ function parsePerformerIoConfig(value: unknown, output: OutputConfig): Performer
         }
 
         return {
-          id:
-            typeof entry.id === "string" && entry.id.length > 0
-              ? entry.id
-              : crypto.randomUUID(),
+          id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : crypto.randomUUID(),
           name,
           portName: typeof entry.portName === "string" ? entry.portName : "",
         };
@@ -364,17 +347,12 @@ function parsePerformerIoConfig(value: unknown, output: OutputConfig): Performer
         }
 
         return {
-          id:
-            typeof entry.id === "string" && entry.id.length > 0
-              ? entry.id
-              : crypto.randomUUID(),
+          id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : crypto.randomUUID(),
           name,
           portName: typeof entry.portName === "string" ? entry.portName : "",
         };
       })
-      .filter(
-        (endpoint): endpoint is PerformerIoConfig["midiInputs"][number] => endpoint !== null,
-      );
+      .filter((endpoint): endpoint is PerformerIoConfig["midiInputs"][number] => endpoint !== null);
   };
 
   const parseMqttConnections = (): PerformerIoConfig["mqttConnections"] => {
@@ -394,15 +372,11 @@ function parsePerformerIoConfig(value: unknown, output: OutputConfig): Performer
         }
 
         return {
-          id:
-            typeof entry.id === "string" && entry.id.length > 0
-              ? entry.id
-              : crypto.randomUUID(),
+          id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : crypto.randomUUID(),
           name,
           host: typeof entry.host === "string" ? entry.host : "localhost",
           port: typeof entry.port === "number" ? entry.port : 1883,
-          protocol:
-            entry.protocol === "tcp" || entry.protocol === "ws" ? entry.protocol : "tcp",
+          protocol: entry.protocol === "tcp" || entry.protocol === "ws" ? entry.protocol : "tcp",
         };
       })
       .filter(
@@ -446,7 +420,9 @@ function parseOutputConfig(value: unknown): OutputConfig {
     mqttBrokerPort:
       typeof value.mqttBrokerPort === "number" ? value.mqttBrokerPort : defaults.mqttBrokerPort,
     mqttBrokerWsPort:
-      typeof value.mqttBrokerWsPort === "number" ? value.mqttBrokerWsPort : defaults.mqttBrokerWsPort,
+      typeof value.mqttBrokerWsPort === "number"
+        ? value.mqttBrokerWsPort
+        : defaults.mqttBrokerWsPort,
     mqttBrokerEnabled:
       typeof value.mqttBrokerEnabled === "boolean"
         ? value.mqttBrokerEnabled

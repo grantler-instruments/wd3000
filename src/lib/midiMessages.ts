@@ -111,17 +111,10 @@ export function encodeMidiComposerMessage(
         PITCH_BEND_CENTER,
       );
       const value = signed + 8192;
-      return [
-        channelStatus(0xe0, params.channel),
-        value & 0x7f,
-        (value >> 7) & 0x7f,
-      ];
+      return [channelStatus(0xe0, params.channel), value & 0x7f, (value >> 7) & 0x7f];
     }
     case "channel-pressure":
-      return [
-        channelStatus(0xd0, params.channel),
-        clampMidi(params.velocityOrValue, 0),
-      ];
+      return [channelStatus(0xd0, params.channel), clampMidi(params.velocityOrValue, 0)];
     case "poly-pressure":
       return [
         channelStatus(0xa0, params.channel),

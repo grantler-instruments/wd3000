@@ -1,8 +1,4 @@
-import {
-  Box,
-  Radio,
-  Tooltip,
-} from "@mui/material";
+import { Box, Radio, Tooltip } from "@mui/material";
 import type { LandmarkHotspot } from "../../lib/mediapipe/landmarks";
 
 interface LandmarkPickerProps {

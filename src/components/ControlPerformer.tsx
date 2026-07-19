@@ -27,26 +27,26 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useViewportSize } from "../hooks/useViewportSize";
 import { useAppStore } from "../store/useAppStore";
-import { AppDialogHeader } from "./AppDialogHeader";
-import { SettingsSectionNav } from "./SettingsSectionNav";
-import { stackedAccordionSx } from "./stackedAccordionSx";
 import { settingsTheme } from "../theme";
 import {
   CONTROL_COLOR_PRESETS,
-  Control,
-  ControlTab,
-  ControlType,
-  KEYBOARD_DEFAULT_OCTAVES,
-  KEYBOARD_DEFAULT_VELOCITY,
-  KEYBOARD_MAX_OCTAVES,
-  KEYBOARD_MIN_OCTAVES,
-  SliderOrientation,
+  type Control,
+  type ControlTab,
+  type ControlType,
   controlCanvasSizeLimits,
   controlLayoutHeight,
   controlTabs,
   endpointLabel,
   isValidControlColor,
+  KEYBOARD_DEFAULT_OCTAVES,
+  KEYBOARD_DEFAULT_VELOCITY,
+  KEYBOARD_MAX_OCTAVES,
+  KEYBOARD_MIN_OCTAVES,
+  type SliderOrientation,
 } from "../types";
+import { AppDialogHeader } from "./AppDialogHeader";
+import { SettingsSectionNav } from "./SettingsSectionNav";
+import { stackedAccordionSx } from "./stackedAccordionSx";
 
 type InspectorSection = "general" | "layout" | "osc" | "midi" | "mqtt";
 
@@ -120,9 +120,7 @@ function ProtocolEnableSection({
           checked={enabled}
           onChange={(_, checked) => onToggle(checked)}
           aria-label={
-            enabled
-              ? t("sensors.disableNamed", { label })
-              : t("sensors.enableNamed", { label })
+            enabled ? t("sensors.disableNamed", { label }) : t("sensors.enableNamed", { label })
           }
           sx={{ flexShrink: 0, mt: compact ? 0 : 0.25 }}
         />
@@ -168,13 +166,7 @@ function ColorSwatch({
   );
 }
 
-function GeneralSection({
-  control,
-  compact = false,
-}: {
-  control: Control;
-  compact?: boolean;
-}) {
+function GeneralSection({ control, compact = false }: { control: Control; compact?: boolean }) {
   const { t } = useTranslation();
   const controls = useAppStore((state) => state.controls);
   const updateControl = useAppStore((state) => state.updateControl);
@@ -262,9 +254,7 @@ function GeneralSection({
               component="input"
               type="color"
               value={
-                control.color && isValidControlColor(control.color)
-                  ? control.color
-                  : "#2196f3"
+                control.color && isValidControlColor(control.color) ? control.color : "#2196f3"
               }
               onChange={(event) => updateControl(control.id, { color: event.target.value })}
               sx={{
@@ -338,9 +328,7 @@ function GeneralSection({
                     value={tab.label}
                     onChange={(event) => {
                       const tabs = controlTabs(control).map((entry) =>
-                        entry.id === tab.id
-                          ? { ...entry, label: event.target.value }
-                          : entry,
+                        entry.id === tab.id ? { ...entry, label: event.target.value } : entry,
                       );
                       updateControl(control.id, { tabs });
                     }}
@@ -389,13 +377,7 @@ function GeneralSection({
   );
 }
 
-function LayoutSection({
-  control,
-  compact = false,
-}: {
-  control: Control;
-  compact?: boolean;
-}) {
+function LayoutSection({ control, compact = false }: { control: Control; compact?: boolean }) {
   const { t } = useTranslation();
   const updateControlLayout = useAppStore((state) => state.updateControlLayout);
   const { width: canvasWidth, height: canvasHeight } = useViewportSize();
@@ -482,13 +464,7 @@ function LayoutSection({
   );
 }
 
-function OscSection({
-  control,
-  compact = false,
-}: {
-  control: Control;
-  compact?: boolean;
-}) {
+function OscSection({ control, compact = false }: { control: Control; compact?: boolean }) {
   const { t } = useTranslation();
   const performerIo = useAppStore((state) => state.performerIo);
   const updateControl = useAppStore((state) => state.updateControl);
@@ -721,13 +697,7 @@ function MidiMappingFields({ control }: { control: Control }) {
   );
 }
 
-function MidiSection({
-  control,
-  compact = false,
-}: {
-  control: Control;
-  compact?: boolean;
-}) {
+function MidiSection({ control, compact = false }: { control: Control; compact?: boolean }) {
   const { t } = useTranslation();
   const performerIo = useAppStore((state) => state.performerIo);
   const updateControl = useAppStore((state) => state.updateControl);
@@ -815,13 +785,7 @@ function MidiSection({
   );
 }
 
-function MqttSection({
-  control,
-  compact = false,
-}: {
-  control: Control;
-  compact?: boolean;
-}) {
+function MqttSection({ control, compact = false }: { control: Control; compact?: boolean }) {
   const { t } = useTranslation();
   const performerIo = useAppStore((state) => state.performerIo);
   const updateControl = useAppStore((state) => state.updateControl);
@@ -998,11 +962,7 @@ function ControlInspector({ control }: { control: Control }) {
                 <Typography variant="subtitle2">{item.label}</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <InspectorSectionContent
-                  section={item.id}
-                  control={control}
-                  compact
-                />
+                <InspectorSectionContent section={item.id} control={control} compact />
               </AccordionDetails>
             </Accordion>
           ))}
@@ -1041,8 +1001,7 @@ export function ControlPerformerDialog() {
   const inspectorControlId = useAppStore((state) => state.inspectorControlId);
   const closeControlInspector = useAppStore((state) => state.closeControlInspector);
   const removeControl = useAppStore((state) => state.removeControl);
-  const selectedControl =
-    controls.find((control) => control.id === inspectorControlId) ?? null;
+  const selectedControl = controls.find((control) => control.id === inspectorControlId) ?? null;
   const open = mode === "edit" && selectedControl !== null;
 
   const handleClose = () => {
@@ -1088,7 +1047,9 @@ export function ControlPerformerDialog() {
           />
 
           <Box sx={{ flex: 1, minHeight: 0, display: "flex" }}>
-            {selectedControl && <ControlInspector control={selectedControl} key={selectedControl.id} />}
+            {selectedControl && (
+              <ControlInspector control={selectedControl} key={selectedControl.id} />
+            )}
           </Box>
 
           <DialogActions

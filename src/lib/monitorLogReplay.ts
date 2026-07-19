@@ -1,10 +1,15 @@
 import { useSyncExternalStore } from "react";
+import { useMonitorLogStore } from "../store/useMonitorLogStore";
 import type { DebugLogEntry, DebugLogKind } from "./debugLog";
-import { createMonitorLogEvents, type MonitorLogEvent, type MonitorLogProtocol, type SavedMonitorLog } from "./monitorLog";
+import { asMidiPayload } from "./midiPayload";
+import {
+  createMonitorLogEvents,
+  type MonitorLogEvent,
+  type MonitorLogProtocol,
+  type SavedMonitorLog,
+} from "./monitorLog";
 import { resolveMonitorEventPayload } from "./monitorLogParse";
 import { sendMidiRaw, sendOscMessage } from "./output";
-import { asMidiPayload } from "./midiPayload";
-import { useMonitorLogStore } from "../store/useMonitorLogStore";
 
 const MAX_REPLAY_OUTPUT_ENTRIES = 200;
 const REPLAY_LOG_NAME = "Replay";
@@ -121,8 +126,7 @@ export function directionRowProgressLayout(
   }
 
   const fromBottom =
-    entries.length < 2 ||
-    entries[0].timestamp > entries[entries.length - 1].timestamp;
+    entries.length < 2 || entries[0].timestamp > entries[entries.length - 1].timestamp;
 
   const chronological = entries
     .filter((entry) => entry.direction === direction)
@@ -295,10 +299,7 @@ function sleep(ms: number, signal: AbortSignal) {
   });
 }
 
-async function replayOscEventAsOutput(
-  event: MonitorLogEvent,
-  target: MonitorReplayTarget,
-) {
+async function replayOscEventAsOutput(event: MonitorLogEvent, target: MonitorReplayTarget) {
   const payload =
     event.payload && "address" in event.payload
       ? event.payload
@@ -334,10 +335,7 @@ async function replayOscEventAsOutput(
   });
 }
 
-async function replayMidiEventAsOutput(
-  event: MonitorLogEvent,
-  target: MonitorReplayTarget,
-) {
+async function replayMidiEventAsOutput(event: MonitorLogEvent, target: MonitorReplayTarget) {
   if (!target.midiPortName) {
     throw new Error("Select a MIDI output port.");
   }
@@ -358,13 +356,9 @@ async function replayMidiEventAsOutput(
     throw new Error(`Cannot replay MIDI message: ${event.summary}`);
   }
 
-  await sendMidiRaw(
-    target.midiPortName,
-    payload.bytes,
-    event.kind as DebugLogKind,
-    event.summary,
-    { logToDebug: false },
-  );
+  await sendMidiRaw(target.midiPortName, payload.bytes, event.kind as DebugLogKind, event.summary, {
+    logToDebug: false,
+  });
   pushReplayOutput({
     direction: "out",
     kind: event.kind as DebugLogKind,
@@ -381,9 +375,7 @@ export async function replayMonitorLog(
   const events = directionReplayEvents(log.events, direction);
   if (events.length === 0) {
     throw new Error(
-      direction === "in"
-        ? "No incoming messages to send."
-        : "No outgoing messages to send.",
+      direction === "in" ? "No incoming messages to send." : "No outgoing messages to send.",
     );
   }
 

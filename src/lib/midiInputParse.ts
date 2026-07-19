@@ -1,13 +1,8 @@
 import type { DebugLogKind } from "./debugLog";
-import type {
-  MidiCcInputMessage,
-  MidiNoteInputMessage,
-} from "./inputRouter";
+import type { MidiCcInputMessage, MidiNoteInputMessage } from "./inputRouter";
 
 function formatHex(bytes: number[]): string {
-  return bytes
-    .map((byte) => byte.toString(16).padStart(2, "0").toUpperCase())
-    .join(" ");
+  return bytes.map((byte) => byte.toString(16).padStart(2, "0").toUpperCase()).join(" ");
 }
 
 export interface ParsedMidiInput {
@@ -20,11 +15,7 @@ export interface ParsedMidiInput {
   };
 }
 
-function debugEntry(
-  kind: DebugLogKind,
-  summary: string,
-  bytes: number[],
-): ParsedMidiInput {
+function debugEntry(kind: DebugLogKind, summary: string, bytes: number[]): ParsedMidiInput {
   return { debug: { kind, summary, bytes } };
 }
 
@@ -49,12 +40,7 @@ function noteEntry(
   };
 }
 
-function ccEntry(
-  channel: number,
-  cc: number,
-  value: number,
-  bytes: number[],
-): ParsedMidiInput {
+function ccEntry(channel: number, cc: number, value: number, bytes: number[]): ParsedMidiInput {
   return {
     controlCc: { channel, cc, value },
     debug: {
@@ -75,37 +61,21 @@ export function parseMidiInput(message: number[]): ParsedMidiInput | null {
   if (status >= 0xf0) {
     switch (status) {
       case 0xf0:
-        return debugEntry(
-          "midi-sysex",
-          `SysEx ${formatHex(message)}`,
-          message,
-        );
+        return debugEntry("midi-sysex", `SysEx ${formatHex(message)}`, message);
       case 0xf1:
         if (message.length >= 2) {
-          return debugEntry(
-            "midi-mtc",
-            `MTC Quarter Frame ${message[1]}`,
-            message,
-          );
+          return debugEntry("midi-mtc", `MTC Quarter Frame ${message[1]}`, message);
         }
         break;
       case 0xf2:
         if (message.length >= 3) {
           const position = (message[2] << 7) | message[1];
-          return debugEntry(
-            "midi-song-position",
-            `Song Position ${position}`,
-            message,
-          );
+          return debugEntry("midi-song-position", `Song Position ${position}`, message);
         }
         break;
       case 0xf3:
         if (message.length >= 2) {
-          return debugEntry(
-            "midi-song-select",
-            `Song Select ${message[1]}`,
-            message,
-          );
+          return debugEntry("midi-song-select", `Song Select ${message[1]}`, message);
         }
         break;
       case 0xf6:
@@ -165,30 +135,18 @@ export function parseMidiInput(message: number[]): ParsedMidiInput | null {
       break;
     case 0xc0:
       if (message.length >= 2) {
-        return debugEntry(
-          "midi-pc",
-          `Ch${channel} Program ${message[1]}`,
-          message,
-        );
+        return debugEntry("midi-pc", `Ch${channel} Program ${message[1]}`, message);
       }
       break;
     case 0xd0:
       if (message.length >= 2) {
-        return debugEntry(
-          "midi-pressure",
-          `Ch${channel} Pressure ${message[1]}`,
-          message,
-        );
+        return debugEntry("midi-pressure", `Ch${channel} Pressure ${message[1]}`, message);
       }
       break;
     case 0xe0:
       if (message.length >= 3) {
         const value = (message[2] << 7) | message[1];
-        return debugEntry(
-          "midi-pitch-bend",
-          `Ch${channel} Pitch Bend ${value}`,
-          message,
-        );
+        return debugEntry("midi-pitch-bend", `Ch${channel} Pitch Bend ${value}`, message);
       }
       break;
     default:

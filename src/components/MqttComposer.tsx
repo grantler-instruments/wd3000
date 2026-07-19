@@ -73,12 +73,11 @@ export function MqttComposer() {
   return (
     <DebuggerSection title={t("monitor.composer")}>
       <Stack spacing={1.5}>
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={1}
-          sx={debuggerComposerRowSx}
-        >
-          <FormControl size="small" sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 100 } }}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={debuggerComposerRowSx}>
+          <FormControl
+            size="small"
+            sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 100 } }}
+          >
             <InputLabel id="mqtt-protocol-label">{t("common.protocol")}</InputLabel>
             <Select
               labelId="mqtt-protocol-label"
@@ -130,11 +129,7 @@ export function MqttComposer() {
           />
         </Stack>
 
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={1}
-          sx={debuggerComposerRowSx}
-        >
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={debuggerComposerRowSx}>
           <TextField
             label={t("common.topic")}
             size="small"
@@ -153,7 +148,10 @@ export function MqttComposer() {
             sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 220 }, flex: { sm: 1 } }}
           />
 
-          <FormControl size="small" sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 88 } }}>
+          <FormControl
+            size="small"
+            sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 88 } }}
+          >
             <InputLabel id="mqtt-qos-label">{t("common.qos")}</InputLabel>
             <Select
               labelId="mqtt-qos-label"

@@ -2,20 +2,10 @@ import BugReportIcon from "@mui/icons-material/BugReport";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SettingsIcon from "@mui/icons-material/Settings";
-import {
-  Box,
-  Button,
-  Stack,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Stack, Tooltip, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  formatShortcutKey,
-  isMobileBrowserDevice,
-  isNativeApp,
-} from "../lib/platform";
+import { formatShortcutKey, isMobileBrowserDevice, isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import type { DebuggerSubView, PerformerSubView } from "../types";
 import { GrantlerLogo } from "./GrantlerLogo";
@@ -26,12 +16,7 @@ const PERFORMER_ITEMS: { value: PerformerSubView; labelKey: string }[] = [
   { value: "mediapipe", labelKey: "home.mediapipe" },
 ];
 
-const NATIVE_ONLY_DEBUGGER = new Set<DebuggerSubView>([
-  "midi",
-  "osc",
-  "tuio",
-  "artnet",
-]);
+const NATIVE_ONLY_DEBUGGER = new Set<DebuggerSubView>(["midi", "osc", "tuio", "artnet"]);
 
 const DEBUGGER_ITEMS: { value: DebuggerSubView; labelKey: string }[] = [
   { value: "midi", labelKey: "protocols.midi" },
@@ -186,9 +171,7 @@ export function HomePage({ onOpenSettings }: { onOpenSettings: () => void }) {
                   key={item.value}
                   label={t(item.labelKey)}
                   onClick={() => setActiveView("performer", item.value)}
-                  infoTooltip={
-                    item.value === "sensors" ? sensorsMobileOnlyHint : undefined
-                  }
+                  infoTooltip={item.value === "sensors" ? sensorsMobileOnlyHint : undefined}
                 />
               ))}
             </HomeNavGrid>

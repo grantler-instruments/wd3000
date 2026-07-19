@@ -58,17 +58,11 @@ export function clearRemovedEndpointReferences(
   return controls.map((control) => ({
     ...control,
     oscSenderId:
-      control.oscSenderId && removedIds.has(control.oscSenderId)
-        ? null
-        : control.oscSenderId,
+      control.oscSenderId && removedIds.has(control.oscSenderId) ? null : control.oscSenderId,
     midiOutputId:
-      control.midiOutputId && removedIds.has(control.midiOutputId)
-        ? null
-        : control.midiOutputId,
+      control.midiOutputId && removedIds.has(control.midiOutputId) ? null : control.midiOutputId,
     oscReceiverId:
-      control.oscReceiverId && removedIds.has(control.oscReceiverId)
-        ? null
-        : control.oscReceiverId,
+      control.oscReceiverId && removedIds.has(control.oscReceiverId) ? null : control.oscReceiverId,
     mqttConnectionId:
       control.mqttConnectionId && removedIds.has(control.mqttConnectionId)
         ? null

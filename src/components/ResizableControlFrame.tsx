@@ -3,16 +3,16 @@ import { Box } from "@mui/material";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useResizeControl } from "../hooks/useResizeControl";
-import {
-  Control,
-  LAYOUT_GRID_SIZE,
-  controlCanvasSizeLimits,
-  controlLayoutHeight,
-} from "../types";
 import { beginControlDrag } from "../lib/controlDrag";
 import { useAppStore } from "../store/useAppStore";
-import { ControlResizeHandle } from "./ControlResizeHandle";
+import {
+  type Control,
+  controlCanvasSizeLimits,
+  controlLayoutHeight,
+  LAYOUT_GRID_SIZE,
+} from "../types";
 import { ControlEditButton } from "./ControlEditButton";
+import { ControlResizeHandle } from "./ControlResizeHandle";
 import { ControlWidget } from "./ControlWidget";
 
 interface ResizableControlFrameProps {
@@ -88,9 +88,7 @@ export function ResizableControlFrame({
         opacity: resizing ? 0.92 : 1,
         borderRadius: 1,
         boxSizing: "border-box",
-        boxShadow: selected
-          ? (theme) => `0 0 0 2px ${theme.palette.primary.main}`
-          : "none",
+        boxShadow: selected ? (theme) => `0 0 0 2px ${theme.palette.primary.main}` : "none",
       }}
     >
       <ControlWidget
@@ -161,10 +159,7 @@ export function ResizableControlFrame({
               <DragIndicatorIcon fontSize="small" />
             </Box>
           )}
-          <ControlEditButton
-            inline
-            onClick={() => openControlInspector(control.id)}
-          />
+          <ControlEditButton inline onClick={() => openControlInspector(control.id)} />
         </Box>
       )}
       {editable && !showDragHandle && (

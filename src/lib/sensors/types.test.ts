@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { defaultPerformerIoConfig } from "../../types";
-import {
-  defaultSensorAxisMapping,
-  normalizeSensorAxisMapping,
-} from "./types";
 import { scaleSensorValueToMidi } from "./output";
+import { defaultSensorAxisMapping, normalizeSensorAxisMapping } from "./types";
 
 describe("sensor MIDI mapping defaults", () => {
   const performerIo = defaultPerformerIoConfig();

@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
 import {
+  createControl,
+  defaultLayoutSettings,
+  defaultOutputConfig,
+  defaultPerformerIoConfig,
+} from "../types";
+import {
   CONFIG_APP_ID,
   CONFIG_EXPORT_VERSION,
   createConfigExport,
   parseConfigImport,
   serializeConfigExport,
 } from "./config";
-import {
-  createControl,
-  defaultLayoutSettings,
-  defaultOutputConfig,
-  defaultPerformerIoConfig,
-} from "../types";
 
 function sampleConfig() {
   return {

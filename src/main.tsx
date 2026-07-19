@@ -1,6 +1,6 @@
+import { CssBaseline, GlobalStyles, ThemeProvider } from "@mui/material";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { CssBaseline, GlobalStyles, ThemeProvider } from "@mui/material";
 import App from "./App";
 import "./i18n";
 import { settingsTheme } from "./theme";

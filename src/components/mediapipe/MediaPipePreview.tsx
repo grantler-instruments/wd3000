@@ -3,10 +3,7 @@ import { useTheme } from "@mui/material/styles";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Webcam from "react-webcam";
-import {
-  MEDIAPIPE_PREVIEW_HEIGHT,
-  MEDIAPIPE_PREVIEW_WIDTH,
-} from "../../lib/mediapipe/landmarks";
+import { MEDIAPIPE_PREVIEW_HEIGHT, MEDIAPIPE_PREVIEW_WIDTH } from "../../lib/mediapipe/landmarks";
 import { resetMediaPipeOutputThrottles } from "../../lib/mediapipe/output";
 import type { MediaPipeLandmark } from "../../lib/mediapipe/types";
 import { useMediaPipeHands } from "../../lib/mediapipe/useMediaPipeHands";

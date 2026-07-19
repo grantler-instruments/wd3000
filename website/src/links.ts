@@ -4,5 +4,4 @@ export const GITHUB_ISSUES_URL = `${GITHUB_REPO_URL}/issues`;
 export const SUPPORT_URL = "https://buymeacoffee.com/thomasgeissl";
 
 /** Canonical privacy policy URL for App Store Connect and in-app links. */
-export const PRIVACY_POLICY_URL =
-  "https://grantler-instruments.github.io/wd3000/privacy";
+export const PRIVACY_POLICY_URL = "https://grantler-instruments.github.io/wd3000/privacy";

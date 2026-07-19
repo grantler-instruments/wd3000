@@ -1,8 +1,8 @@
 import { Checkbox, FormControlLabel, Stack, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import {
-  toggleMonitorMidiPort,
   type MonitorMidiPortFilterState,
+  toggleMonitorMidiPort,
 } from "../lib/monitorMidiPortFilter";
 
 interface MonitorMidiPortFilterProps {
@@ -25,11 +25,7 @@ export function MonitorMidiPortFilter({ ports, value, onChange }: MonitorMidiPor
   const selected = value ?? new Set(ports);
 
   return (
-    <Stack
-      direction="row"
-      spacing={0.5}
-      sx={{ alignItems: "center", flexWrap: "wrap", rowGap: 0 }}
-    >
+    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", flexWrap: "wrap", rowGap: 0 }}>
       {ports.map((port) => (
         <FormControlLabel
           key={port}

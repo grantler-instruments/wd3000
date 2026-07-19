@@ -1,22 +1,16 @@
 import type { StateCreator } from "zustand";
 import type { PersistedAppConfig } from "../../lib/config";
 import { replacePerformerWithoutHistory } from "../../lib/performer-history";
-import {
-  defaultLayoutSettings,
-  defaultOutputConfig,
-  defaultPerformerIoConfig,
-} from "../../types";
-import { reindexOrders } from "../helpers/controlTree";
+import { defaultLayoutSettings, defaultOutputConfig, defaultPerformerIoConfig } from "../../types";
 import type { AppStore } from "../appStoreTypes";
+import { reindexOrders } from "../helpers/controlTree";
 
 export interface ProjectSlice {
   importConfig: (config: PersistedAppConfig) => void;
   newProject: () => void;
 }
 
-export const createProjectSlice: StateCreator<AppStore, [], [], ProjectSlice> = (
-  set,
-) => ({
+export const createProjectSlice: StateCreator<AppStore, [], [], ProjectSlice> = (set) => ({
   importConfig: (config) =>
     replacePerformerWithoutHistory(() => {
       set({

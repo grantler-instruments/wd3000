@@ -1,21 +1,16 @@
-import {
-  Alert,
-  Box,
-  Snackbar,
-  ThemeProvider,
-} from "@mui/material";
+import { Alert, Box, Snackbar, ThemeProvider } from "@mui/material";
 import { useEffect, useState } from "react";
-import { PageHeader } from "./components/PageHeader";
 import { ControlCanvas } from "./components/ControlCanvas";
-import { HomePage } from "./components/HomePage";
-import { IoSettingsDialog } from "./components/IoSettingsDialog";
-import { PlayModeBezelExit } from "./components/PlayModeBezelExit";
 import { ControlPerformerDialog } from "./components/ControlPerformer";
 import { DebuggerPanel } from "./components/DebuggerPanel";
+import { HomePage } from "./components/HomePage";
+import { IoSettingsDialog } from "./components/IoSettingsDialog";
 import { MediaPipePlayView } from "./components/mediapipe/MediaPipePlayView";
+import { PageHeader } from "./components/PageHeader";
 import { PerformerPanel } from "./components/PerformerPanel";
-import { useInputControl } from "./hooks/useInputControl";
+import { PlayModeBezelExit } from "./components/PlayModeBezelExit";
 import { useControlClipboardShortcuts } from "./hooks/useControlClipboardShortcuts";
+import { useInputControl } from "./hooks/useInputControl";
 import { usePerformerHistory } from "./hooks/usePerformerHistory";
 import { isTextInputTarget } from "./lib/platform";
 import { useAppStore } from "./store/useAppStore";
@@ -31,8 +26,7 @@ function App() {
   const [ioSettingsOpen, setIoSettingsOpen] = useState(false);
   const isEditMode = mode === "edit";
   const canRunPerformer =
-    activeView === "performer" &&
-    (performerSubView === "ui" || performerSubView === "mediapipe");
+    activeView === "performer" && (performerSubView === "ui" || performerSubView === "mediapipe");
 
   useInputControl();
   usePerformerHistory();
@@ -148,10 +142,7 @@ function App() {
         </Box>
       )}
 
-      <IoSettingsDialog
-        open={ioSettingsOpen}
-        onClose={() => setIoSettingsOpen(false)}
-      />
+      <IoSettingsDialog open={ioSettingsOpen} onClose={() => setIoSettingsOpen(false)} />
     </>
   );
 }

@@ -1,11 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Control, defaultMqttMapping } from "../types";
-import { collectControlSubtree, cloneControlSubtree } from "./controlClipboard";
+import { type Control, defaultMqttMapping } from "../types";
+import { cloneControlSubtree, collectControlSubtree } from "./controlClipboard";
 
-function control(
-  id: string,
-  overrides: Partial<Control> & Pick<Control, "type">,
-): Control {
+function control(id: string, overrides: Partial<Control> & Pick<Control, "type">): Control {
   return {
     id,
     label: id,

@@ -15,14 +15,14 @@ import { useTranslation } from "react-i18next";
 import {
   HAND_LANDMARK_HOTSPOTS,
   HAND_LANDMARK_LABELS,
+  mediapipeSketchPath,
   POSE_BODY_HOTSPOTS,
   POSE_FACE_HOTSPOTS,
   POSE_HANDS_HOTSPOTS,
   POSE_LANDMARK_LABELS,
-  mediapipeSketchPath,
 } from "../lib/mediapipe/landmarks";
-import { mediaPipeLandmarkKeysForSelection } from "../lib/mediapipe/types";
 import type { MediaPipeLandmark } from "../lib/mediapipe/types";
+import { mediaPipeLandmarkKeysForSelection } from "../lib/mediapipe/types";
 import { useAppStore } from "../store/useAppStore";
 import { LandmarkMappingEditor } from "./mediapipe/LandmarkMappingEditor";
 import { LandmarkPicker } from "./mediapipe/LandmarkPicker";
@@ -94,9 +94,7 @@ export function MediaPipePerformerPanel() {
   );
 
   const allLandmarkLabels =
-    mediapipeConfig.tracker === "pose"
-      ? [...POSE_LANDMARK_LABELS]
-      : [...HAND_LANDMARK_LABELS];
+    mediapipeConfig.tracker === "pose" ? [...POSE_LANDMARK_LABELS] : [...HAND_LANDMARK_LABELS];
 
   const handleSelectAllLandmarks = () => {
     if (mediapipeConfig.tracker === "pose") {
@@ -226,8 +224,7 @@ export function MediaPipePerformerPanel() {
             <MenuItem value="">{t("mediapipe.defaultCamera")}</MenuItem>
             {devices.map((device) => (
               <MenuItem key={device.deviceId} value={device.deviceId}>
-                {device.label ||
-                  t("mediapipe.cameraNamed", { id: device.deviceId.slice(0, 8) })}
+                {device.label || t("mediapipe.cameraNamed", { id: device.deviceId.slice(0, 8) })}
               </MenuItem>
             ))}
           </Select>
@@ -253,10 +250,7 @@ export function MediaPipePerformerPanel() {
           <Stack spacing={1}>
             {mappingKeys.map((mappingKey) => {
               const parts = mappingKey.split(":");
-              const liveKey =
-                parts[0] === "pose"
-                  ? parts[1]
-                  : `${parts[1]}:${parts[2]}`;
+              const liveKey = parts[0] === "pose" ? parts[1] : `${parts[1]}:${parts[2]}`;
 
               return (
                 <LandmarkMappingEditor

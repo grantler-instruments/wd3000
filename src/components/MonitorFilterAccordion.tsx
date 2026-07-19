@@ -10,12 +10,9 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { MonitorLogProtocol } from "../lib/monitorLog";
-import type { MonitorMidiPortFilterState } from "../lib/monitorMidiPortFilter";
+import { isMonitorFilterActive, type MonitorDirectionFilterState } from "../lib/monitorLogFilter";
 import type { MonitorMidiTypeFilterState } from "../lib/monitorMidiFilter";
-import {
-  isMonitorFilterActive,
-  type MonitorDirectionFilterState,
-} from "../lib/monitorLogFilter";
+import type { MonitorMidiPortFilterState } from "../lib/monitorMidiPortFilter";
 import { MonitorDirectionFilter } from "./MonitorDirectionFilter";
 import { MonitorMidiPortFilter } from "./MonitorMidiPortFilter";
 import { MonitorMidiTypeFilter } from "./MonitorMidiTypeFilter";
@@ -44,11 +41,7 @@ export function MonitorFilterAccordion({
 }: MonitorFilterAccordionProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
-  const filtersActive = isMonitorFilterActive(
-    directionFilter,
-    midiTypeFilter,
-    midiPortFilter,
-  );
+  const filtersActive = isMonitorFilterActive(directionFilter, midiTypeFilter, midiPortFilter);
 
   return (
     <Accordion
@@ -73,10 +66,7 @@ export function MonitorFilterAccordion({
             <Typography variant="caption" color="text.secondary">
               {t("monitor.direction")}
             </Typography>
-            <MonitorDirectionFilter
-              value={directionFilter}
-              onChange={onDirectionFilterChange}
-            />
+            <MonitorDirectionFilter value={directionFilter} onChange={onDirectionFilterChange} />
           </Stack>
 
           {protocol === "midi" && midiTypeFilter && onMidiTypeFilterChange && (
@@ -84,10 +74,7 @@ export function MonitorFilterAccordion({
               <Typography variant="caption" color="text.secondary">
                 {t("monitor.midiType")}
               </Typography>
-              <MonitorMidiTypeFilter
-                value={midiTypeFilter}
-                onChange={onMidiTypeFilterChange}
-              />
+              <MonitorMidiTypeFilter value={midiTypeFilter} onChange={onMidiTypeFilterChange} />
             </Stack>
           )}
 

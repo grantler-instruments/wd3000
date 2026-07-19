@@ -16,37 +16,33 @@ import {
 import type { TFunction } from "i18next";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  clearDebugLogFiltered,
-  isMqttDebugEntry,
-  useDebugLog,
-} from "../lib/debugLog";
+import { clearDebugLogFiltered, isMqttDebugEntry, useDebugLog } from "../lib/debugLog";
 import { startMqttListener, stopMqttListener } from "../lib/input";
-import {
-  MQTT_DEFAULT_COMPOSER_HOST,
-  MQTT_DEFAULT_TCP_PORT,
-  type MqttTransportProtocol,
-} from "../lib/mqtt";
 import { createMonitorLogEvents } from "../lib/monitorLog";
-import {
-  resetMqttMonitorStatus,
-  useMqttMonitorStatus,
-  type MqttMonitorConnectionStatus,
-} from "../lib/mqttMonitorStatus";
 import {
   defaultMonitorDirectionFilter,
   isMonitorFilterActive,
   matchesDirectionFilter,
 } from "../lib/monitorLogFilter";
-import { isNativeApp } from "../lib/platform";
 import { useMonitorLogReplayProgress } from "../lib/monitorLogReplay";
+import {
+  MQTT_DEFAULT_COMPOSER_HOST,
+  MQTT_DEFAULT_TCP_PORT,
+  type MqttTransportProtocol,
+} from "../lib/mqtt";
+import {
+  type MqttMonitorConnectionStatus,
+  resetMqttMonitorStatus,
+  useMqttMonitorStatus,
+} from "../lib/mqttMonitorStatus";
+import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
-import { debugEntriesToListItems, MonitorLogList } from "./MonitorLogList";
-import { MonitorFilterAccordion } from "./MonitorFilterAccordion";
-import { MonitorLogToolbar } from "./MonitorLogToolbar";
-import { MonitorReplaySection } from "./MonitorReplaySection";
 import { DebuggerSection } from "./DebuggerSection";
 import { debuggerFillSx, debuggerLogSx } from "./debuggerLayoutSx";
+import { MonitorFilterAccordion } from "./MonitorFilterAccordion";
+import { debugEntriesToListItems, MonitorLogList } from "./MonitorLogList";
+import { MonitorLogToolbar } from "./MonitorLogToolbar";
+import { MonitorReplaySection } from "./MonitorReplaySection";
 import { MqttSubscriber } from "./MqttSubscriber";
 import { SavedMonitorLogTab } from "./SavedMonitorLogTab";
 import { useOpenSavedLogOnReplay } from "./useOpenSavedLogOnReplay";
@@ -116,10 +112,7 @@ export function MqttMonitor() {
   useOpenSavedLogOnReplay("mqtt", setTab);
   const [directionFilter, setDirectionFilter] = useState(defaultMonitorDirectionFilter);
 
-  const entries = useMemo(
-    () => allEntries.filter(isMqttDebugEntry),
-    [allEntries],
-  );
+  const entries = useMemo(() => allEntries.filter(isMqttDebugEntry), [allEntries]);
 
   const filteredEntries = useMemo(
     () => entries.filter((entry) => matchesDirectionFilter(entry.direction, directionFilter)),
@@ -146,8 +139,7 @@ export function MqttMonitor() {
     [entries, t],
   );
 
-  const isReplayingLive =
-    replayProgress.active && replayProgress.logId === liveLog.id;
+  const isReplayingLive = replayProgress.active && replayProgress.logId === liveLog.id;
   const listEntries = isReplayingLive
     ? debugEntriesToListItems(entries)
     : debugEntriesToListItems(filteredEntries);
@@ -197,14 +189,7 @@ export function MqttMonitor() {
       void stopMqttListener();
       resetMqttMonitorStatus();
     };
-  }, [
-    brokerHost,
-    brokerPort,
-    brokerProtocol,
-    native,
-    setLastError,
-    subscribeTopics,
-  ]);
+  }, [brokerHost, brokerPort, brokerProtocol, native, setLastError, subscribeTopics]);
 
   return (
     <DebuggerSection title={t("monitor.monitor")} flexGrow>

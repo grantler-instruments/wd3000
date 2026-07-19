@@ -1,10 +1,15 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { DebugLogKind } from "./debugLog";
+import type { Control, PerformerIoConfig } from "../types";
 import {
-  pushDebugLog,
-  recordOutboundMqttDebug,
-  recordOutboundOscDebug,
-} from "./debugLog";
+  controlUsesMidiOutput,
+  controlUsesMqttOutput,
+  controlUsesOscOutput,
+  findMidiOutputEndpoint,
+  findMqttConnection,
+  findOscSender,
+} from "../types";
+import type { DebugLogKind } from "./debugLog";
+import { pushDebugLog, recordOutboundMqttDebug, recordOutboundOscDebug } from "./debugLog";
 import {
   asMidiPayload,
   midiCcBytes,
@@ -15,26 +20,17 @@ import {
   midiPolyPressureBytes,
   midiProgramChangeBytes,
 } from "./midiPayload";
-import type { OscArgPayload } from "./oscMessages";
-import { formatOscMonitorSummary } from "./oscMessages";
-import { isNativeApp } from "./platform";
 import {
   encodeMqttPayload,
   formatMqttSummary,
-  publishMqttMessage,
   type MqttQoS,
   type MqttTransportProtocol,
+  publishMqttMessage,
 } from "./mqtt";
+import type { OscArgPayload } from "./oscMessages";
+import { formatOscMonitorSummary } from "./oscMessages";
+import { isNativeApp } from "./platform";
 import { listWebMidiOutputs, sendWebMidiRaw } from "./webMidi";
-import type { Control, PerformerIoConfig } from "../types";
-import {
-  controlUsesMidiOutput,
-  controlUsesMqttOutput,
-  controlUsesOscOutput,
-  findMidiOutputEndpoint,
-  findMqttConnection,
-  findOscSender,
-} from "../types";
 
 export async function listMidiOutputs(): Promise<string[]> {
   if (isNativeApp()) {
@@ -75,8 +71,7 @@ export async function sendMqttMessage(
     retain,
   });
 
-  const logSummary =
-    summary ?? formatMqttSummary(trimmedTopic, payload, qos, retain);
+  const logSummary = summary ?? formatMqttSummary(trimmedTopic, payload, qos, retain);
 
   if (options?.logToDebug !== false) {
     recordOutboundMqttDebug(logSummary);
@@ -125,10 +120,12 @@ async function sendMidiBytesToPort(
   }
 }
 
-async function sendOscToSender(sender: { host: string; port: number }, address: string, value: number) {
-  await sendOscMessage(sender.host, sender.port, address, [
-    { type: "float", value },
-  ]);
+async function sendOscToSender(
+  sender: { host: string; port: number },
+  address: string,
+  value: number,
+) {
+  await sendOscMessage(sender.host, sender.port, address, [{ type: "float", value }]);
 }
 
 export async function sendOscMessage(
@@ -150,8 +147,7 @@ export async function sendOscMessage(
     address: trimmedAddress,
     args,
   });
-  const logSummary =
-    summary ?? formatOscMonitorSummary(trimmedAddress, args);
+  const logSummary = summary ?? formatOscMonitorSummary(trimmedAddress, args);
 
   if (options?.logToDebug !== false) {
     recordOutboundOscDebug(logSummary);
@@ -181,12 +177,7 @@ export async function sendMidiNote(
   );
 }
 
-export async function sendMidiCc(
-  portName: string,
-  channel: number,
-  cc: number,
-  value: number,
-) {
+export async function sendMidiCc(portName: string, channel: number, cc: number, value: number) {
   await sendMidiBytesToPort(
     portName,
     midiCcBytes(channel, cc, value),
@@ -209,11 +200,7 @@ export async function sendMidiNoteOff(
   );
 }
 
-export async function sendMidiProgramChange(
-  portName: string,
-  channel: number,
-  program: number,
-) {
+export async function sendMidiProgramChange(portName: string, channel: number, program: number) {
   await sendMidiBytesToPort(
     portName,
     midiProgramChangeBytes(channel, program),
@@ -222,11 +209,7 @@ export async function sendMidiProgramChange(
   );
 }
 
-export async function sendMidiPitchBend(
-  portName: string,
-  channel: number,
-  value: number,
-) {
+export async function sendMidiPitchBend(portName: string, channel: number, value: number) {
   await sendMidiBytesToPort(
     portName,
     midiPitchBendBytes(channel, value),
@@ -235,11 +218,7 @@ export async function sendMidiPitchBend(
   );
 }
 
-export async function sendMidiChannelPressure(
-  portName: string,
-  channel: number,
-  pressure: number,
-) {
+export async function sendMidiChannelPressure(portName: string, channel: number, pressure: number) {
   await sendMidiBytesToPort(
     portName,
     midiChannelPressureBytes(channel, pressure),
@@ -315,13 +294,7 @@ async function sendMqttValue(
   }
 
   try {
-    await sendMqttForControl(
-      mqttConnection,
-      topic,
-      payload,
-      control.mqtt.qos,
-      control.mqtt.retain,
-    );
+    await sendMqttForControl(mqttConnection, topic, payload, control.mqtt.qos, control.mqtt.retain);
   } catch (error) {
     errors.push(error instanceof Error ? error.message : String(error));
   }
@@ -336,13 +309,7 @@ export async function sendSliderValue(
   const { oscSender, midiOutput } = resolveControlEndpoints(control, performerIo);
   const errors: string[] = [];
 
-  await sendMqttValue(
-    control,
-    performerIo,
-    control.mqtt.topic,
-    String(normalized),
-    errors,
-  );
+  await sendMqttValue(control, performerIo, control.mqtt.topic, String(normalized), errors);
 
   if (controlUsesOscOutput(control)) {
     if (!oscSender) {
@@ -471,11 +438,7 @@ export async function sendKeyboardNote(
       errors.push("No OSC sender assigned");
     } else {
       try {
-        await sendOscToSender(
-          oscSender,
-          `${control.osc.address}/${note}`,
-          pressed ? 1 : 0,
-        );
+        await sendOscToSender(oscSender, `${control.osc.address}/${note}`, pressed ? 1 : 0);
       } catch (error) {
         errors.push(error instanceof Error ? error.message : String(error));
       }
@@ -572,12 +535,7 @@ export async function sendButtonValue(
       errors.push("No MIDI output assigned");
     } else {
       try {
-        await sendMidiNote(
-          midiOutput.portName,
-          control.midi.channel,
-          control.midi.note,
-          velocity,
-        );
+        await sendMidiNote(midiOutput.portName, control.midi.channel, control.midi.note, velocity);
       } catch (error) {
         errors.push(error instanceof Error ? error.message : String(error));
       }

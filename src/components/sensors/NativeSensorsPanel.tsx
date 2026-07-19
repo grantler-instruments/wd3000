@@ -1,15 +1,10 @@
-import {
-  Alert,
-  Box,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Stack, Typography } from "@mui/material";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getAppPlatform } from "../../lib/platform";
 import {
-  listNativeSensors,
   listenNativeSensorReadings,
+  listNativeSensors,
   startNativeSensorWatch,
   stopNativeSensorWatch,
 } from "../../lib/sensors/native";
@@ -82,11 +77,7 @@ export function NativeSensorsPanel() {
         [reading.sensorId]: reading,
       }));
 
-      void sendSensorReadingOutput(
-        performerIoRef.current,
-        sensorMappingsRef.current,
-        reading,
-      );
+      void sendSensorReadingOutput(performerIoRef.current, sensorMappingsRef.current, reading);
     })
       .then((handler) => {
         if (cancelled) {
@@ -171,9 +162,7 @@ export function NativeSensorsPanel() {
                 title={sensor.label}
                 description={sensor.description}
                 watching={watching}
-                onToggleWatch={(nextWatching) =>
-                  void handleToggleSensor(sensor.id, nextWatching)
-                }
+                onToggleWatch={(nextWatching) => void handleToggleSensor(sensor.id, nextWatching)}
               >
                 {axes.length > 0 ? (
                   axes.map((axis) => (
@@ -187,9 +176,7 @@ export function NativeSensorsPanel() {
                   ))
                 ) : (
                   <Typography variant="body2" color="text.secondary">
-                    {watching
-                      ? t("sensors.waitingReadings")
-                      : t("sensors.turnOnToConfigure")}
+                    {watching ? t("sensors.waitingReadings") : t("sensors.turnOnToConfigure")}
                   </Typography>
                 )}
               </SensorCard>

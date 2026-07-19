@@ -4,7 +4,7 @@ import FileUploadIcon from "@mui/icons-material/FileUpload";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import {
   Button,
-  ButtonProps,
+  type ButtonProps,
   Dialog,
   DialogActions,
   DialogContent,
@@ -14,7 +14,7 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import { useRef, useState, type ChangeEvent } from "react";
+import { type ChangeEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { exportConfigToFile, parseConfigImport } from "../lib/config";
 import { useAppStore } from "../store/useAppStore";
@@ -25,10 +25,7 @@ interface ProjectMenuProps {
   variant?: ButtonProps["variant"];
 }
 
-export function ProjectMenu({
-  size = "small",
-  variant = "outlined",
-}: ProjectMenuProps) {
+export function ProjectMenu({ size = "small", variant = "outlined" }: ProjectMenuProps) {
   const { t } = useTranslation();
   const controls = useAppStore((state) => state.controls);
   const output = useAppStore((state) => state.output);

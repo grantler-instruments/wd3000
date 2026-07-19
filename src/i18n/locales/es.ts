@@ -96,11 +96,9 @@ const es: TranslationSchema = {
       "Esto sustituye el diseño, los controles y los ajustes de conexión actuales. Exporta primero si quieres una copia de seguridad.",
   },
   io: {
-    oscIntro:
-      "Endpoints con nombre para enviar y recibir. Asígnanos a los widgets en el editor.",
+    oscIntro: "Endpoints con nombre para enviar y recibir. Asígnanos a los widgets en el editor.",
     midiIntro: "Puertos de entrada y salida con nombre para widgets y performers.",
-    mqttIntro:
-      "Conexiones de broker con nombre. Asígnanos a los widgets en el editor.",
+    mqttIntro: "Conexiones de broker con nombre. Asígnanos a los widgets en el editor.",
     senders: "Emisores",
     receivers: "Receptores",
     outputs: "Salidas",
@@ -193,7 +191,8 @@ const es: TranslationSchema = {
     runShortcut: "Ejecutar {{shortcut}}",
     backToHome: "Volver al inicio",
     swipeExit: "Desliza hacia abajo-izquierda desde la esquina para salir del modo ejecución",
-    dragToReposition: "Arrastra para reposicionar en el lienzo, o suelta en una cuadrícula de pestaña",
+    dragToReposition:
+      "Arrastra para reposicionar en el lienzo, o suelta en una cuadrícula de pestaña",
     dragWidget: "Arrastrar widget",
     dragIntoTabPanel: "Arrastrar al panel de pestañas (HTML5)",
   },
@@ -257,8 +256,7 @@ const es: TranslationSchema = {
     listenArtNet: "Activa Escuchar para monitorear Art-Net entrante.",
     setListenPortArtNet: "Define un puerto de escucha para monitorear Art-Net entrante.",
     liveChannels: "Canales en vivo",
-    artNetUniversesHint:
-      "Art-Net admite 32.768 universos (0–32767), 512 canales cada uno.",
+    artNetUniversesHint: "Art-Net admite 32.768 universos (0–32767), 512 canales cada uno.",
     waitingArtNet: "Esperando Art-Net en el puerto {{port}}…",
     noPacketsForUniverse: "Aún no hay paquetes para el universo {{universe}}.",
     enterValidListenPort: "Introduce un puerto de escucha válido.",
@@ -277,7 +275,8 @@ const es: TranslationSchema = {
     listeningOnPortSend:
       "Escuchando en {{port}}. Haz clic o arrastra para enviar cursores TUIO a {{host}}:{{sendPort}}.",
     topicsCount: "{{count}} temas",
-    noSavedLogs: "Aún no hay registros {{protocol}} guardados. Guarda o importa un registro desde la pestaña En vivo.",
+    noSavedLogs:
+      "Aún no hay registros {{protocol}} guardados. Guarda o importa un registro desde la pestaña En vivo.",
     expectedProtocolLog: "Se esperaba un registro del monitor {{protocol}}.",
     waitingTuio: "Esperando TUIO…",
     activeEntities: "Entidades activas ({{count}})",
@@ -362,8 +361,7 @@ const es: TranslationSchema = {
       "Este navegador puede pedir permiso antes de que funcionen los sensores de movimiento y orientación.",
     permissionDenied:
       "Se denegó el permiso del sensor. Actívalo en los ajustes del navegador para continuar.",
-    noBrowserSensors:
-      "No hay APIs de movimiento u orientación disponibles en este navegador.",
+    noBrowserSensors: "No hay APIs de movimiento u orientación disponibles en este navegador.",
     mobileOnlyHint:
       "Los sensores de movimiento y orientación funcionan bien en teléfonos y tabletas. Los navegadores de escritorio suelen no ofrecer lecturas útiles.",
     nativeDesktopIntro:
@@ -373,11 +371,9 @@ const es: TranslationSchema = {
     noNativeSensorsDesktop:
       "No se encontraron sensores nativos en este equipo. El ángulo de tapa solo está disponible en MacBooks compatibles.",
     deviceOrientation: "Orientación del dispositivo",
-    deviceOrientationDescription:
-      "Ángulos alpha, beta y gamma relativos al marco del dispositivo.",
+    deviceOrientationDescription: "Ángulos alpha, beta y gamma relativos al marco del dispositivo.",
     deviceMotion: "Movimiento del dispositivo",
-    deviceMotionDescription:
-      "Aceleración lineal y tasa de rotación del IMU del dispositivo.",
+    deviceMotionDescription: "Aceleración lineal y tasa de rotación del IMU del dispositivo.",
     acceleration: "Aceleración (m/s²)",
     includingGravity: "Incluyendo gravedad (m/s²)",
     rotationRate: "Tasa de rotación (°/s)",

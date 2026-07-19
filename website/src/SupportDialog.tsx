@@ -28,8 +28,8 @@ export function SupportDialog() {
       <DialogContent>
         <Stack spacing={2}>
           <Typography color="text.secondary">
-            The best way to help is to try the desktop build and report issues when something
-            breaks — that feedback shapes what gets fixed next.
+            The best way to help is to try the desktop build and report issues when something breaks
+            — that feedback shapes what gets fixed next.
           </Typography>
           <Typography color="text.secondary">
             If you want to support development directly, you can buy me a coffee.

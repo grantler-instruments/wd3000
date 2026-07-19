@@ -37,10 +37,7 @@ describe("isDirectionFilterActive", () => {
 describe("isMonitorFilterActive", () => {
   it("is inactive when direction and MIDI filters are at defaults", () => {
     expect(
-      isMonitorFilterActive(
-        defaultMonitorDirectionFilter(),
-        defaultMonitorMidiTypeFilter(),
-      ),
+      isMonitorFilterActive(defaultMonitorDirectionFilter(), defaultMonitorMidiTypeFilter()),
     ).toBe(true);
   });
 });

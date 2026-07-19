@@ -1,18 +1,7 @@
-import {
-  Box,
-  Button,
-  Stack,
-  Tab,
-  Tabs,
-  TextField,
-} from "@mui/material";
+import { Box, Button, Stack, Tab, Tabs, TextField } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  clearDebugLogFiltered,
-  isOscDebugEntry,
-  useDebugLog,
-} from "../lib/debugLog";
+import { clearDebugLogFiltered, isOscDebugEntry, useDebugLog } from "../lib/debugLog";
 import { startOscListener, stopOscListener } from "../lib/input";
 import { createMonitorLogEvents } from "../lib/monitorLog";
 import {
@@ -20,17 +9,17 @@ import {
   isMonitorFilterActive,
   matchesDirectionFilter,
 } from "../lib/monitorLogFilter";
-import { isNativeApp } from "../lib/platform";
 import { useMonitorLogReplayProgress } from "../lib/monitorLogReplay";
+import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
-import { debugEntriesToListItems, MonitorLogList } from "./MonitorLogList";
+import { DebuggerSection } from "./DebuggerSection";
+import { debuggerFillSx, debuggerLogSx } from "./debuggerLayoutSx";
 import { MonitorFilterAccordion } from "./MonitorFilterAccordion";
+import { debugEntriesToListItems, MonitorLogList } from "./MonitorLogList";
 import { MonitorLogToolbar } from "./MonitorLogToolbar";
 import { MonitorReplaySection } from "./MonitorReplaySection";
 import { SavedMonitorLogTab } from "./SavedMonitorLogTab";
 import { useOpenSavedLogOnReplay } from "./useOpenSavedLogOnReplay";
-import { DebuggerSection } from "./DebuggerSection";
-import { debuggerFillSx, debuggerLogSx } from "./debuggerLayoutSx";
 
 type MonitorTab = "live" | "saved";
 
@@ -48,10 +37,7 @@ export function OscMonitor() {
   const [listenPort, setListenPort] = useState(output.oscListenPort);
   const [directionFilter, setDirectionFilter] = useState(defaultMonitorDirectionFilter);
 
-  const entries = useMemo(
-    () => allEntries.filter(isOscDebugEntry),
-    [allEntries],
-  );
+  const entries = useMemo(() => allEntries.filter(isOscDebugEntry), [allEntries]);
 
   const filteredEntries = useMemo(
     () => entries.filter((entry) => matchesDirectionFilter(entry.direction, directionFilter)),
@@ -78,8 +64,7 @@ export function OscMonitor() {
     [entries, t],
   );
 
-  const isReplayingLive =
-    replayProgress.active && replayProgress.logId === liveLog.id;
+  const isReplayingLive = replayProgress.active && replayProgress.logId === liveLog.id;
   const listEntries = isReplayingLive
     ? debugEntriesToListItems(entries)
     : debugEntriesToListItems(filteredEntries);

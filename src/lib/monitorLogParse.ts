@@ -1,6 +1,11 @@
-import type { DebugLogEntry, MidiMonitorPayload, MonitorEventPayload, OscMonitorPayload } from "./debugLog";
-import type { OscArgPayload } from "./oscMessages";
+import type {
+  DebugLogEntry,
+  MidiMonitorPayload,
+  MonitorEventPayload,
+  OscMonitorPayload,
+} from "./debugLog";
 import { isMidiDebugKind } from "./midiTypes";
+import type { OscArgPayload } from "./oscMessages";
 
 function parseHexBytes(summary: string): number[] | null {
   const match = summary.match(/(?:SysEx|Raw)\s+([0-9A-Fa-f\s]+)$/);
@@ -74,7 +79,7 @@ function parseOscPayload(entry: DebugLogEntry): OscMonitorPayload | null {
         if (rawValue !== undefined) {
           args.push({
             type: "string",
-            value: rawValue.startsWith("\"") ? JSON.parse(rawValue) : rawValue,
+            value: rawValue.startsWith('"') ? JSON.parse(rawValue) : rawValue,
           });
         }
         break;
@@ -100,7 +105,7 @@ function splitOscValues(valuesPart: string): string[] {
   for (let index = 0; index < valuesPart.length; index += 1) {
     const char = valuesPart[index];
 
-    if (char === "\"") {
+    if (char === '"') {
       current += char;
       inQuotes = !inQuotes;
       continue;
@@ -132,9 +137,7 @@ function parseMidiPayload(entry: DebugLogEntry): MidiMonitorPayload | null {
     return { bytes: hexBytes };
   }
 
-  const noteMatch = entry.summary.match(
-    /^Ch(\d+) Note (On|Off) (\d+) vel (\d+)$/,
-  );
+  const noteMatch = entry.summary.match(/^Ch(\d+) Note (On|Off) (\d+) vel (\d+)$/);
   if (noteMatch) {
     const channel = Number.parseInt(noteMatch[1], 10);
     const note = Number.parseInt(noteMatch[3], 10);
@@ -180,11 +183,7 @@ function parseMidiPayload(entry: DebugLogEntry): MidiMonitorPayload | null {
     const signed = Number.parseInt(pitchMatch[2], 10);
     const value = signed + 8192;
     return {
-      bytes: [
-        0xe0 | ((channel - 1) & 0x0f),
-        value & 0x7f,
-        (value >> 7) & 0x7f,
-      ],
+      bytes: [0xe0 | ((channel - 1) & 0x0f), value & 0x7f, (value >> 7) & 0x7f],
     };
   }
 

@@ -2,10 +2,10 @@ import type { StateCreator } from "zustand";
 import {
   defaultMediaPipeConfig,
   defaultMediaPipeLandmarkMapping,
-  normalizeMediaPipeLandmarkMapping,
   type MediaPipeConfig,
   type MediaPipeLandmarkMapping,
   type MediaPipeTracker,
+  normalizeMediaPipeLandmarkMapping,
 } from "../../lib/mediapipe/types";
 import type { AppStore } from "../appStoreTypes";
 
@@ -28,10 +28,7 @@ export interface MediaPipeSlice {
   ) => void;
 }
 
-export const createMediaPipeSlice: StateCreator<AppStore, [], [], MediaPipeSlice> = (
-  set,
-  get,
-) => ({
+export const createMediaPipeSlice: StateCreator<AppStore, [], [], MediaPipeSlice> = (set, get) => ({
   mediapipeConfig: defaultMediaPipeConfig(),
   mediapipeMappings: {},
   setMediaPipeTracker: (tracker) =>
@@ -74,9 +71,7 @@ export const createMediaPipeSlice: StateCreator<AppStore, [], [], MediaPipeSlice
     set((state) => ({
       mediapipeConfig: {
         ...state.mediapipeConfig,
-        selectedLandmarks: [
-          ...new Set([...state.mediapipeConfig.selectedLandmarks, ...landmarks]),
-        ],
+        selectedLandmarks: [...new Set([...state.mediapipeConfig.selectedLandmarks, ...landmarks])],
       },
     })),
   getMediaPipeLandmarkMapping: (key) => {

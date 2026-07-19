@@ -1,12 +1,8 @@
 import { Box } from "@mui/material";
 import { useCallback, useMemo, useRef } from "react";
 import { sendKeyboardNote } from "../lib/output";
-import {
-  Control,
-  isBlackKey,
-  keyboardNotes,
-} from "../types";
 import { useAppStore } from "../store/useAppStore";
+import { type Control, isBlackKey, keyboardNotes } from "../types";
 
 interface KeyboardWidgetProps {
   control: Control;
@@ -80,11 +76,7 @@ function buildKeyLayout(notes: number[]): {
 
 const EMPTY_ACTIVE_NOTES: number[] = [];
 
-export function KeyboardWidget({
-  control,
-  editable,
-  accentColor,
-}: KeyboardWidgetProps) {
+export function KeyboardWidget({ control, editable, accentColor }: KeyboardWidgetProps) {
   const performerIo = useAppStore((state) => state.performerIo);
   const activeNotes = useAppStore(
     (state) => state.controlActiveNotes[control.id] ?? EMPTY_ACTIVE_NOTES,

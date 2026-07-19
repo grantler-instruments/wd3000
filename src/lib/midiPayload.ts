@@ -29,11 +29,7 @@ export function midiChannelPressureBytes(channel: number, pressure: number): num
   return [channelStatus(0xd0, channel), pressure & 0x7f];
 }
 
-export function midiPolyPressureBytes(
-  channel: number,
-  note: number,
-  pressure: number,
-): number[] {
+export function midiPolyPressureBytes(channel: number, note: number, pressure: number): number[] {
   return [channelStatus(0xa0, channel), note & 0x7f, pressure & 0x7f];
 }
 

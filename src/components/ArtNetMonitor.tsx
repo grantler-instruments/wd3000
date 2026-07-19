@@ -11,23 +11,15 @@ import {
 } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ARTNET_DEFAULT_PORT, ARTNET_MAX_UNIVERSE, ARTNET_MIN_UNIVERSE } from "../lib/artnet";
 import {
-  ARTNET_DEFAULT_PORT,
-  ARTNET_MAX_UNIVERSE,
-  ARTNET_MIN_UNIVERSE,
-} from "../lib/artnet";
-import {
+  type ArtNetMonitorPayload,
   clearDebugLogFiltered,
+  type DebugLogEntry,
   isArtNetDebugEntry,
   useDebugLog,
-  type ArtNetMonitorPayload,
-  type DebugLogEntry,
 } from "../lib/debugLog";
-import {
-  getArtNetListenerStatus,
-  startArtNetListener,
-  stopArtNetListener,
-} from "../lib/input";
+import { getArtNetListenerStatus, startArtNetListener, stopArtNetListener } from "../lib/input";
 import { isNativeApp } from "../lib/platform";
 import { DebuggerSection } from "./DebuggerSection";
 import { debuggerFillSx, debuggerLogSx } from "./debuggerLayoutSx";
@@ -157,10 +149,7 @@ export function ArtNetMonitor() {
     }
   }, [listeningEnabled, native]);
 
-  const entries = useMemo(
-    () => allEntries.filter(isArtNetDebugEntry),
-    [allEntries],
-  );
+  const entries = useMemo(() => allEntries.filter(isArtNetDebugEntry), [allEntries]);
 
   const discoveredUniverses = useMemo(() => {
     const universes = new Set<number>();
@@ -173,13 +162,9 @@ export function ArtNetMonitor() {
     return Array.from(universes).sort((left, right) => left - right);
   }, [entries]);
 
-  const channelsByUniverse = useMemo(
-    () => buildChannelsByUniverse(entries),
-    [entries],
-  );
+  const channelsByUniverse = useMemo(() => buildChannelsByUniverse(entries), [entries]);
 
-  const channels =
-    channelsByUniverse.get(selectedUniverse) ?? createEmptyChannels();
+  const channels = channelsByUniverse.get(selectedUniverse) ?? createEmptyChannels();
 
   const filteredEntries = useMemo(
     () =>
@@ -300,161 +285,158 @@ export function ArtNetMonitor() {
           spacing={2}
           sx={{ alignItems: { xs: "stretch", sm: "center" }, flexWrap: "wrap", flexShrink: 0 }}
         >
-        <FormControlLabel
-          control={
-            <Switch
-              checked={listeningEnabled}
-              onChange={(event) => setListeningEnabled(event.target.checked)}
-              disabled={!native || listenerStatus === "starting"}
-            />
-          }
-          label={t("common.listen")}
-        />
-        <TextField
-          label={t("common.listenPort")}
-          size="small"
-          type="number"
-          value={listenPort}
-          onChange={(event) => setListenPort(Number(event.target.value) || 0)}
-          disabled={!native || !listeningEnabled}
-          sx={{ maxWidth: 160 }}
-          slotProps={{
-            htmlInput: { min: 1, max: 65535 },
-          }}
-        />
-        <Chip
-          label={listenerStatusLabel}
-          size="small"
-          color={listenerStatusColor}
-          variant={listenerStatus === "stopped" ? "outlined" : "filled"}
-          sx={{ maxWidth: "100%" }}
-        />
-      </Stack>
-
-      <Box sx={{ flexShrink: 0 }}>
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={1.5}
-          sx={{ alignItems: { xs: "stretch", sm: "center" }, mb: 1, flexWrap: "wrap" }}
-        >
-          <Typography variant="subtitle2" sx={{ alignSelf: "center" }}>
-            {t("monitor.liveChannels")}
-          </Typography>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={listeningEnabled}
+                onChange={(event) => setListeningEnabled(event.target.checked)}
+                disabled={!native || listenerStatus === "starting"}
+              />
+            }
+            label={t("common.listen")}
+          />
           <TextField
-            label={t("common.universe")}
+            label={t("common.listenPort")}
             size="small"
             type="number"
-            value={selectedUniverse}
-            onChange={(event) => {
-              const next = Number(event.target.value);
-              if (!Number.isNaN(next)) {
-                setSelectedUniverse(
-                  Math.min(ARTNET_MAX_UNIVERSE, Math.max(ARTNET_MIN_UNIVERSE, next)),
-                );
-              }
-            }}
+            value={listenPort}
+            onChange={(event) => setListenPort(Number(event.target.value) || 0)}
+            disabled={!native || !listeningEnabled}
+            sx={{ maxWidth: 160 }}
             slotProps={{
-              htmlInput: { min: ARTNET_MIN_UNIVERSE, max: ARTNET_MAX_UNIVERSE },
+              htmlInput: { min: 1, max: 65535 },
             }}
-            sx={{ width: 120 }}
           />
-          {discoveredUniverses.length > 0 && (
-            <Stack direction="row" spacing={0.75} sx={{ flexWrap: "wrap", gap: 0.75 }}>
-              {discoveredUniverses.map((universe) => (
-                <Chip
-                  key={universe}
-                  label={universe}
-                  size="small"
-                  color={universe === selectedUniverse ? "primary" : "default"}
-                  variant={universe === selectedUniverse ? "filled" : "outlined"}
-                  onClick={() => setSelectedUniverse(universe)}
-                />
+          <Chip
+            label={listenerStatusLabel}
+            size="small"
+            color={listenerStatusColor}
+            variant={listenerStatus === "stopped" ? "outlined" : "filled"}
+            sx={{ maxWidth: "100%" }}
+          />
+        </Stack>
+
+        <Box sx={{ flexShrink: 0 }}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1.5}
+            sx={{ alignItems: { xs: "stretch", sm: "center" }, mb: 1, flexWrap: "wrap" }}
+          >
+            <Typography variant="subtitle2" sx={{ alignSelf: "center" }}>
+              {t("monitor.liveChannels")}
+            </Typography>
+            <TextField
+              label={t("common.universe")}
+              size="small"
+              type="number"
+              value={selectedUniverse}
+              onChange={(event) => {
+                const next = Number(event.target.value);
+                if (!Number.isNaN(next)) {
+                  setSelectedUniverse(
+                    Math.min(ARTNET_MAX_UNIVERSE, Math.max(ARTNET_MIN_UNIVERSE, next)),
+                  );
+                }
+              }}
+              slotProps={{
+                htmlInput: { min: ARTNET_MIN_UNIVERSE, max: ARTNET_MAX_UNIVERSE },
+              }}
+              sx={{ width: 120 }}
+            />
+            {discoveredUniverses.length > 0 && (
+              <Stack direction="row" spacing={0.75} sx={{ flexWrap: "wrap", gap: 0.75 }}>
+                {discoveredUniverses.map((universe) => (
+                  <Chip
+                    key={universe}
+                    label={universe}
+                    size="small"
+                    color={universe === selectedUniverse ? "primary" : "default"}
+                    variant={universe === selectedUniverse ? "filled" : "outlined"}
+                    onClick={() => setSelectedUniverse(universe)}
+                  />
+                ))}
+              </Stack>
+            )}
+          </Stack>
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
+            {t("monitor.artNetUniversesHint")}
+          </Typography>
+          <ArtNetChannelGrid channels={channels} />
+        </Box>
+
+        <Box sx={debuggerLogSx}>
+          {entries.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" sx={{ p: 2, textAlign: "center" }}>
+              {listenPort > 0
+                ? listeningEnabled
+                  ? listenerStatus === "listening"
+                    ? t("monitor.waitingArtNet", { port: listenPort })
+                    : listenerStatus === "starting"
+                      ? t("monitor.openingPort", { port: listenPort })
+                      : (listenerError ?? t("monitor.listenerNotRunning"))
+                  : t("monitor.listenArtNet")
+                : t("monitor.setListenPortArtNet")}
+            </Typography>
+          ) : filteredEntries.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" sx={{ p: 2, textAlign: "center" }}>
+              {t("monitor.noPacketsForUniverse", { universe: selectedUniverse })}
+            </Typography>
+          ) : (
+            <Stack divider={<Divider />}>
+              {filteredEntries.map((entry) => (
+                <Stack
+                  key={entry.id}
+                  direction="row"
+                  spacing={1.5}
+                  sx={{
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    rowGap: 0.5,
+                    px: { xs: 1.5, sm: 2 },
+                    py: 1,
+                    fontFamily: "monospace",
+                    fontSize: "0.8125rem",
+                    minWidth: 0,
+                  }}
+                >
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ fontFamily: "inherit", minWidth: { xs: 72, sm: 108 }, flexShrink: 0 }}
+                  >
+                    {formatTime(entry.timestamp)}
+                  </Typography>
+                  <Chip
+                    label={entry.direction === "in" ? "IN" : "OUT"}
+                    size="small"
+                    color={entry.direction === "in" ? "info" : "success"}
+                    sx={{ minWidth: 48, flexShrink: 0 }}
+                  />
+                  <Chip
+                    label={t("protocols.artnet")}
+                    size="small"
+                    variant="outlined"
+                    sx={{ flexShrink: 0 }}
+                  />
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    sx={{
+                      fontFamily: "inherit",
+                      flex: "1 1 120px",
+                      minWidth: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {entry.summary}
+                  </Typography>
+                </Stack>
               ))}
             </Stack>
           )}
-        </Stack>
-        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
-          {t("monitor.artNetUniversesHint")}
-        </Typography>
-        <ArtNetChannelGrid channels={channels} />
-      </Box>
-
-      <Box sx={debuggerLogSx}>
-        {entries.length === 0 ? (
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ p: 2, textAlign: "center" }}
-          >
-            {listenPort > 0
-              ? listeningEnabled
-                ? listenerStatus === "listening"
-                  ? t("monitor.waitingArtNet", { port: listenPort })
-                  : listenerStatus === "starting"
-                    ? t("monitor.openingPort", { port: listenPort })
-                    : listenerError ?? t("monitor.listenerNotRunning")
-                : t("monitor.listenArtNet")
-              : t("monitor.setListenPortArtNet")}
-          </Typography>
-        ) : filteredEntries.length === 0 ? (
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ p: 2, textAlign: "center" }}
-          >
-            {t("monitor.noPacketsForUniverse", { universe: selectedUniverse })}
-          </Typography>
-        ) : (
-          <Stack divider={<Divider />}>
-            {filteredEntries.map((entry) => (
-              <Stack
-                key={entry.id}
-                direction="row"
-                spacing={1.5}
-                sx={{
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                  rowGap: 0.5,
-                  px: { xs: 1.5, sm: 2 },
-                  py: 1,
-                  fontFamily: "monospace",
-                  fontSize: "0.8125rem",
-                  minWidth: 0,
-                }}
-              >
-                <Typography
-                  component="span"
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ fontFamily: "inherit", minWidth: { xs: 72, sm: 108 }, flexShrink: 0 }}
-                >
-                  {formatTime(entry.timestamp)}
-                </Typography>
-                <Chip
-                  label={entry.direction === "in" ? "IN" : "OUT"}
-                  size="small"
-                  color={entry.direction === "in" ? "info" : "success"}
-                  sx={{ minWidth: 48, flexShrink: 0 }}
-                />
-                <Chip label={t("protocols.artnet")} size="small" variant="outlined" sx={{ flexShrink: 0 }} />
-                <Typography
-                  component="span"
-                  variant="body2"
-                  sx={{
-                    fontFamily: "inherit",
-                    flex: "1 1 120px",
-                    minWidth: 0,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {entry.summary}
-                </Typography>
-              </Stack>
-            ))}
-          </Stack>
-        )}
-      </Box>
+        </Box>
       </Stack>
     </DebuggerSection>
   );

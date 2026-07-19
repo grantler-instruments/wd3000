@@ -1,10 +1,4 @@
-import {
-  Alert,
-  Box,
-  Button,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, Stack, Typography } from "@mui/material";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { isMobileBrowserDevice } from "../../lib/platform";
@@ -22,14 +16,8 @@ export function BrowserSensorsPanel() {
   const mobileBrowser = isMobileBrowserDevice();
   const performerIo = useAppStore((state) => state.performerIo);
   const sensorMappings = useAppStore((state) => state.sensorMappings);
-  const {
-    support,
-    permission,
-    requestPermission,
-    orientation,
-    motion,
-    active,
-  } = useBrowserSensors(mobileBrowser);
+  const { support, permission, requestPermission, orientation, motion, active } =
+    useBrowserSensors(mobileBrowser);
 
   const browserReadings = useMemo(
     () => [
@@ -71,8 +59,7 @@ export function BrowserSensorsPanel() {
   const requiresGesturePermission =
     (typeof DeviceOrientationEvent !== "undefined" &&
       "requestPermission" in DeviceOrientationEvent) ||
-    (typeof DeviceMotionEvent !== "undefined" &&
-      "requestPermission" in DeviceMotionEvent);
+    (typeof DeviceMotionEvent !== "undefined" && "requestPermission" in DeviceMotionEvent);
 
   const needsPermission =
     permission === "unknown" ||
@@ -104,9 +91,7 @@ export function BrowserSensorsPanel() {
             </Button>
           }
         >
-          {permission === "denied"
-            ? t("sensors.permissionDenied")
-            : t("sensors.browserIntro")}
+          {permission === "denied" ? t("sensors.permissionDenied") : t("sensors.browserIntro")}
         </Alert>
       ) : null}
 

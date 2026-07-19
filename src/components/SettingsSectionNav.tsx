@@ -57,11 +57,7 @@ export function SettingsSectionNav<T extends string>({
                 },
               }}
             >
-              <Typography
-                variant="body2"
-                noWrap
-                sx={{ fontWeight: selected ? 600 : 400 }}
-              >
+              <Typography variant="body2" noWrap sx={{ fontWeight: selected ? 600 : 400 }}>
                 {item.label}
               </Typography>
             </ListItemButton>

@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import {
   Divider,
   FormControl,
@@ -10,6 +9,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import type { ReactNode } from "react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -47,9 +47,7 @@ function MappingProtocolSection({
           checked={enabled}
           onChange={(_, checked) => onToggle(checked)}
           aria-label={
-            enabled
-              ? t("sensors.disableNamed", { label })
-              : t("sensors.enableNamed", { label })
+            enabled ? t("sensors.disableNamed", { label }) : t("sensors.enableNamed", { label })
           }
         />
       </Stack>

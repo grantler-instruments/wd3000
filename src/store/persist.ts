@@ -1,27 +1,18 @@
 import type { PersistOptions } from "zustand/middleware";
 import i18n from "../i18n";
-import {
-  DEFAULT_LANGUAGE,
-  isAppLanguage,
-  type AppLanguage,
-} from "../i18n/languages";
+import { type AppLanguage, DEFAULT_LANGUAGE, isAppLanguage } from "../i18n/languages";
 import {
   defaultMediaPipeConfig,
-  normalizeMediaPipeLandmarkMapping,
   type MediaPipeConfig,
   type MediaPipeLandmarkMapping,
+  normalizeMediaPipeLandmarkMapping,
 } from "../lib/mediapipe/types";
 import { clearPerformerHistory } from "../lib/performer-history";
+import { normalizeSensorAxisMapping, type SensorAxisMapping } from "../lib/sensors/types";
 import {
-  normalizeSensorAxisMapping,
-  type SensorAxisMapping,
-} from "../lib/sensors/types";
-import {
-  Control,
-  ControlLayout,
-  LayoutSettings,
-  OutputConfig,
-  PerformerIoConfig,
+  type Control,
+  type ControlLayout,
+  type ControlProtocol,
   controlOutputsFromLegacyProtocol,
   createControlLayout,
   defaultControlIoAssignments,
@@ -29,9 +20,11 @@ import {
   defaultMqttMapping,
   defaultOutputConfig,
   defaultPerformerIoConfig,
+  type LayoutSettings,
   normalizeOutputConfig,
   normalizePerformerIoConfig,
-  type ControlProtocol,
+  type OutputConfig,
+  type PerformerIoConfig,
 } from "../types";
 import type { AppStore } from "./appStoreTypes";
 
@@ -72,10 +65,7 @@ type LegacyPersistedState = {
   language?: AppLanguage;
 };
 
-function migratePersistedState(
-  persistedState: unknown,
-  version: number,
-): PersistedAppStore {
+function migratePersistedState(persistedState: unknown, version: number): PersistedAppStore {
   const state = persistedState as LegacyPersistedState;
 
   const legacyProtocol = state.output?.protocol ?? "osc";
@@ -125,31 +115,34 @@ function migratePersistedState(
       osc: {
         address: storedOsc?.address ?? `/control/${index + 1}`,
         ...storedOsc,
-        enabled: typeof storedOsc?.enabled === "boolean"
-          ? storedOsc.enabled
-          : hasExplicitEnabled
-            ? false
-            : fromProtocol.oscEnabled,
+        enabled:
+          typeof storedOsc?.enabled === "boolean"
+            ? storedOsc.enabled
+            : hasExplicitEnabled
+              ? false
+              : fromProtocol.oscEnabled,
       },
       midi: {
         channel: 1,
         note: 60,
         cc: index,
         ...storedMidi,
-        enabled: typeof storedMidi?.enabled === "boolean"
-          ? storedMidi.enabled
-          : hasExplicitEnabled
-            ? false
-            : fromProtocol.midiEnabled,
+        enabled:
+          typeof storedMidi?.enabled === "boolean"
+            ? storedMidi.enabled
+            : hasExplicitEnabled
+              ? false
+              : fromProtocol.midiEnabled,
       },
       mqtt: {
         ...defaultMqttMapping(control.type, index + 1),
         ...storedMqtt,
-        enabled: typeof storedMqtt?.enabled === "boolean"
-          ? storedMqtt.enabled
-          : hasExplicitEnabled
-            ? false
-            : fromProtocol.mqttEnabled,
+        enabled:
+          typeof storedMqtt?.enabled === "boolean"
+            ? storedMqtt.enabled
+            : hasExplicitEnabled
+              ? false
+              : fromProtocol.mqttEnabled,
       },
       layout: {
         ...createControlLayout(index),
@@ -195,10 +188,8 @@ function migratePersistedState(
     }),
   );
 
-  const {
-    active: _legacyMediaPipeActive,
-    ...persistedMediaPipeConfig
-  } = (state.mediapipeConfig ?? {}) as Partial<MediaPipeConfig> & {
+  const { active: _legacyMediaPipeActive, ...persistedMediaPipeConfig } = (state.mediapipeConfig ??
+    {}) as Partial<MediaPipeConfig> & {
     active?: boolean;
   };
   const mediapipeConfig = {
@@ -263,9 +254,7 @@ export const appStorePersistOptions: PersistOptions<AppStore, PersistedAppStore>
     return {
       ...currentState,
       ...persisted,
-      language: isAppLanguage(persisted.language)
-        ? persisted.language
-        : currentState.language,
+      language: isAppLanguage(persisted.language) ? persisted.language : currentState.language,
       output: normalizeOutputConfig(persisted.output),
       performerIo: normalizePerformerIoConfig(persisted.performerIo, persisted.output),
       mode: "edit",

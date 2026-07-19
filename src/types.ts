@@ -236,9 +236,8 @@ export function tabPanelContentSize(
     Math.max(...children.map((control) => control.layout.x + control.layout.width)) +
     LAYOUT_GRID_SIZE * 2;
   const contentHeight =
-    Math.max(
-      ...children.map((control) => control.layout.y + controlLayoutHeight(control)),
-    ) + LAYOUT_GRID_SIZE * 2;
+    Math.max(...children.map((control) => control.layout.y + controlLayoutHeight(control))) +
+    LAYOUT_GRID_SIZE * 2;
 
   return {
     width: Math.max(panelSize.width, contentWidth),
@@ -265,11 +264,7 @@ export function topLevelControls(controls: Control[]): Control[] {
   return sortControlsByOrder(controls.filter(isTopLevelControl));
 }
 
-export function tabChildControls(
-  controls: Control[],
-  parentId: string,
-  tabId: string,
-): Control[] {
+export function tabChildControls(controls: Control[], parentId: string, tabId: string): Control[] {
   return sortControlsByOrder(
     controls.filter((control) => control.parentId === parentId && control.tabId === tabId),
   );
@@ -380,9 +375,7 @@ export function createMqttConnection(
   };
 }
 
-export function createOscSender(
-  patch: Partial<OscSender> & Pick<OscSender, "name">,
-): OscSender {
+export function createOscSender(patch: Partial<OscSender> & Pick<OscSender, "name">): OscSender {
   return {
     id: crypto.randomUUID(),
     host: "127.0.0.1",
@@ -474,9 +467,7 @@ export function normalizePerformerIoConfig(
 
   return {
     oscSenders: Array.isArray(value.oscSenders) ? value.oscSenders : defaults.oscSenders,
-    oscReceivers: Array.isArray(value.oscReceivers)
-      ? value.oscReceivers
-      : defaults.oscReceivers,
+    oscReceivers: Array.isArray(value.oscReceivers) ? value.oscReceivers : defaults.oscReceivers,
     midiOutputs: Array.isArray(value.midiOutputs) ? value.midiOutputs : defaults.midiOutputs,
     midiInputs: Array.isArray(value.midiInputs) ? value.midiInputs : defaults.midiInputs,
     mqttConnections: Array.isArray(value.mqttConnections)
@@ -597,10 +588,7 @@ function controlDefaultWidth(type: ControlType): number {
   return CONTROL_DEFAULT_WIDTH;
 }
 
-function createControlLayoutForType(
-  type: ControlType,
-  index: number,
-): ControlLayout {
+function createControlLayoutForType(type: ControlType, index: number): ControlLayout {
   const width = controlDefaultWidth(type);
   const column = index % 3;
   const row = Math.floor(index / 3);
@@ -746,11 +734,7 @@ function controlMqttTopic(type: ControlType, index: number): string {
   }
 }
 
-export function defaultMqttMapping(
-  type: ControlType,
-  index: number,
-  enabled = false,
-): MqttMapping {
+export function defaultMqttMapping(type: ControlType, index: number, enabled = false): MqttMapping {
   return {
     enabled,
     topic: controlMqttTopic(type, index),
@@ -827,22 +811,16 @@ export function canvasHeight(controls: Control[]): number {
   }
 
   return (
-    Math.max(
-      ...topLevel.map((control) => control.layout.y + controlEstimatedHeight(control)),
-    ) + LAYOUT_GRID_SIZE * 2
+    Math.max(...topLevel.map((control) => control.layout.y + controlEstimatedHeight(control))) +
+    LAYOUT_GRID_SIZE * 2
   );
 }
 
-export function controlMappingLabel(
-  control: Control,
-  performerIo?: PerformerIoConfig,
-): string {
+export function controlMappingLabel(control: Control, performerIo?: PerformerIoConfig): string {
   const parts: string[] = [];
 
   if (control.osc.enabled) {
-    const sender = performerIo
-      ? findOscSender(performerIo, control.oscSenderId)
-      : null;
+    const sender = performerIo ? findOscSender(performerIo, control.oscSenderId) : null;
     if (sender) {
       parts.push(`${sender.name}: ${control.osc.address}`);
     } else {

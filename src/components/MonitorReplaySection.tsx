@@ -20,10 +20,10 @@ import { useTranslation } from "react-i18next";
 import type { SavedMonitorLog } from "../lib/monitorLog";
 import {
   isMonitorLogReplayActive,
-  replayMonitorLog,
-  stopMonitorLogReplay,
   type MonitorReplayDirection,
   type MonitorReplayTarget,
+  replayMonitorLog,
+  stopMonitorLogReplay,
 } from "../lib/monitorLogReplay";
 import { listMidiOutputs } from "../lib/output";
 import { isNativeApp } from "../lib/platform";
@@ -49,8 +49,7 @@ export function MonitorReplaySection({
   const native = isNativeApp();
 
   const protocol = log?.protocol ?? "midi";
-  const protocolLabel =
-    protocol === "midi" ? t("protocols.midi") : t("protocols.osc");
+  const protocolLabel = protocol === "midi" ? t("protocols.midi") : t("protocols.osc");
 
   const [midiPortName, setMidiPortName] = useState(output.midiPortName ?? "");
   const [oscHost, setOscHost] = useState(output.oscHost);
@@ -148,90 +147,90 @@ export function MonitorReplaySection({
         </Typography>
 
         {protocol === "midi" ? (
-        midiPorts.length === 0 ? (
+          midiPorts.length === 0 ? (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              {t("monitor.noMidiOutputs")}
+            </Alert>
+          ) : (
+            <FormControl fullWidth size="small" sx={{ mb: 2, maxWidth: 480 }}>
+              <InputLabel id="monitor-replay-midi-out-label">{t("monitor.sendToPort")}</InputLabel>
+              <Select
+                labelId="monitor-replay-midi-out-label"
+                label={t("monitor.sendToPort")}
+                value={midiPortName}
+                onChange={(event) => setMidiPortName(event.target.value)}
+              >
+                {midiPorts.map((port) => (
+                  <MenuItem key={port} value={port}>
+                    {port}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )
+        ) : !native ? (
           <Alert severity="info" sx={{ mb: 2 }}>
-            {t("monitor.noMidiOutputs")}
+            {t("monitor.oscSendNativeOnly")}
           </Alert>
         ) : (
-          <FormControl fullWidth size="small" sx={{ mb: 2, maxWidth: 480 }}>
-            <InputLabel id="monitor-replay-midi-out-label">{t("monitor.sendToPort")}</InputLabel>
-            <Select
-              labelId="monitor-replay-midi-out-label"
-              label={t("monitor.sendToPort")}
-              value={midiPortName}
-              onChange={(event) => setMidiPortName(event.target.value)}
-            >
-              {midiPorts.map((port) => (
-                <MenuItem key={port} value={port}>
-                  {port}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )
-      ) : !native ? (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          {t("monitor.oscSendNativeOnly")}
-        </Alert>
-      ) : (
-        <Stack direction="row" spacing={1} sx={{ mb: 2, maxWidth: 360 }}>
-          <TextField
-            label={t("monitor.sendToHost")}
-            size="small"
-            fullWidth
-            value={oscHost}
-            onChange={(event) => setOscHost(event.target.value)}
-          />
-          <TextField
-            label={t("common.port")}
-            size="small"
-            type="number"
-            value={oscPort}
-            onChange={(event) => setOscPort(Number(event.target.value) || 0)}
-            sx={{ width: 120 }}
-          />
-        </Stack>
-      )}
+          <Stack direction="row" spacing={1} sx={{ mb: 2, maxWidth: 360 }}>
+            <TextField
+              label={t("monitor.sendToHost")}
+              size="small"
+              fullWidth
+              value={oscHost}
+              onChange={(event) => setOscHost(event.target.value)}
+            />
+            <TextField
+              label={t("common.port")}
+              size="small"
+              type="number"
+              value={oscPort}
+              onChange={(event) => setOscPort(Number(event.target.value) || 0)}
+              sx={{ width: 120 }}
+            />
+          </Stack>
+        )}
 
-      <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
-        {replaying ? (
-          <Button
-            size="small"
-            variant="contained"
-            color="warning"
-            startIcon={<StopIcon />}
-            onClick={handleStop}
-          >
-            {t("common.stop")}
-          </Button>
-        ) : (
-          <>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
+          {replaying ? (
             <Button
               size="small"
               variant="contained"
-              startIcon={<PlayArrowIcon />}
-              onClick={() => void handleSend("in")}
-              disabled={!canSendIncoming}
+              color="warning"
+              startIcon={<StopIcon />}
+              onClick={handleStop}
             >
-              {t("monitor.sendIncoming", { count: incomingCount })}
+              {t("common.stop")}
             </Button>
-            <Button
-              size="small"
-              variant="contained"
-              startIcon={<PlayArrowIcon />}
-              onClick={() => void handleSend("out")}
-              disabled={!canSendOutgoing}
-            >
-              {t("monitor.sendOutgoing", { count: outgoingCount })}
-            </Button>
-          </>
-        )}
-        {incomingCount === 0 && outgoingCount === 0 && (
-          <Typography variant="body2" color="text.secondary">
-            {t("monitor.noMessagesYet")}
-          </Typography>
-        )}
-      </Stack>
+          ) : (
+            <>
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<PlayArrowIcon />}
+                onClick={() => void handleSend("in")}
+                disabled={!canSendIncoming}
+              >
+                {t("monitor.sendIncoming", { count: incomingCount })}
+              </Button>
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<PlayArrowIcon />}
+                onClick={() => void handleSend("out")}
+                disabled={!canSendOutgoing}
+              >
+                {t("monitor.sendOutgoing", { count: outgoingCount })}
+              </Button>
+            </>
+          )}
+          {incomingCount === 0 && outgoingCount === 0 && (
+            <Typography variant="body2" color="text.secondary">
+              {t("monitor.noMessagesYet")}
+            </Typography>
+          )}
+        </Stack>
       </AccordionDetails>
     </Accordion>
   );

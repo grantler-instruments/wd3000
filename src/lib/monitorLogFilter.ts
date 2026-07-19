@@ -1,7 +1,7 @@
-import type { MonitorMidiPortFilterState } from "./monitorMidiPortFilter";
-import { isMidiPortFilterActive } from "./monitorMidiPortFilter";
 import type { MonitorMidiTypeFilterState } from "./monitorMidiFilter";
 import { isMidiTypeFilterActive } from "./monitorMidiFilter";
+import type { MonitorMidiPortFilterState } from "./monitorMidiPortFilter";
+import { isMidiPortFilterActive } from "./monitorMidiPortFilter";
 
 export interface MonitorDirectionFilterState {
   showIn: boolean;

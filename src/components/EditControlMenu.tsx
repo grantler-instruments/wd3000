@@ -1,5 +1,5 @@
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import { Button, ButtonProps, Divider, Menu } from "@mui/material";
+import { Button, type ButtonProps, Divider, Menu } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { usePerformerHistoryAvailability } from "../hooks/usePerformerHistory";
@@ -13,10 +13,7 @@ interface EditControlMenuProps {
   variant?: ButtonProps["variant"];
 }
 
-export function EditControlMenu({
-  size = "small",
-  variant = "outlined",
-}: EditControlMenuProps) {
+export function EditControlMenu({ size = "small", variant = "outlined" }: EditControlMenuProps) {
   const { t } = useTranslation();
   const selectedControlId = useAppStore((state) => state.selectedControlId);
   const controlClipboard = useAppStore((state) => state.controlClipboard);
@@ -79,17 +76,13 @@ export function EditControlMenu({
           label={t("common.copy")}
           shortcut={formatShortcutKey("c")}
           disabled={!canEditSelection}
-          onClick={() =>
-            selectedControlId && handleAction(() => copyControl(selectedControlId))
-          }
+          onClick={() => selectedControlId && handleAction(() => copyControl(selectedControlId))}
         />
         <ShortcutMenuItem
           label={t("common.cut")}
           shortcut={formatShortcutKey("x")}
           disabled={!canEditSelection}
-          onClick={() =>
-            selectedControlId && handleAction(() => cutControl(selectedControlId))
-          }
+          onClick={() => selectedControlId && handleAction(() => cutControl(selectedControlId))}
         />
         <ShortcutMenuItem
           label={t("common.paste")}
@@ -110,9 +103,7 @@ export function EditControlMenu({
           label={t("common.delete")}
           shortcut={formatDeleteKey()}
           disabled={!canEditSelection}
-          onClick={() =>
-            selectedControlId && handleAction(() => removeControl(selectedControlId))
-          }
+          onClick={() => selectedControlId && handleAction(() => removeControl(selectedControlId))}
         />
       </Menu>
     </>

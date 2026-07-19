@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useShallow } from "zustand/react/shallow";
-import type { MonitorLogProtocol, MonitorLogEvent, SavedMonitorLog } from "../lib/monitorLog";
+import type { MonitorLogEvent, MonitorLogProtocol, SavedMonitorLog } from "../lib/monitorLog";
 import { MAX_SAVED_MONITOR_LOGS } from "../lib/monitorLog";
 
 interface MonitorLogLibraryState {

@@ -253,8 +253,7 @@ const en = {
     listenArtNet: "Enable Listen to monitor incoming Art-Net.",
     setListenPortArtNet: "Set a listen port to monitor incoming Art-Net.",
     liveChannels: "Live channels",
-    artNetUniversesHint:
-      "Art-Net supports 32,768 universes (0–32767), 512 channels each.",
+    artNetUniversesHint: "Art-Net supports 32,768 universes (0–32767), 512 channels each.",
     waitingArtNet: "Waiting for Art-Net on port {{port}}…",
     noPacketsForUniverse: "No packets for universe {{universe}} yet.",
     enterValidListenPort: "Enter a valid listen port.",
@@ -354,10 +353,8 @@ const en = {
   sensors: {
     browserWebApisIntro:
       "Uses Web APIs available in the current browser. On phones and tablets this typically includes device orientation and motion; on desktop browsers support varies.",
-    browserIntro:
-      "This browser may require permission before motion and orientation sensors work.",
-    permissionDenied:
-      "Sensor permission was denied. Enable it in browser settings to continue.",
+    browserIntro: "This browser may require permission before motion and orientation sensors work.",
+    permissionDenied: "Sensor permission was denied. Enable it in browser settings to continue.",
     noBrowserSensors: "No motion or orientation APIs are available in this browser.",
     mobileOnlyHint:
       "Motion and orientation sensors work well on phones and tablets. Desktop browsers usually do not provide useful readings.",
@@ -368,11 +365,9 @@ const en = {
     noNativeSensorsDesktop:
       "No native sensors were found on this machine. Lid angle is only available on supported MacBooks.",
     deviceOrientation: "Device orientation",
-    deviceOrientationDescription:
-      "Alpha, beta, and gamma angles relative to the device frame.",
+    deviceOrientationDescription: "Alpha, beta, and gamma angles relative to the device frame.",
     deviceMotion: "Device motion",
-    deviceMotionDescription:
-      "Linear acceleration and rotation rate from the device IMU.",
+    deviceMotionDescription: "Linear acceleration and rotation rate from the device IMU.",
     acceleration: "Acceleration (m/s²)",
     includingGravity: "Including gravity (m/s²)",
     rotationRate: "Rotation rate (°/s)",

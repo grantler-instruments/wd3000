@@ -1,10 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-export type MqttMonitorConnectionStatus =
-  | "idle"
-  | "connecting"
-  | "connected"
-  | "disconnected";
+export type MqttMonitorConnectionStatus = "idle" | "connecting" | "connected" | "disconnected";
 
 export interface MqttMonitorStatusState {
   status: MqttMonitorConnectionStatus;

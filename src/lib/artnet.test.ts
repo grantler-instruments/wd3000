@@ -30,9 +30,9 @@ describe("buildArtNetChannels", () => {
 
 describe("formatArtNetComposerSummary", () => {
   it("includes universe, channel, value, and sequence", () => {
-    expect(
-      formatArtNetComposerSummary({ universe: 2, channel: 10, value: 128 }, 7),
-    ).toBe("Universe 2 ch 10 = 128 (seq 7)");
+    expect(formatArtNetComposerSummary({ universe: 2, channel: 10, value: 128 }, 7)).toBe(
+      "Universe 2 ch 10 = 128 (seq 7)",
+    );
   });
 });
 

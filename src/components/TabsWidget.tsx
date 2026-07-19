@@ -1,8 +1,8 @@
 import { Box, Tab, Tabs } from "@mui/material";
 import { useCallback } from "react";
 import { sendTabsValue } from "../lib/output";
-import { Control, controlTabs } from "../types";
 import { useAppStore } from "../store/useAppStore";
+import { type Control, controlTabs } from "../types";
 import { TabPanelContent } from "./TabPanelContent";
 
 interface TabsWidgetProps {
@@ -23,9 +23,7 @@ export function TabsWidget({
   const performerIo = useAppStore((state) => state.performerIo);
   const layoutSettings = useAppStore((state) => state.layoutSettings);
   const tabs = controlTabs(control);
-  const activeIndex = useAppStore(
-    (state) => state.controlTabIndex[control.id] ?? 0,
-  );
+  const activeIndex = useAppStore((state) => state.controlTabIndex[control.id] ?? 0);
   const setControlTabIndex = useAppStore((state) => state.setControlTabIndex);
   const setLastError = useAppStore((state) => state.setLastError);
   const safeIndex = Math.min(activeIndex, Math.max(0, tabs.length - 1));

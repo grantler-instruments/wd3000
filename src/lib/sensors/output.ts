@@ -1,12 +1,8 @@
-import { sendMidiCc, sendOscMessage } from "../output";
 import type { PerformerIoConfig } from "../../types";
 import { findMidiOutputEndpoint, findOscSender } from "../../types";
+import { sendMidiCc, sendOscMessage } from "../output";
 import type { SensorAxisMapping, SensorReading } from "./types";
-import {
-  defaultSensorAxisMapping,
-  normalizeSensorAxisMapping,
-  sensorAxisKey,
-} from "./types";
+import { defaultSensorAxisMapping, normalizeSensorAxisMapping, sensorAxisKey } from "./types";
 
 export function scaleSensorValueToMidi(value: number, min: number, max: number) {
   if (max === min) {
@@ -30,12 +26,9 @@ export async function sendSensorAxisOutput(
       errors.push("No OSC sender assigned");
     } else {
       try {
-        await sendOscMessage(
-          sender.host,
-          sender.port,
-          mapping.osc.address,
-          [{ type: "float", value }],
-        );
+        await sendOscMessage(sender.host, sender.port, mapping.osc.address, [
+          { type: "float", value },
+        ]);
       } catch (error) {
         errors.push(error instanceof Error ? error.message : String(error));
       }

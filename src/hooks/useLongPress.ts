@@ -11,9 +11,7 @@ interface LongPressPoint {
 /**
  * Touch/pen long-press handlers. Mouse is ignored (right-click / contextmenu covers desktop).
  */
-export function useLongPress(
-  onLongPress: ((point: LongPressPoint) => void) | null,
-) {
+export function useLongPress(onLongPress: ((point: LongPressPoint) => void) | null) {
   const timerRef = useRef<number | null>(null);
   const startRef = useRef<LongPressPoint | null>(null);
   const firedRef = useRef(false);

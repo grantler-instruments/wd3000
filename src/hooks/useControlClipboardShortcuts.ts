@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { isTextInputTarget } from "../lib/platform";
 import { redoPerformerEdit, undoPerformerEdit } from "../lib/performer-history";
+import { isTextInputTarget } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 
 export function useControlClipboardShortcuts(enabled: boolean) {

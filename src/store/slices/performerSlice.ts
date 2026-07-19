@@ -1,31 +1,31 @@
 import type { StateCreator } from "zustand";
 import {
+  type ControlClipboard,
   cloneControlSubtree,
   collectControlSubtree,
-  type ControlClipboard,
 } from "../../lib/controlClipboard";
 import {
-  Control,
-  ControlLayout,
-  ControlPadValue,
-  ControlType,
-  LayoutSettings,
-  TabDropPreview,
+  type Control,
+  type ControlLayout,
+  type ControlPadValue,
+  type ControlType,
   controlTabs,
   createControl,
   createTabChildLayout,
   defaultLayoutSettings,
+  type LayoutSettings,
   pruneOrphanTabChildren,
+  type TabDropPreview,
   tabChildControls,
   topLevelControls,
 } from "../../types";
+import type { AppStore } from "../appStoreTypes";
 import {
   collectDescendantIds,
   reindexOrders,
   reindexTabChildOrders,
   reindexTopLevelOrders,
 } from "../helpers/controlTree";
-import type { AppStore } from "../appStoreTypes";
 
 export interface PerformerSlice {
   controls: Control[];
@@ -68,10 +68,7 @@ export interface PerformerSlice {
   setTabDropPreview: (preview: TabDropPreview | null) => void;
 }
 
-export const createPerformerSlice: StateCreator<AppStore, [], [], PerformerSlice> = (
-  set,
-  get,
-) => ({
+export const createPerformerSlice: StateCreator<AppStore, [], [], PerformerSlice> = (set, get) => ({
   controls: [],
   layoutSettings: defaultLayoutSettings(),
   selectedControlId: null,
@@ -210,9 +207,7 @@ export const createPerformerSlice: StateCreator<AppStore, [], [], PerformerSlice
   updateControlLayout: (id, patch) =>
     set((state) => ({
       controls: state.controls.map((control) =>
-        control.id === id
-          ? { ...control, layout: { ...control.layout, ...patch } }
-          : control,
+        control.id === id ? { ...control, layout: { ...control.layout, ...patch } } : control,
       ),
     })),
   reorderTabChildren: (sourceId, targetId) => {

@@ -17,10 +17,7 @@ function normalizeSensorReading(payload: RawSensorReading): SensorReading {
   };
 }
 
-function handleRawReading(
-  payload: RawSensorReading,
-  onReading: (reading: SensorReading) => void,
-) {
+function handleRawReading(payload: RawSensorReading, onReading: (reading: SensorReading) => void) {
   const reading = normalizeSensorReading(payload);
   if (!reading.sensorId) {
     return;

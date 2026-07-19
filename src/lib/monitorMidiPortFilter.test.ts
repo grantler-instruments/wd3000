@@ -9,9 +9,7 @@ import {
 
 describe("matchesMidiPortFilter", () => {
   it("shows all ports when the filter is unset", () => {
-    expect(matchesMidiPortFilter("IAC Driver Bus 1", defaultMonitorMidiPortFilter())).toBe(
-      true,
-    );
+    expect(matchesMidiPortFilter("IAC Driver Bus 1", defaultMonitorMidiPortFilter())).toBe(true);
   });
 
   it("shows only selected ports when the filter is active", () => {

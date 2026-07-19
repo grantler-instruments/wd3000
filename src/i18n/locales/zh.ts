@@ -89,11 +89,9 @@ const zh: TranslationSchema = {
     title: "项目",
     newProject: "新建项目",
     newProjectConfirmTitle: "新建项目？",
-    newProjectConfirmBody:
-      "这将清除当前布局、控件和连接设置。如需备份请先导出。",
+    newProjectConfirmBody: "这将清除当前布局、控件和连接设置。如需备份请先导出。",
     importConfirmTitle: "导入项目？",
-    importConfirmBody:
-      "这将替换当前布局、控件和连接设置。如需备份请先导出。",
+    importConfirmBody: "这将替换当前布局、控件和连接设置。如需备份请先导出。",
   },
   io: {
     oscIntro: "具名发送与接收端点。在编辑器中将它们分配给控件。",
@@ -358,14 +356,10 @@ const zh: TranslationSchema = {
     browserIntro: "此浏览器可能需要权限后，运动和方向传感器才能工作。",
     permissionDenied: "传感器权限被拒绝。请在浏览器设置中启用后继续。",
     noBrowserSensors: "此浏览器没有可用的运动或方向 API。",
-    mobileOnlyHint:
-      "运动和方向传感器在手机和平板上效果良好。桌面浏览器通常无法提供有用的读数。",
-    nativeDesktopIntro:
-      "来自桌面应用的原生传感器。在支持的 MacBook 上包括内置屏幕角度传感器。",
-    nativeMobileIntro:
-      "设备原生传感器（运动、气压、接近、计步等，以设备支持为准）。",
-    noNativeSensorsDesktop:
-      "此计算机未找到原生传感器。屏幕角度传感器仅在支持的 MacBook 上可用。",
+    mobileOnlyHint: "运动和方向传感器在手机和平板上效果良好。桌面浏览器通常无法提供有用的读数。",
+    nativeDesktopIntro: "来自桌面应用的原生传感器。在支持的 MacBook 上包括内置屏幕角度传感器。",
+    nativeMobileIntro: "设备原生传感器（运动、气压、接近、计步等，以设备支持为准）。",
+    noNativeSensorsDesktop: "此计算机未找到原生传感器。屏幕角度传感器仅在支持的 MacBook 上可用。",
     deviceOrientation: "设备方向",
     deviceOrientationDescription: "相对于设备坐标系的 alpha、beta、gamma 角度。",
     deviceMotion: "设备运动",

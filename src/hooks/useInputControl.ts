@@ -2,18 +2,18 @@ import { listen } from "@tauri-apps/api/event";
 import { useEffect } from "react";
 import { startPerformerInputListeners, stopInputListeners } from "../lib/input";
 import {
-  ControlInputUpdate,
-  routeMidiCcMessage,
-  routeMidiNoteMessage,
-  routeOscMessage,
+  type ControlInputUpdate,
   type MidiCcInputMessage,
   type MidiNoteInputMessage,
   type OscInputMessage,
+  routeMidiCcMessage,
+  routeMidiNoteMessage,
+  routeOscMessage,
 } from "../lib/inputRouter";
 import { isNativeApp } from "../lib/platform";
 import { setWebMidiControlHandlers } from "../lib/webMidi";
-import { DEFAULT_CONTROL_PAD_VALUE } from "../types";
 import { useAppStore } from "../store/useAppStore";
+import { DEFAULT_CONTROL_PAD_VALUE } from "../types";
 
 export function useInputControl() {
   const mode = useAppStore((state) => state.mode);
@@ -34,9 +34,7 @@ export function useInputControl() {
 
     void startPerformerInputListeners(performerIo, controls).catch((error) => {
       if (!cancelled) {
-        useAppStore
-          .getState()
-          .setLastError(error instanceof Error ? error.message : String(error));
+        useAppStore.getState().setLastError(error instanceof Error ? error.message : String(error));
       }
     });
 
@@ -60,8 +58,7 @@ export function useInputControl() {
 
         if ("axis" in update) {
           const current =
-            useAppStore.getState().controlPadValues[update.controlId] ??
-            DEFAULT_CONTROL_PAD_VALUE;
+            useAppStore.getState().controlPadValues[update.controlId] ?? DEFAULT_CONTROL_PAD_VALUE;
           setControlPadValue(
             update.controlId,
             update.axis === "x" ? update.value : current.x,
@@ -113,5 +110,12 @@ export function useInputControl() {
         }
       });
     };
-  }, [controls, mode, setControlNoteActive, setControlPadValue, setControlTabIndex, setControlValue]);
+  }, [
+    controls,
+    mode,
+    setControlNoteActive,
+    setControlPadValue,
+    setControlTabIndex,
+    setControlValue,
+  ]);
 }

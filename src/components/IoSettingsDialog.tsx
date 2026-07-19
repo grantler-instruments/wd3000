@@ -1,9 +1,9 @@
-import { useTranslation } from "react-i18next";
 import { Box, Button, Dialog, DialogActions } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
+import { settingsTheme } from "../theme";
 import { AppDialogHeader } from "./AppDialogHeader";
 import { IoSettingsPanel } from "./IoSettingsPanel";
-import { settingsTheme } from "../theme";
 
 interface IoSettingsDialogProps {
   open: boolean;

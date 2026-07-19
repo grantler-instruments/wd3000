@@ -14,13 +14,13 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  PITCH_BEND_CENTER,
-  PITCH_BEND_MAX,
-  PITCH_BEND_MIN,
   defaultMidiComposerParams,
   encodeMidiComposerMessage,
   formatMidiComposerSummary,
   getMidiComposerDebugKind,
+  PITCH_BEND_CENTER,
+  PITCH_BEND_MAX,
+  PITCH_BEND_MIN,
 } from "../lib/midiMessages";
 import {
   MIDI_COMPOSER_TYPES,
@@ -47,8 +47,7 @@ const MIDI_COMPOSER_TYPE_KEYS: Record<MidiComposerType, string> = {
   continue: "midiKinds.continue",
 };
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function useNumberField(
   value: number,
@@ -163,12 +162,7 @@ export function MidiComposer() {
     try {
       const bytes = encodeMidiComposerMessage(messageType, params);
       const summary = formatMidiComposerSummary(messageType, params, bytes);
-      await sendMidiRaw(
-        portName,
-        bytes,
-        getMidiComposerDebugKind(messageType),
-        summary,
-      );
+      await sendMidiRaw(portName, bytes, getMidiComposerDebugKind(messageType), summary);
       setLastError(null);
     } catch (error) {
       setLastError(error instanceof Error ? error.message : String(error));
@@ -195,11 +189,7 @@ export function MidiComposer() {
 
   return (
     <DebuggerSection title={t("monitor.composer")}>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={1}
-        sx={debuggerComposerRowSx}
-      >
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={debuggerComposerRowSx}>
         {showChannel && (
           <FormControl size="small" sx={{ width: { xs: "100%", sm: 96 } }}>
             <InputLabel id="midi-composer-channel-label">{t("common.channel")}</InputLabel>
@@ -345,7 +335,10 @@ export function MidiComposer() {
 
         <Box sx={{ flex: { xs: "0 0 auto", sm: 1 }, display: { xs: "none", sm: "block" } }} />
 
-        <FormControl size="small" sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 200 }, maxWidth: { sm: 320 } }}>
+        <FormControl
+          size="small"
+          sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 200 }, maxWidth: { sm: 320 } }}
+        >
           <InputLabel id="midi-composer-device-label">{t("common.device")}</InputLabel>
           <Select
             labelId="midi-composer-device-label"

@@ -50,16 +50,8 @@ export function useResizeControl({
       const deltaY = event.clientY - origin.current.pointerY;
 
       setSize({
-        width: clamp(
-          snapToGrid(origin.current.width + deltaX, gridSize),
-          minWidth,
-          maxWidth,
-        ),
-        height: clamp(
-          snapToGrid(origin.current.height + deltaY, gridSize),
-          minHeight,
-          maxHeight,
-        ),
+        width: clamp(snapToGrid(origin.current.width + deltaX, gridSize), minWidth, maxWidth),
+        height: clamp(snapToGrid(origin.current.height + deltaY, gridSize), minHeight, maxHeight),
       });
     };
 

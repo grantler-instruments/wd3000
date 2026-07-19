@@ -20,16 +20,12 @@ import { usePointerReorder } from "../hooks/usePointerReorder";
 import {
   defaultOscComposerArg,
   formatOscMessageSummary,
-  toOscArgPayload,
   type OscComposerArg,
+  toOscArgPayload,
 } from "../lib/oscMessages";
+import { OSC_ARG_TYPES, type OscArgType, oscArgTypeRequiresValue } from "../lib/oscTypes";
 import { sendOscMessage } from "../lib/output";
 import { isNativeApp } from "../lib/platform";
-import {
-  OSC_ARG_TYPES,
-  type OscArgType,
-  oscArgTypeRequiresValue,
-} from "../lib/oscTypes";
 import { useAppStore } from "../store/useAppStore";
 import { DebuggerSection } from "./DebuggerSection";
 import { debuggerComposerRowSx } from "./debuggerLayoutSx";
@@ -54,13 +50,7 @@ function createArgRow(): OscComposerArgRow {
 }
 
 function isIncompleteFloat(raw: string) {
-  return (
-    raw === "" ||
-    raw === "-" ||
-    raw === "." ||
-    raw === "-." ||
-    raw.endsWith(".")
-  );
+  return raw === "" || raw === "-" || raw === "." || raw === "-." || raw.endsWith(".");
 }
 
 function useFloatField(value: number, onChange: (value: number) => void) {
@@ -144,9 +134,7 @@ function OscArgRow({
   const floatField = useFloatField(arg.floatValue, (floatValue) =>
     onChange({ ...arg, floatValue }),
   );
-  const intField = useIntField(arg.intValue, (intValue) =>
-    onChange({ ...arg, intValue }),
-  );
+  const intField = useIntField(arg.intValue, (intValue) => onChange({ ...arg, intValue }));
 
   return (
     <Stack
@@ -210,9 +198,7 @@ function OscArgRow({
           labelId={`osc-composer-type-label-${arg.id}`}
           label={t("common.type")}
           value={arg.type}
-          onChange={(event) =>
-            onChange({ ...arg, type: event.target.value as OscArgType })
-          }
+          onChange={(event) => onChange({ ...arg, type: event.target.value as OscArgType })}
         >
           {OSC_ARG_TYPES.map((type) => (
             <MenuItem key={type} value={type}>
@@ -253,9 +239,7 @@ function OscArgRow({
           label={t("common.value")}
           size="small"
           value={arg.stringValue}
-          onChange={(event) =>
-            onChange({ ...arg, stringValue: event.target.value })
-          }
+          onChange={(event) => onChange({ ...arg, stringValue: event.target.value })}
           placeholder="hello"
           sx={{ width: { xs: "100%", sm: 220 }, flex: { sm: 1 } }}
         />
@@ -349,11 +333,7 @@ export function OscComposer() {
   return (
     <DebuggerSection title={t("monitor.composer")}>
       <Stack spacing={1}>
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={1}
-          sx={debuggerComposerRowSx}
-        >
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={debuggerComposerRowSx}>
           <TextField
             label={t("common.address")}
             size="small"
@@ -393,13 +373,7 @@ export function OscComposer() {
             variant="contained"
             startIcon={<SendIcon />}
             onClick={handleSend}
-            disabled={
-              !native ||
-              sending ||
-              !host.trim() ||
-              !address.trim() ||
-              args.length === 0
-            }
+            disabled={!native || sending || !host.trim() || !address.trim() || args.length === 0}
             sx={{ flexShrink: 0, width: { xs: "100%", sm: "auto" } }}
           >
             {t("common.send")}

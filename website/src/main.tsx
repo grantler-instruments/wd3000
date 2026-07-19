@@ -2,8 +2,8 @@ import { CssBaseline, ThemeProvider } from "@mui/material";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { WebsiteApp } from "./WebsiteApp";
 import { websiteTheme } from "./theme";
+import { WebsiteApp } from "./WebsiteApp";
 
 const basename = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
 

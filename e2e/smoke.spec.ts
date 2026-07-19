@@ -14,9 +14,7 @@ test("app loads in edit mode @smoke", async ({ page }) => {
 
   await openPerformerSubView(page, "UI");
 
-  await expect(
-    page.getByText("Add widgets to build your control surface."),
-  ).toBeVisible();
+  await expect(page.getByText("Add widgets to build your control surface.")).toBeVisible();
   await expect(page.getByRole("button", { name: /Run/ })).toBeVisible();
 });
 
@@ -49,9 +47,7 @@ test("run mode toggle with keyboard shortcut @smoke", async ({ page }) => {
   await expect(page.getByText("Switch to edit mode to add controls.")).toBeVisible();
 
   await pressModShortcut(page, "e");
-  await expect(
-    page.getByText("Add widgets to build your control surface."),
-  ).toBeVisible();
+  await expect(page.getByText("Add widgets to build your control surface.")).toBeVisible();
 });
 
 test("reload restores persisted layout @smoke", async ({ page }) => {

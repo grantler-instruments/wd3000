@@ -6,13 +6,6 @@ import {
   clearRemovedSensorEndpointReferences,
 } from "../../lib/performerIo";
 import {
-  MidiInputEndpoint,
-  MidiOutputEndpoint,
-  MqttConnection,
-  OscReceiver,
-  OscSender,
-  OutputConfig,
-  PerformerIoConfig,
   createMidiInputEndpoint,
   createMidiOutputEndpoint,
   createMqttConnection,
@@ -20,6 +13,13 @@ import {
   createOscSender,
   defaultOutputConfig,
   defaultPerformerIoConfig,
+  type MidiInputEndpoint,
+  type MidiOutputEndpoint,
+  type MqttConnection,
+  type OscReceiver,
+  type OscSender,
+  type OutputConfig,
+  type PerformerIoConfig,
 } from "../../types";
 import type { AppStore } from "../appStoreTypes";
 
@@ -91,10 +91,7 @@ export const createIoSlice: StateCreator<AppStore, [], [], IoSlice> = (set) => (
         oscSenders: state.performerIo.oscSenders.filter((sender) => sender.id !== id),
       },
       controls: clearRemovedEndpointReferences(state.controls, new Set([id])),
-      sensorMappings: clearRemovedSensorEndpointReferences(
-        state.sensorMappings,
-        new Set([id]),
-      ),
+      sensorMappings: clearRemovedSensorEndpointReferences(state.sensorMappings, new Set([id])),
       mediapipeMappings: clearRemovedMediaPipeEndpointReferences(
         state.mediapipeMappings,
         new Set([id]),
@@ -131,9 +128,7 @@ export const createIoSlice: StateCreator<AppStore, [], [], IoSlice> = (set) => (
     set((state) => ({
       performerIo: {
         ...state.performerIo,
-        oscReceivers: state.performerIo.oscReceivers.filter(
-          (receiver) => receiver.id !== id,
-        ),
+        oscReceivers: state.performerIo.oscReceivers.filter((receiver) => receiver.id !== id),
       },
       controls: clearRemovedEndpointReferences(state.controls, new Set([id])),
     })),
@@ -172,10 +167,7 @@ export const createIoSlice: StateCreator<AppStore, [], [], IoSlice> = (set) => (
         midiOutputs: state.performerIo.midiOutputs.filter((endpoint) => endpoint.id !== id),
       },
       controls: clearRemovedEndpointReferences(state.controls, new Set([id])),
-      sensorMappings: clearRemovedSensorEndpointReferences(
-        state.sensorMappings,
-        new Set([id]),
-      ),
+      sensorMappings: clearRemovedSensorEndpointReferences(state.sensorMappings, new Set([id])),
       mediapipeMappings: clearRemovedMediaPipeEndpointReferences(
         state.mediapipeMappings,
         new Set([id]),

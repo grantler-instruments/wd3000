@@ -1,16 +1,10 @@
 import AddIcon from "@mui/icons-material/Add";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import {
-  Button,
-  ButtonProps,
-  IconButton,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
+import { Button, type ButtonProps, IconButton, useMediaQuery, useTheme } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ControlType } from "../types";
 import { useAppStore } from "../store/useAppStore";
+import type { ControlType } from "../types";
 import { AddWidgetMenu } from "./AddWidgetMenu";
 
 interface AddControlMenuProps {
@@ -18,10 +12,7 @@ interface AddControlMenuProps {
   variant?: ButtonProps["variant"];
 }
 
-export function AddControlMenu({
-  size = "small",
-  variant = "outlined",
-}: AddControlMenuProps) {
+export function AddControlMenu({ size = "small", variant = "outlined" }: AddControlMenuProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -60,12 +51,7 @@ export function AddControlMenu({
           <AddIcon />
         </IconButton>
       ) : (
-        <Button
-          {...menuProps}
-          variant={variant}
-          size={size}
-          endIcon={<ArrowDropDownIcon />}
-        >
+        <Button {...menuProps} variant={variant} size={size} endIcon={<ArrowDropDownIcon />}>
           {label}
         </Button>
       )}

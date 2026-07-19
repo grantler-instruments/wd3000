@@ -1,21 +1,9 @@
-import {
-  Box,
-  Button,
-  Chip,
-  Paper,
-  Slider,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Chip, Paper, Slider, Stack, Typography } from "@mui/material";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { sendButtonValue, sendSliderValue } from "../lib/output";
-import {
-  Control,
-  controlActiveProtocolLabels,
-  controlMappingLabel,
-} from "../types";
 import { useAppStore } from "../store/useAppStore";
+import { type Control, controlActiveProtocolLabels, controlMappingLabel } from "../types";
 import { KeyboardWidget } from "./KeyboardWidget";
 import { PadWidget } from "./PadWidget";
 import { TabsWidget } from "./TabsWidget";
@@ -199,9 +187,7 @@ export function ControlWidget({
             value={sliderValue}
             onChange={handleSliderChange}
             disabled={editable && !layoutPreview}
-            orientation={
-              control.sliderOrientation === "vertical" ? "vertical" : "horizontal"
-            }
+            orientation={control.sliderOrientation === "vertical" ? "vertical" : "horizontal"}
             valueLabelDisplay="auto"
             sx={{
               ...(accentColor ? { color: accentColor } : undefined),

@@ -1,12 +1,8 @@
 import { useEffect, useRef } from "react";
-import { sendSensorAxisOutput } from "./output";
-import {
-  defaultSensorAxisMapping,
-  normalizeSensorAxisMapping,
-  sensorAxisKey,
-} from "./types";
 import type { PerformerIoConfig } from "../../types";
+import { sendSensorAxisOutput } from "./output";
 import type { SensorAxisMapping } from "./types";
+import { defaultSensorAxisMapping, normalizeSensorAxisMapping, sensorAxisKey } from "./types";
 
 export function useBrowserSensorOutput(
   enabled: boolean,

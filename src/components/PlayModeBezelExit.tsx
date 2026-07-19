@@ -69,10 +69,7 @@ export function PlayModeBezelExit({ onExit }: PlayModeBezelExitProps) {
   const dragProgress =
     dragOffset === null
       ? 0
-      : Math.min(
-          1,
-          Math.hypot(dragOffset.x, dragOffset.y) / MIN_EXIT_DISTANCE,
-        );
+      : Math.min(1, Math.hypot(dragOffset.x, dragOffset.y) / MIN_EXIT_DISTANCE);
 
   return (
     <Box

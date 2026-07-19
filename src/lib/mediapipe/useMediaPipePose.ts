@@ -1,10 +1,9 @@
 import { Camera } from "@mediapipe/camera_utils";
-import {
-  drawConnectors,
-  drawLandmarks,
-} from "@mediapipe/drawing_utils";
+import { drawConnectors, drawLandmarks } from "@mediapipe/drawing_utils";
+import type { NormalizedLandmark } from "@mediapipe/pose";
 import { POSE_CONNECTIONS, Pose } from "@mediapipe/pose";
-import { useEffect, useRef, type RefObject } from "react";
+import { type RefObject, useEffect, useRef } from "react";
+import type { PerformerIoConfig } from "../../types";
 import {
   MEDIAPIPE_PREVIEW_HEIGHT,
   MEDIAPIPE_PREVIEW_WIDTH,
@@ -12,13 +11,13 @@ import {
   poseModelPath,
 } from "./landmarks";
 import { sendMediaPipeLandmarkOutputThrottled } from "./output";
+import { drawMediaPipePreviewFrame, finishMediaPipePreviewFrame } from "./previewCanvas";
 import {
-  drawMediaPipePreviewFrame,
-  finishMediaPipePreviewFrame,
-} from "./previewCanvas";
-import type { NormalizedLandmark } from "@mediapipe/pose";
-import type { PerformerIoConfig } from "../../types";
-import { mirrorLandmarkX, poseLandmarkKey, type MediaPipeLandmark, type MediaPipeLandmarkMapping } from "./types";
+  type MediaPipeLandmark,
+  type MediaPipeLandmarkMapping,
+  mirrorLandmarkX,
+  poseLandmarkKey,
+} from "./types";
 
 interface UseMediaPipePoseOptions {
   active: boolean;

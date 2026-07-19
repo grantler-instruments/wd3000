@@ -49,7 +49,7 @@ function setCargoLock(version) {
   const contents = readFileSync(path, "utf8");
   const match = contents.match(/^name = "wd3000"\r?\nversion = "(.*)"\r?$/m);
   if (!match) {
-    throw new Error('Could not find wd3000 package version in Cargo.lock');
+    throw new Error("Could not find wd3000 package version in Cargo.lock");
   }
   if (match[1] === version) return;
   const eol = contents.includes("\r\n") ? "\r\n" : "\n";

@@ -1,10 +1,7 @@
 import { pushDebugLog } from "./debugLog";
-import type {
-  MidiCcInputMessage,
-  MidiNoteInputMessage,
-} from "./inputRouter";
-import { asMidiPayload } from "./midiPayload";
+import type { MidiCcInputMessage, MidiNoteInputMessage } from "./inputRouter";
 import { parseMidiInput } from "./midiInputParse";
+import { asMidiPayload } from "./midiPayload";
 import { isWebMidiSupported } from "./platform";
 
 let midiAccess: MIDIAccess | null = null;

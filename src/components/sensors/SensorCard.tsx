@@ -1,7 +1,4 @@
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import type { MouseEvent, ReactNode } from "react";
-import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 import {
   Accordion,
   AccordionDetails,
@@ -10,6 +7,9 @@ import {
   Switch,
   Typography,
 } from "@mui/material";
+import type { MouseEvent, ReactNode } from "react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 function formatValue(value: number | null | undefined) {
   if (value == null || Number.isNaN(value)) {
@@ -102,9 +102,7 @@ export function SensorCard({
               onClick={stopPropagation}
               onChange={(_, checked) => onToggleWatch(checked)}
               aria-label={
-                watching
-                  ? t("sensors.stopNamed", { title })
-                  : t("sensors.startNamed", { title })
+                watching ? t("sensors.stopNamed", { title }) : t("sensors.startNamed", { title })
               }
             />
           ) : null}

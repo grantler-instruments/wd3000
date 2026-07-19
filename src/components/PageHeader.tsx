@@ -14,8 +14,8 @@ import { formatShortcutKey } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import { AddControlMenu } from "./AddControlMenu";
 import { EditControlMenu } from "./EditControlMenu";
-import { ProjectMenu } from "./ProjectMenu";
 import { GrantlerLogo } from "./GrantlerLogo";
+import { ProjectMenu } from "./ProjectMenu";
 
 export function PageHeader() {
   const { t } = useTranslation();
@@ -28,8 +28,7 @@ export function PageHeader() {
 
   const showUiEditor = activeView === "performer" && performerSubView === "ui";
   const showRunButton =
-    activeView === "performer" &&
-    (performerSubView === "ui" || performerSubView === "mediapipe");
+    activeView === "performer" && (performerSubView === "ui" || performerSubView === "mediapipe");
 
   const runButton = showRunButton ? (
     isMobile ? (
@@ -58,11 +57,7 @@ export function PageHeader() {
   ) : null;
 
   const editorMenus = showUiEditor ? (
-    <Stack
-      direction="row"
-      spacing={1}
-      sx={{ alignItems: "center", flexWrap: "wrap", gap: 1 }}
-    >
+    <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap", gap: 1 }}>
       <ProjectMenu />
       <AddControlMenu />
       {!isMobile && <EditControlMenu />}
@@ -96,10 +91,7 @@ export function PageHeader() {
       </Toolbar>
 
       {isMobile && editorMenus ? (
-        <Toolbar
-          variant="dense"
-          sx={{ gap: 1, minHeight: 40, pt: 0, alignItems: "flex-start" }}
-        >
+        <Toolbar variant="dense" sx={{ gap: 1, minHeight: 40, pt: 0, alignItems: "flex-start" }}>
           {editorMenus}
         </Toolbar>
       ) : null}

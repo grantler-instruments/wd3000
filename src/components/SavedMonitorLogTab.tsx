@@ -12,23 +12,14 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   exportMonitorLogToFile,
   formatMonitorLogDuration,
-  parseMonitorLogImport,
   type MonitorLogProtocol,
+  parseMonitorLogImport,
 } from "../lib/monitorLog";
-import {
-  defaultMonitorMidiTypeFilter,
-  matchesMidiTypeFilter,
-} from "../lib/monitorMidiFilter";
-import {
-  collectMonitorMidiPorts,
-  defaultMonitorMidiPortFilter,
-  matchesMidiPortFilter,
-} from "../lib/monitorMidiPortFilter";
 import {
   defaultMonitorDirectionFilter,
   isMonitorFilterActive,
@@ -40,6 +31,12 @@ import {
   isMonitorLogReplayActive,
   useMonitorLogReplayProgress,
 } from "../lib/monitorLogReplay";
+import { defaultMonitorMidiTypeFilter, matchesMidiTypeFilter } from "../lib/monitorMidiFilter";
+import {
+  collectMonitorMidiPorts,
+  defaultMonitorMidiPortFilter,
+  matchesMidiPortFilter,
+} from "../lib/monitorMidiPortFilter";
 import { useAppStore } from "../store/useAppStore";
 import { useMonitorLogStore, useSavedMonitorLogs } from "../store/useMonitorLogStore";
 import { MonitorFilterAccordion } from "./MonitorFilterAccordion";
@@ -83,8 +80,7 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
     clearPendingSelection();
   }, [clearPendingSelection, pendingSelection, protocol]);
 
-  const selectValue =
-    logs.find((log) => log.id === selectedId)?.id ?? logs[0]?.id ?? "";
+  const selectValue = logs.find((log) => log.id === selectedId)?.id ?? logs[0]?.id ?? "";
   const selectedLog = logs.find((log) => log.id === selectValue) ?? null;
   const incomingCount = selectedLog ? countIncomingMonitorEvents(selectedLog.events) : 0;
   const outgoingCount = selectedLog ? countOutgoingMonitorEvents(selectedLog.events) : 0;
@@ -95,17 +91,12 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
   );
 
   const availablePorts = useMemo(
-    () =>
-      protocol === "midi"
-        ? collectMonitorMidiPorts(selectedLog?.events ?? [], [], [])
-        : [],
+    () => (protocol === "midi" ? collectMonitorMidiPorts(selectedLog?.events ?? [], [], []) : []),
     [protocol, selectedLog],
   );
 
   const isReplayingSelected =
-    replayProgress.active &&
-    selectedLog !== null &&
-    replayProgress.logId === selectedLog.id;
+    replayProgress.active && selectedLog !== null && replayProgress.logId === selectedLog.id;
 
   const previewEntries = useMemo(() => {
     if (isReplayingSelected) {
@@ -283,13 +274,13 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
               ? t("monitor.selectSavedLog")
               : isReplayingSelected
                 ? t("monitor.emptySavedLog")
-              : isMonitorFilterActive(
-                  directionFilter,
-                  protocol === "midi" ? midiTypeFilter : undefined,
-                  protocol === "midi" ? midiPortFilter : undefined,
-                )
-                ? t("monitor.noFilterMatch")
-                : t("monitor.emptySavedLog")
+                : isMonitorFilterActive(
+                      directionFilter,
+                      protocol === "midi" ? midiTypeFilter : undefined,
+                      protocol === "midi" ? midiPortFilter : undefined,
+                    )
+                  ? t("monitor.noFilterMatch")
+                  : t("monitor.emptySavedLog")
           }
         />
       </Box>

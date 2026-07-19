@@ -4,7 +4,7 @@ import type {
   DebugLogKind,
   MonitorEventPayload,
 } from "./debugLog";
-import { isOscDebugEntry, isMqttDebugEntry } from "./debugLog";
+import { isMqttDebugEntry, isOscDebugEntry } from "./debugLog";
 import { isMidiDebugKind } from "./midiTypes";
 import { resolveMonitorEventPayload } from "./monitorLogParse";
 
@@ -211,8 +211,7 @@ export function parseMonitorLogImport(raw: string): SavedMonitorLog {
     id: crypto.randomUUID(),
     name,
     protocol: parsed.protocol,
-    savedAt:
-      typeof parsed.savedAt === "string" ? parsed.savedAt : new Date().toISOString(),
+    savedAt: typeof parsed.savedAt === "string" ? parsed.savedAt : new Date().toISOString(),
     events: parsed.events.map(parseMonitorLogEvent),
   };
 }

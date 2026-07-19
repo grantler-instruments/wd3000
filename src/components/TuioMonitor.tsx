@@ -11,6 +11,7 @@ import {
 import { listen } from "@tauri-apps/api/event";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { isNativeApp } from "../lib/platform";
 import {
   OUTGOING_CURSOR_COLOR,
   sendTuioCursors,
@@ -18,11 +19,10 @@ import {
   stopTuioListener,
   TUIO_ENTITY_COLORS,
   TUIO_ENTITY_KINDS,
-  tuioEntityLabel,
   type TuioEntity,
   type TuioFrame,
+  tuioEntityLabel,
 } from "../lib/tuio";
-import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import { DebuggerSection } from "./DebuggerSection";
 import { debuggerFillSx } from "./debuggerLayoutSx";
@@ -253,9 +253,7 @@ function drawSurface(
     return;
   }
 
-  const drawable = frame.entities.filter(
-    (entity) => entity.x != null && entity.y != null,
-  );
+  const drawable = frame.entities.filter((entity) => entity.x != null && entity.y != null);
 
   for (const entity of drawable) {
     drawEntity(context, entity, width, height);
@@ -423,13 +421,7 @@ export function TuioMonitor() {
       return;
     }
 
-    drawSurface(
-      canvas,
-      frame,
-      outgoingCursors,
-      surface.clientWidth,
-      surface.clientHeight,
-    );
+    drawSurface(canvas, frame, outgoingCursors, surface.clientWidth, surface.clientHeight);
   }, [frame, outgoingCursors]);
 
   const handlePointerDown = useCallback(
@@ -449,10 +441,7 @@ export function TuioMonitor() {
       nextSessionIdRef.current += 1;
       pointerSessionsRef.current.set(event.pointerId, sessionId);
 
-      updateOutgoingCursors((current) => [
-        ...current,
-        { sessionId, x: position.x, y: position.y },
-      ]);
+      updateOutgoingCursors((current) => [...current, { sessionId, x: position.x, y: position.y }]);
     },
     [native, pointerToNormalized, sendEnabled, updateOutgoingCursors],
   );
@@ -474,9 +463,7 @@ export function TuioMonitor() {
 
       updateOutgoingCursors((current) =>
         current.map((cursor) =>
-          cursor.sessionId === sessionId
-            ? { ...cursor, x: position.x, y: position.y }
-            : cursor,
+          cursor.sessionId === sessionId ? { ...cursor, x: position.x, y: position.y } : cursor,
         ),
       );
     },
@@ -505,15 +492,18 @@ export function TuioMonitor() {
     [native, updateOutgoingCursors],
   );
 
-  const spatialEntities = frame?.entities.filter(
-    (entity) => entity.x != null && entity.y != null,
-  ) ?? [];
+  const spatialEntities =
+    frame?.entities.filter((entity) => entity.x != null && entity.y != null) ?? [];
   const symbolEntities = frame?.entities.filter((entity) => entity.kind === "symbol") ?? [];
 
   return (
     <>
       <DebuggerSection title={t("monitor.composer")}>
-        <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ alignItems: "flex-start", flexWrap: "wrap" }}>
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          spacing={2}
+          sx={{ alignItems: "flex-start", flexWrap: "wrap" }}
+        >
           <TextField
             label={t("monitor.sendHost")}
             size="small"
@@ -596,243 +586,246 @@ export function TuioMonitor() {
                 overflow: { xs: "visible", md: "hidden" },
               }}
             >
-        <Box
-          ref={surfaceRef}
-          sx={{
-            flex: 2,
-            minHeight: { xs: 280, lg: 0 },
-            height: { lg: "100%" },
-            border: 1,
-            borderColor: "divider",
-            borderRadius: 1,
-            overflow: "hidden",
-            bgcolor: "#121212",
-            position: "relative",
-          }}
-        >
-          <Box
-            component="canvas"
-            ref={canvasRef}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerEnd}
-            onPointerCancel={handlePointerEnd}
-            sx={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              display: "block",
-              touchAction: "none",
-              cursor: native && sendEnabled ? "crosshair" : "default",
-              pointerEvents: native ? "auto" : "none",
-            }}
-          />
-          {spatialEntities.length === 0 &&
-            outgoingCursors.length === 0 &&
-            listenPort > 0 && (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                pointerEvents: "none",
-                textAlign: "center",
-                px: 2,
-              }}
-            >
-              {sendEnabled
-                ? t("monitor.listeningOnPortSend", {
-                    port: listenPort,
-                    host: sendHost,
-                    sendPort,
-                  })
-                : t("monitor.waitingTuio")}
-            </Typography>
-          )}
-        </Box>
-
-        <Stack
-          spacing={2}
-          sx={{
-            flex: { xs: "0 0 auto", md: 1 },
-            minWidth: { xs: 0, lg: 240 },
-            minHeight: { xs: "auto", md: 0 },
-            overflow: { xs: "visible", md: "hidden" },
-          }}
-        >
-          <Box
-            sx={{
-              border: 1,
-              borderColor: "divider",
-              borderRadius: 1,
-              overflow: "auto",
-              maxHeight: 220,
-            }}
-          >
-            <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
-              {t("monitor.activeEntities", {
-                count: (frame?.entities.length ?? 0) + outgoingCursors.length,
-              })}
-            </Typography>
-            <Divider />
-            {outgoingCursors.length > 0 && (
-              <Stack divider={<Divider />}>
-                {outgoingCursors.map((cursor) => (
-                  <Stack
-                    key={`out-${cursor.sessionId}`}
-                    direction="row"
-                    spacing={1}
-                    sx={{ px: 2, py: 1, alignItems: "center" }}
-                  >
-                    <Chip
-                      label={t("monitor.out")}
-                      size="small"
-                      sx={{
-                        minWidth: 72,
-                        bgcolor: `${OUTGOING_CURSOR_COLOR}33`,
-                      }}
-                    />
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="body2" noWrap>
-                        {t("monitor.cursorN", { id: cursor.sessionId })}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {cursor.x.toFixed(3)}, {cursor.y.toFixed(3)}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                ))}
-              </Stack>
-            )}
-            {frame && frame.entities.length > 0 ? (
-              <Stack divider={<Divider />}>
-                {frame.entities.map((entity) => (
-                  <Stack
-                    key={`${entity.kind}-${entity.sessionId}`}
-                    direction="row"
-                    spacing={1}
-                    sx={{ px: 2, py: 1, alignItems: "center" }}
-                  >
-                    <Chip
-                      label={tuioEntityLabel(entity.kind)}
-                      size="small"
-                      sx={{
-                        minWidth: 72,
-                        bgcolor: `${TUIO_ENTITY_COLORS[entity.kind] ?? "#bdbdbd"}33`,
-                      }}
-                    />
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="body2" noWrap>
-                        {entityLabel(entity)}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {entityPosition(entity)}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                ))}
-              </Stack>
-            ) : outgoingCursors.length === 0 ? (
-              <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-                {t("monitor.noActiveTuio")}
-              </Typography>
-            ) : null}
-          </Box>
-
-          {symbolEntities.length > 0 && (
-            <Box
-              sx={{
-                border: 1,
-                borderColor: "divider",
-                borderRadius: 1,
-                overflow: "auto",
-                maxHeight: 140,
-              }}
-            >
-              <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
-                {t("monitor.symbols")}
-              </Typography>
-              <Divider />
-              <Stack divider={<Divider />}>
-                {symbolEntities.map((entity) => (
-                  <Box key={`symbol-${entity.sessionId}`} sx={{ px: 2, py: 1 }}>
-                    <Typography variant="body2">
-                      #{entity.sessionId} · {entity.group ?? "group"} · {entity.data ?? "data"}
-                    </Typography>
-                  </Box>
-                ))}
-              </Stack>
-            </Box>
-          )}
-
-          <Box
-            sx={{
-              flex: 1,
-              minHeight: 0,
-              overflow: "auto",
-              border: 1,
-              borderColor: "divider",
-              borderRadius: 1,
-            }}
-          >
-            <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
-              {t("monitor.events")}
-            </Typography>
-            <Divider />
-            {logEntries.length === 0 ? (
-              <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-                {t("monitor.removeEventsHint")}
-              </Typography>
-            ) : (
-              <Stack divider={<Divider />}>
-                {logEntries.map((entry) => (
-                  <Stack
-                    key={entry.id}
-                    direction="row"
-                    spacing={1.5}
+              <Box
+                ref={surfaceRef}
+                sx={{
+                  flex: 2,
+                  minHeight: { xs: 280, lg: 0 },
+                  height: { lg: "100%" },
+                  border: 1,
+                  borderColor: "divider",
+                  borderRadius: 1,
+                  overflow: "hidden",
+                  bgcolor: "#121212",
+                  position: "relative",
+                }}
+              >
+                <Box
+                  component="canvas"
+                  ref={canvasRef}
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerEnd}
+                  onPointerCancel={handlePointerEnd}
+                  sx={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    display: "block",
+                    touchAction: "none",
+                    cursor: native && sendEnabled ? "crosshair" : "default",
+                    pointerEvents: native ? "auto" : "none",
+                  }}
+                />
+                {spatialEntities.length === 0 && outgoingCursors.length === 0 && listenPort > 0 && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
                     sx={{
+                      position: "absolute",
+                      inset: 0,
+                      display: "flex",
                       alignItems: "center",
-                      flexWrap: "wrap",
-                      rowGap: 0.5,
-                      px: { xs: 1.5, sm: 2 },
-                      py: 1,
-                      fontFamily: "monospace",
-                      fontSize: "0.8125rem",
-                      minWidth: 0,
+                      justifyContent: "center",
+                      pointerEvents: "none",
+                      textAlign: "center",
+                      px: 2,
                     }}
                   >
-                    <Typography
-                      component="span"
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ fontFamily: "inherit", minWidth: { xs: 72, sm: 108 }, flexShrink: 0 }}
-                    >
-                      {formatTime(entry.timestamp)}
+                    {sendEnabled
+                      ? t("monitor.listeningOnPortSend", {
+                          port: listenPort,
+                          host: sendHost,
+                          sendPort,
+                        })
+                      : t("monitor.waitingTuio")}
+                  </Typography>
+                )}
+              </Box>
+
+              <Stack
+                spacing={2}
+                sx={{
+                  flex: { xs: "0 0 auto", md: 1 },
+                  minWidth: { xs: 0, lg: 240 },
+                  minHeight: { xs: "auto", md: 0 },
+                  overflow: { xs: "visible", md: "hidden" },
+                }}
+              >
+                <Box
+                  sx={{
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    overflow: "auto",
+                    maxHeight: 220,
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
+                    {t("monitor.activeEntities", {
+                      count: (frame?.entities.length ?? 0) + outgoingCursors.length,
+                    })}
+                  </Typography>
+                  <Divider />
+                  {outgoingCursors.length > 0 && (
+                    <Stack divider={<Divider />}>
+                      {outgoingCursors.map((cursor) => (
+                        <Stack
+                          key={`out-${cursor.sessionId}`}
+                          direction="row"
+                          spacing={1}
+                          sx={{ px: 2, py: 1, alignItems: "center" }}
+                        >
+                          <Chip
+                            label={t("monitor.out")}
+                            size="small"
+                            sx={{
+                              minWidth: 72,
+                              bgcolor: `${OUTGOING_CURSOR_COLOR}33`,
+                            }}
+                          />
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography variant="body2" noWrap>
+                              {t("monitor.cursorN", { id: cursor.sessionId })}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {cursor.x.toFixed(3)}, {cursor.y.toFixed(3)}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                      ))}
+                    </Stack>
+                  )}
+                  {frame && frame.entities.length > 0 ? (
+                    <Stack divider={<Divider />}>
+                      {frame.entities.map((entity) => (
+                        <Stack
+                          key={`${entity.kind}-${entity.sessionId}`}
+                          direction="row"
+                          spacing={1}
+                          sx={{ px: 2, py: 1, alignItems: "center" }}
+                        >
+                          <Chip
+                            label={tuioEntityLabel(entity.kind)}
+                            size="small"
+                            sx={{
+                              minWidth: 72,
+                              bgcolor: `${TUIO_ENTITY_COLORS[entity.kind] ?? "#bdbdbd"}33`,
+                            }}
+                          />
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography variant="body2" noWrap>
+                              {entityLabel(entity)}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {entityPosition(entity)}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                      ))}
+                    </Stack>
+                  ) : outgoingCursors.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
+                      {t("monitor.noActiveTuio")}
                     </Typography>
-                    <Typography
-                      component="span"
-                      variant="body2"
-                      sx={{
-                        fontFamily: "inherit",
-                        flex: "1 1 120px",
-                        minWidth: 0,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {entry.summary}
+                  ) : null}
+                </Box>
+
+                {symbolEntities.length > 0 && (
+                  <Box
+                    sx={{
+                      border: 1,
+                      borderColor: "divider",
+                      borderRadius: 1,
+                      overflow: "auto",
+                      maxHeight: 140,
+                    }}
+                  >
+                    <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
+                      {t("monitor.symbols")}
                     </Typography>
-                  </Stack>
-                ))}
+                    <Divider />
+                    <Stack divider={<Divider />}>
+                      {symbolEntities.map((entity) => (
+                        <Box key={`symbol-${entity.sessionId}`} sx={{ px: 2, py: 1 }}>
+                          <Typography variant="body2">
+                            #{entity.sessionId} · {entity.group ?? "group"} ·{" "}
+                            {entity.data ?? "data"}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Stack>
+                  </Box>
+                )}
+
+                <Box
+                  sx={{
+                    flex: 1,
+                    minHeight: 0,
+                    overflow: "auto",
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 1,
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
+                    {t("monitor.events")}
+                  </Typography>
+                  <Divider />
+                  {logEntries.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
+                      {t("monitor.removeEventsHint")}
+                    </Typography>
+                  ) : (
+                    <Stack divider={<Divider />}>
+                      {logEntries.map((entry) => (
+                        <Stack
+                          key={entry.id}
+                          direction="row"
+                          spacing={1.5}
+                          sx={{
+                            alignItems: "center",
+                            flexWrap: "wrap",
+                            rowGap: 0.5,
+                            px: { xs: 1.5, sm: 2 },
+                            py: 1,
+                            fontFamily: "monospace",
+                            fontSize: "0.8125rem",
+                            minWidth: 0,
+                          }}
+                        >
+                          <Typography
+                            component="span"
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              fontFamily: "inherit",
+                              minWidth: { xs: 72, sm: 108 },
+                              flexShrink: 0,
+                            }}
+                          >
+                            {formatTime(entry.timestamp)}
+                          </Typography>
+                          <Typography
+                            component="span"
+                            variant="body2"
+                            sx={{
+                              fontFamily: "inherit",
+                              flex: "1 1 120px",
+                              minWidth: 0,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {entry.summary}
+                          </Typography>
+                        </Stack>
+                      ))}
+                    </Stack>
+                  )}
+                </Box>
               </Stack>
-            )}
-          </Box>
-        </Stack>
             </Stack>
           </Stack>
         </DebuggerSection>

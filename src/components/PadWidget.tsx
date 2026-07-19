@@ -1,11 +1,8 @@
 import { Box } from "@mui/material";
 import { useCallback, useRef } from "react";
 import { sendPadValue } from "../lib/output";
-import {
-  Control,
-  DEFAULT_CONTROL_PAD_VALUE,
-} from "../types";
 import { useAppStore } from "../store/useAppStore";
+import { type Control, DEFAULT_CONTROL_PAD_VALUE } from "../types";
 
 interface PadWidgetProps {
   control: Control;
@@ -30,11 +27,7 @@ function pointerToPadValue(
   };
 }
 
-export function PadWidget({
-  control,
-  editable,
-  accentColor,
-}: PadWidgetProps) {
+export function PadWidget({ control, editable, accentColor }: PadWidgetProps) {
   const performerIo = useAppStore((state) => state.performerIo);
   const padValue = useAppStore(
     (state) => state.controlPadValues[control.id] ?? DEFAULT_CONTROL_PAD_VALUE,

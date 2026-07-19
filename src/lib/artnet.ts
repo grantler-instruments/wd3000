@@ -23,21 +23,14 @@ export const defaultArtNetComposerParams = (): ArtNetComposerParams => ({
 
 export function buildArtNetChannels(channel: number, value: number) {
   const channelIndex =
-    Math.min(ARTNET_MAX_CHANNEL, Math.max(ARTNET_MIN_CHANNEL, Math.round(channel))) -
-    1;
-  const normalized = Math.min(
-    ARTNET_MAX_VALUE,
-    Math.max(ARTNET_MIN_VALUE, Math.round(value)),
-  );
+    Math.min(ARTNET_MAX_CHANNEL, Math.max(ARTNET_MIN_CHANNEL, Math.round(channel))) - 1;
+  const normalized = Math.min(ARTNET_MAX_VALUE, Math.max(ARTNET_MIN_VALUE, Math.round(value)));
   const channels = Array.from({ length: channelIndex + 1 }, () => 0);
   channels[channelIndex] = normalized;
   return channels;
 }
 
-export function formatArtNetComposerSummary(
-  params: ArtNetComposerParams,
-  sequence: number,
-) {
+export function formatArtNetComposerSummary(params: ArtNetComposerParams, sequence: number) {
   return `Universe ${params.universe} ch ${params.channel} = ${params.value} (seq ${sequence})`;
 }
 
@@ -96,9 +89,7 @@ export async function sendArtNetDmx(
   channels: number[],
   summary?: string,
 ) {
-  const normalized = channels.map((value) =>
-    Math.min(255, Math.max(0, Math.round(value))),
-  );
+  const normalized = channels.map((value) => Math.min(255, Math.max(0, Math.round(value))));
 
   if (normalized.length === 0) {
     throw new Error("At least one DMX channel value is required");

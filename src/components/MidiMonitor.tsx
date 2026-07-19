@@ -14,34 +14,31 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { clearDebugLogFiltered, useDebugLog } from "../lib/debugLog";
 import { listMidiInputs, startMidiInput, stopMidiInput } from "../lib/input";
-import { listMidiOutputs } from "../lib/output";
 import { isMidiDebugKind } from "../lib/midiTypes";
 import { createMonitorLogEvents } from "../lib/monitorLog";
-import {
-  defaultMonitorMidiTypeFilter,
-  matchesMidiTypeFilter,
-} from "../lib/monitorMidiFilter";
-import {
-  collectMonitorMidiPorts,
-  defaultMonitorMidiPortFilter,
-  matchesMidiPortFilter,
-} from "../lib/monitorMidiPortFilter";
 import {
   defaultMonitorDirectionFilter,
   isMonitorFilterActive,
   matchesDirectionFilter,
 } from "../lib/monitorLogFilter";
-import { isNativeApp, isWebMidiSupported } from "../lib/platform";
 import { useMonitorLogReplayProgress } from "../lib/monitorLogReplay";
+import { defaultMonitorMidiTypeFilter, matchesMidiTypeFilter } from "../lib/monitorMidiFilter";
+import {
+  collectMonitorMidiPorts,
+  defaultMonitorMidiPortFilter,
+  matchesMidiPortFilter,
+} from "../lib/monitorMidiPortFilter";
+import { listMidiOutputs } from "../lib/output";
+import { isNativeApp, isWebMidiSupported } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
-import { debugEntriesToListItems, MonitorLogList } from "./MonitorLogList";
+import { DebuggerSection } from "./DebuggerSection";
+import { debuggerFillSx, debuggerLogSx } from "./debuggerLayoutSx";
 import { MonitorFilterAccordion } from "./MonitorFilterAccordion";
+import { debugEntriesToListItems, MonitorLogList } from "./MonitorLogList";
 import { MonitorLogToolbar } from "./MonitorLogToolbar";
 import { MonitorReplaySection } from "./MonitorReplaySection";
 import { SavedMonitorLogTab } from "./SavedMonitorLogTab";
 import { useOpenSavedLogOnReplay } from "./useOpenSavedLogOnReplay";
-import { DebuggerSection } from "./DebuggerSection";
-import { debuggerFillSx, debuggerLogSx } from "./debuggerLayoutSx";
 
 type MonitorTab = "live" | "saved";
 
@@ -105,8 +102,7 @@ export function MidiMonitor() {
     [entries, t],
   );
 
-  const isReplayingLive =
-    replayProgress.active && replayProgress.logId === liveLog.id;
+  const isReplayingLive = replayProgress.active && replayProgress.logId === liveLog.id;
   const listEntries = isReplayingLive
     ? debugEntriesToListItems(entries)
     : debugEntriesToListItems(filteredEntries);
@@ -147,9 +143,7 @@ export function MidiMonitor() {
     <DebuggerSection title={t("monitor.monitor")} flexGrow>
       <Stack spacing={2} sx={debuggerFillSx}>
         {!isNativeApp() && !isWebMidiSupported() && (
-          <Alert severity="warning">
-            {t("monitor.webMidiUnsupported")}
-          </Alert>
+          <Alert severity="warning">{t("monitor.webMidiUnsupported")}</Alert>
         )}
 
         <Tabs
@@ -180,9 +174,7 @@ export function MidiMonitor() {
             >
               <Button
                 size="small"
-                onClick={() =>
-                  clearDebugLogFiltered((entry) => isMidiDebugKind(entry.kind))
-                }
+                onClick={() => clearDebugLogFiltered((entry) => isMidiDebugKind(entry.kind))}
                 disabled={entries.length === 0}
               >
                 {t("common.clear")}

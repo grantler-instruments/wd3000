@@ -51,13 +51,13 @@ export function decodeMqttPayload(bytes: number[]): string {
     return "";
   }
 
-  const decoded = new TextDecoder("utf-8", { fatal: false }).decode(
-    new Uint8Array(bytes),
-  );
-  if ([...decoded].some((char) => {
-    const code = char.charCodeAt(0);
-    return code < 32 && code !== 9 && code !== 10 && code !== 13;
-  })) {
+  const decoded = new TextDecoder("utf-8", { fatal: false }).decode(new Uint8Array(bytes));
+  if (
+    [...decoded].some((char) => {
+      const code = char.charCodeAt(0);
+      return code < 32 && code !== 9 && code !== 10 && code !== 13;
+    })
+  ) {
     return bytes.map((byte) => byte.toString(16).padStart(2, "0")).join(" ");
   }
 
@@ -73,9 +73,7 @@ export async function stopMqttBroker(): Promise<void> {
 }
 
 export async function startMqttListener(options: MqttListenerOptions): Promise<void> {
-  const topics = options.topics
-    .map((topic) => topic.trim())
-    .filter((topic) => topic.length > 0);
+  const topics = options.topics.map((topic) => topic.trim()).filter((topic) => topic.length > 0);
 
   await invoke("start_mqtt_listener", {
     host: options.host,

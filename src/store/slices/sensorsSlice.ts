@@ -2,9 +2,9 @@ import type { StateCreator } from "zustand";
 import {
   defaultSensorAxisMapping,
   normalizeSensorAxisMapping,
-  sensorAxisKey,
   type SensorAxisMapping,
   type SensorMidiMapping,
+  sensorAxisKey,
 } from "../../lib/sensors/types";
 import type { AppStore } from "../appStoreTypes";
 
@@ -21,10 +21,7 @@ export interface SensorsSlice {
   ) => void;
 }
 
-export const createSensorsSlice: StateCreator<AppStore, [], [], SensorsSlice> = (
-  set,
-  get,
-) => ({
+export const createSensorsSlice: StateCreator<AppStore, [], [], SensorsSlice> = (set, get) => ({
   sensorMappings: {},
   getSensorAxisMapping: (sensorId, axis) => {
     const key = sensorAxisKey(sensorId, axis);

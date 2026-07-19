@@ -1,6 +1,4 @@
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
 import {
   Accordion,
   AccordionDetails,
@@ -16,6 +14,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import type { ReactNode } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { MediaPipeLandmark } from "../../lib/mediapipe/types";
 import {
@@ -52,9 +52,7 @@ function MappingProtocolSection({
           checked={enabled}
           onChange={(_, checked) => onToggle(checked)}
           aria-label={
-            enabled
-              ? t("sensors.disableNamed", { label })
-              : t("sensors.enableNamed", { label })
+            enabled ? t("sensors.disableNamed", { label }) : t("sensors.enableNamed", { label })
           }
         />
       </Stack>
@@ -127,11 +125,7 @@ export function LandmarkMappingEditor({
             minWidth: 0,
           }}
         >
-          <Stack
-            direction="row"
-            spacing={1}
-            sx={{ alignItems: "center", minWidth: 0, flex: 1 }}
-          >
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0, flex: 1 }}>
             <Typography variant="subtitle2" noWrap>
               {title}
             </Typography>
@@ -175,9 +169,7 @@ export function LandmarkMappingEditor({
               }
             >
               <FormControl fullWidth size="small">
-                <InputLabel id={`${mappingKey}-osc-sender-label`}>
-                  {t("control.sender")}
-                </InputLabel>
+                <InputLabel id={`${mappingKey}-osc-sender-label`}>{t("control.sender")}</InputLabel>
                 <Select
                   labelId={`${mappingKey}-osc-sender-label`}
                   label={t("control.sender")}
@@ -268,9 +260,7 @@ export function LandmarkMappingEditor({
               }
             >
               <FormControl fullWidth size="small">
-                <InputLabel id={`${mappingKey}-midi-output-label`}>
-                  {t("common.output")}
-                </InputLabel>
+                <InputLabel id={`${mappingKey}-midi-output-label`}>{t("common.output")}</InputLabel>
                 <Select
                   labelId={`${mappingKey}-midi-output-label`}
                   label={t("common.output")}

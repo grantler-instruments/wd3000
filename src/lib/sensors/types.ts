@@ -81,10 +81,7 @@ export function normalizeSensorAxisMapping(
   const storedMidiMin = mapping.midi?.min;
   const storedMidiMax = mapping.midi?.max;
   const usesLegacyLidAngleMidiRange =
-    sensorId === "lid_angle" &&
-    axis === "angle" &&
-    storedMidiMin === 0 &&
-    storedMidiMax === 127;
+    sensorId === "lid_angle" && axis === "angle" && storedMidiMin === 0 && storedMidiMax === 127;
 
   return {
     osc: {
@@ -97,12 +94,8 @@ export function normalizeSensorAxisMapping(
       outputId: mapping.midi?.outputId ?? defaults.midi.outputId,
       channel: mapping.midi?.channel ?? defaults.midi.channel,
       cc: mapping.midi?.cc ?? defaults.midi.cc,
-      min: usesLegacyLidAngleMidiRange
-        ? midiRange.min
-        : (storedMidiMin ?? defaults.midi.min),
-      max: usesLegacyLidAngleMidiRange
-        ? midiRange.max
-        : (storedMidiMax ?? defaults.midi.max),
+      min: usesLegacyLidAngleMidiRange ? midiRange.min : (storedMidiMin ?? defaults.midi.min),
+      max: usesLegacyLidAngleMidiRange ? midiRange.max : (storedMidiMax ?? defaults.midi.max),
     },
   };
 }

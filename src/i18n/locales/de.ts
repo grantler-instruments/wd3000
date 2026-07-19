@@ -96,11 +96,9 @@ const de: TranslationSchema = {
       "Dadurch werden aktuelles Layout, Controls und Verbindungseinstellungen ersetzt. Exportiere zuerst, wenn du ein Backup behalten möchtest.",
   },
   io: {
-    oscIntro:
-      "Benannte Sende- und Empfangs-Endpunkte. Weise sie Widgets im Editor zu.",
+    oscIntro: "Benannte Sende- und Empfangs-Endpunkte. Weise sie Widgets im Editor zu.",
     midiIntro: "Benannte Ein- und Ausgangsports für Widgets und Performer.",
-    mqttIntro:
-      "Benannte Broker-Verbindungen. Weise sie Widgets im Editor zu.",
+    mqttIntro: "Benannte Broker-Verbindungen. Weise sie Widgets im Editor zu.",
     senders: "Sender",
     receivers: "Empfänger",
     outputs: "Ausgänge",
@@ -257,8 +255,7 @@ const de: TranslationSchema = {
     listenArtNet: "Aktiviere Hören, um eingehendes Art-Net zu überwachen.",
     setListenPortArtNet: "Setze einen Listen-Port, um eingehendes Art-Net zu überwachen.",
     liveChannels: "Live-Kanäle",
-    artNetUniversesHint:
-      "Art-Net unterstützt 32.768 Universes (0–32767), jeweils 512 Kanäle.",
+    artNetUniversesHint: "Art-Net unterstützt 32.768 Universes (0–32767), jeweils 512 Kanäle.",
     waitingArtNet: "Warte auf Art-Net an Port {{port}}…",
     noPacketsForUniverse: "Noch keine Pakete für Universe {{universe}}.",
     enterValidListenPort: "Gib einen gültigen Listen-Port ein.",
@@ -277,7 +274,8 @@ const de: TranslationSchema = {
     listeningOnPortSend:
       "Höre auf {{port}}. Klicke oder ziehe, um TUIO-Cursor an {{host}}:{{sendPort}} zu senden.",
     topicsCount: "{{count}} Themen",
-    noSavedLogs: "Noch keine gespeicherten {{protocol}}-Protokolle. Speichere oder importiere ein Protokoll im Live-Tab.",
+    noSavedLogs:
+      "Noch keine gespeicherten {{protocol}}-Protokolle. Speichere oder importiere ein Protokoll im Live-Tab.",
     expectedProtocolLog: "Ein {{protocol}}-Monitor-Protokoll wurde erwartet.",
     waitingTuio: "Warte auf TUIO…",
     activeEntities: "Aktive Entitäten ({{count}})",
@@ -362,8 +360,7 @@ const de: TranslationSchema = {
       "Dieser Browser benötigt möglicherweise eine Berechtigung, bevor Bewegungs- und Orientierungssensoren funktionieren.",
     permissionDenied:
       "Sensorberechtigung wurde verweigert. Aktiviere sie in den Browser-Einstellungen.",
-    noBrowserSensors:
-      "In diesem Browser sind keine Bewegungs- oder Orientierungs-APIs verfügbar.",
+    noBrowserSensors: "In diesem Browser sind keine Bewegungs- oder Orientierungs-APIs verfügbar.",
     mobileOnlyHint:
       "Bewegungs- und Orientierungssensoren funktionieren gut auf Smartphones und Tablets. Desktop-Browser liefern in der Regel keine brauchbaren Messwerte.",
     nativeDesktopIntro:
@@ -373,11 +370,9 @@ const de: TranslationSchema = {
     noNativeSensorsDesktop:
       "Auf diesem Rechner wurden keine nativen Sensoren gefunden. Deckelwinkel ist nur auf unterstützten MacBooks verfügbar.",
     deviceOrientation: "Geräteorientierung",
-    deviceOrientationDescription:
-      "Alpha-, Beta- und Gamma-Winkel relativ zum Geräterahmen.",
+    deviceOrientationDescription: "Alpha-, Beta- und Gamma-Winkel relativ zum Geräterahmen.",
     deviceMotion: "Gerätebewegung",
-    deviceMotionDescription:
-      "Lineare Beschleunigung und Drehrate vom Geräte-IMU.",
+    deviceMotionDescription: "Lineare Beschleunigung und Drehrate vom Geräte-IMU.",
     acceleration: "Beschleunigung (m/s²)",
     includingGravity: "Inklusive Schwerkraft (m/s²)",
     rotationRate: "Drehrate (°/s)",

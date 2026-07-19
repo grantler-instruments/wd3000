@@ -1,11 +1,9 @@
 import { Camera } from "@mediapipe/camera_utils";
-import {
-  drawConnectors,
-  drawLandmarks,
-} from "@mediapipe/drawing_utils";
-import { HAND_CONNECTIONS, Hands } from "@mediapipe/hands";
+import { drawConnectors, drawLandmarks } from "@mediapipe/drawing_utils";
 import type { NormalizedLandmark } from "@mediapipe/hands";
-import { useEffect, useRef, type RefObject } from "react";
+import { HAND_CONNECTIONS, Hands } from "@mediapipe/hands";
+import { type RefObject, useEffect, useRef } from "react";
+import type { PerformerIoConfig } from "../../types";
 import {
   HAND_LANDMARK_LABELS,
   handsModelPath,
@@ -13,17 +11,13 @@ import {
   MEDIAPIPE_PREVIEW_WIDTH,
 } from "./landmarks";
 import { sendMediaPipeLandmarkOutputThrottled } from "./output";
-import {
-  drawMediaPipePreviewFrame,
-  finishMediaPipePreviewFrame,
-} from "./previewCanvas";
+import { drawMediaPipePreviewFrame, finishMediaPipePreviewFrame } from "./previewCanvas";
 import {
   handsLandmarkKey,
-  mirrorLandmarkX,
   type MediaPipeLandmark,
   type MediaPipeLandmarkMapping,
+  mirrorLandmarkX,
 } from "./types";
-import type { PerformerIoConfig } from "../../types";
 
 interface UseMediaPipeHandsOptions {
   active: boolean;

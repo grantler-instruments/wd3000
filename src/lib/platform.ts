@@ -47,24 +47,21 @@ export function isWebMidiSupported(): boolean {
 
 export function formatShortcutKey(key: string): string {
   const usesMeta =
-    typeof navigator !== "undefined" &&
-    /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+    typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.platform);
 
   return usesMeta ? `⌘${key.toUpperCase()}` : `Ctrl+${key.toUpperCase()}`;
 }
 
 export function formatDeleteKey(): string {
   const usesMeta =
-    typeof navigator !== "undefined" &&
-    /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+    typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.platform);
 
   return usesMeta ? "⌫" : "Del";
 }
 
 export function formatRedoKey(): string {
   const usesMeta =
-    typeof navigator !== "undefined" &&
-    /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+    typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.platform);
 
   return usesMeta ? "⇧⌘Z" : "Ctrl+Shift+Z";
 }
@@ -74,9 +71,5 @@ export function isTextInputTarget(target: EventTarget | null): boolean {
     return false;
   }
 
-  return (
-    target.tagName === "INPUT" ||
-    target.tagName === "TEXTAREA" ||
-    target.isContentEditable
-  );
+  return target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
 }

@@ -1,14 +1,11 @@
 import throttle from "lodash.throttle";
+import type { PerformerIoConfig } from "../../types";
+import { findMidiOutputEndpoint, findMqttConnection, findOscSender } from "../../types";
 import type { OscArgPayload } from "../oscMessages";
 import { sendMidiCc, sendMqttMessage, sendOscMessage } from "../output";
 import { scaleSensorValueToMidi } from "../sensors/output";
-import type { PerformerIoConfig } from "../../types";
-import { findMidiOutputEndpoint, findMqttConnection, findOscSender } from "../../types";
 import type { MediaPipeLandmark, MediaPipeLandmarkMapping } from "./types";
-import {
-  defaultMediaPipeLandmarkMapping,
-  normalizeMediaPipeLandmarkMapping,
-} from "./types";
+import { defaultMediaPipeLandmarkMapping, normalizeMediaPipeLandmarkMapping } from "./types";
 
 export function buildOscLandmarkArgs(landmark: MediaPipeLandmark): OscArgPayload[] {
   const args: OscArgPayload[] = [

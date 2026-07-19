@@ -2,13 +2,7 @@ import i18n from "../i18n";
 
 export type OscArgType = "int" | "float" | "string" | "true" | "false";
 
-export const OSC_ARG_TYPES: OscArgType[] = [
-  "int",
-  "float",
-  "string",
-  "true",
-  "false",
-];
+export const OSC_ARG_TYPES: OscArgType[] = ["int", "float", "string", "true", "false"];
 
 export function oscArgTypeLabel(type: OscArgType) {
   switch (type) {

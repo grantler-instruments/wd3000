@@ -1,10 +1,5 @@
 import SendIcon from "@mui/icons-material/Send";
-import {
-  Box,
-  Button,
-  Stack,
-  TextField,
-} from "@mui/material";
+import { Box, Button, Stack, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -25,8 +20,7 @@ import { useAppStore } from "../store/useAppStore";
 import { DebuggerSection } from "./DebuggerSection";
 import { debuggerComposerRowSx } from "./debuggerLayoutSx";
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function useNumberField(
   value: number,
@@ -90,12 +84,7 @@ export function ArtNetComposer() {
     ARTNET_MIN_VALUE,
     ARTNET_MAX_VALUE,
   );
-  const portField = useNumberField(
-    port,
-    setPort,
-    1,
-    65535,
-  );
+  const portField = useNumberField(port, setPort, 1, 65535);
 
   const handleSend = async () => {
     if (!host.trim()) {
@@ -108,14 +97,7 @@ export function ArtNetComposer() {
     try {
       const channels = buildArtNetChannels(params.channel, params.value);
       const summary = formatArtNetComposerSummary(params, sequence);
-      await sendArtNetDmx(
-        host.trim(),
-        port,
-        params.universe,
-        sequence,
-        channels,
-        summary,
-      );
+      await sendArtNetDmx(host.trim(), port, params.universe, sequence, channels, summary);
       setSequence((current) => (current + 1) % 256);
       setLastError(null);
     } catch (error) {
@@ -127,11 +109,7 @@ export function ArtNetComposer() {
 
   return (
     <DebuggerSection title={t("monitor.composer")}>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={1}
-        sx={debuggerComposerRowSx}
-      >
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={debuggerComposerRowSx}>
         <TextField
           label={t("common.universe")}
           value={universeField.input}
@@ -189,7 +167,7 @@ export function ArtNetComposer() {
           disabled={!native || sending || !host.trim()}
           sx={{ flexShrink: 0, width: { xs: "100%", sm: "auto" } }}
         >
-            {t("common.send")}
+          {t("common.send")}
         </Button>
       </Stack>
     </DebuggerSection>

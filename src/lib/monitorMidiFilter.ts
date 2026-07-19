@@ -33,10 +33,7 @@ export function isMidiTypeFilterActive(filter: MonitorMidiTypeFilterState) {
   return filter.size < MONITOR_MIDI_KINDS.length;
 }
 
-export function matchesMidiTypeFilter(
-  kind: string,
-  filter: MonitorMidiTypeFilterState,
-) {
+export function matchesMidiTypeFilter(kind: string, filter: MonitorMidiTypeFilterState) {
   if (!isMidiDebugKind(kind)) {
     return true;
   }

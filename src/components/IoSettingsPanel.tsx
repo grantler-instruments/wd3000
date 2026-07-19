@@ -14,7 +14,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listMidiInputs } from "../lib/input";
 import { listMidiOutputs } from "../lib/output";
@@ -29,8 +29,6 @@ import {
   type VirtualMidiPorts,
 } from "../lib/virtualMidi";
 import { useAppStore } from "../store/useAppStore";
-import { LanguageSelect } from "./LanguageSelect";
-import { SettingsSectionNav } from "./SettingsSectionNav";
 import type {
   MidiInputEndpoint,
   MidiOutputEndpoint,
@@ -38,6 +36,8 @@ import type {
   OscReceiver,
   OscSender,
 } from "../types";
+import { LanguageSelect } from "./LanguageSelect";
+import { SettingsSectionNav } from "./SettingsSectionNav";
 
 type IoSettingsSection = "general" | "osc" | "midi" | "mqtt";
 
@@ -90,7 +90,11 @@ function SubsectionHeader({
     <Stack
       direction={{ xs: "column", sm: "row" }}
       spacing={{ xs: 1, sm: 2 }}
-      sx={{ alignItems: { xs: "stretch", sm: "flex-start" }, justifyContent: "space-between", mb: 1.5 }}
+      sx={{
+        alignItems: { xs: "stretch", sm: "flex-start" },
+        justifyContent: "space-between",
+        mb: 1.5,
+      }}
     >
       <Box sx={{ minWidth: 0 }}>
         <Typography variant="subtitle2">{title}</Typography>
@@ -101,7 +105,12 @@ function SubsectionHeader({
       <Stack
         direction="row"
         spacing={1}
-        sx={{ flexShrink: 0, alignSelf: { xs: "flex-start", sm: "auto" }, mt: { xs: 0, sm: 0.25 }, flexWrap: "wrap" }}
+        sx={{
+          flexShrink: 0,
+          alignSelf: { xs: "flex-start", sm: "auto" },
+          mt: { xs: 0, sm: 0.25 },
+          flexWrap: "wrap",
+        }}
       >
         <Button size="small" startIcon={<AddIcon />} onClick={onAdd}>
           {addLabel}
@@ -183,9 +192,7 @@ function MqttConnectionRow({ connection }: { connection: MqttConnection }) {
           size="small"
           fullWidth
           value={connection.name}
-          onChange={(event) =>
-            updateMqttConnection(connection.id, { name: event.target.value })
-          }
+          onChange={(event) => updateMqttConnection(connection.id, { name: event.target.value })}
         />
         <FormControl size="small" sx={{ minWidth: 100 }}>
           <InputLabel id={`mqtt-protocol-${connection.id}`}>{t("common.protocol")}</InputLabel>
@@ -208,9 +215,7 @@ function MqttConnectionRow({ connection }: { connection: MqttConnection }) {
           size="small"
           fullWidth
           value={connection.host}
-          onChange={(event) =>
-            updateMqttConnection(connection.id, { host: event.target.value })
-          }
+          onChange={(event) => updateMqttConnection(connection.id, { host: event.target.value })}
         />
         <TextField
           label={t("common.port")}
@@ -309,13 +314,7 @@ function OscReceiverRow({ receiver }: { receiver: OscReceiver }) {
   );
 }
 
-function MidiOutputRow({
-  endpoint,
-  ports,
-}: {
-  endpoint: MidiOutputEndpoint;
-  ports: string[];
-}) {
+function MidiOutputRow({ endpoint, ports }: { endpoint: MidiOutputEndpoint; ports: string[] }) {
   const { t } = useTranslation();
   const updateMidiOutput = useAppStore((state) => state.updateMidiOutput);
   const removeMidiOutput = useAppStore((state) => state.removeMidiOutput);
@@ -339,9 +338,7 @@ function MidiOutputRow({
             labelId={`midi-out-${endpoint.id}`}
             label={t("common.port")}
             value={endpoint.portName}
-            onChange={(event) =>
-              updateMidiOutput(endpoint.id, { portName: event.target.value })
-            }
+            onChange={(event) => updateMidiOutput(endpoint.id, { portName: event.target.value })}
           >
             {ports.length === 0 && (
               <MenuItem value="" disabled>
@@ -360,13 +357,7 @@ function MidiOutputRow({
   );
 }
 
-function MidiInputRow({
-  endpoint,
-  ports,
-}: {
-  endpoint: MidiInputEndpoint;
-  ports: string[];
-}) {
+function MidiInputRow({ endpoint, ports }: { endpoint: MidiInputEndpoint; ports: string[] }) {
   const { t } = useTranslation();
   const updateMidiInput = useAppStore((state) => state.updateMidiInput);
   const removeMidiInput = useAppStore((state) => state.removeMidiInput);
@@ -390,9 +381,7 @@ function MidiInputRow({
             labelId={`midi-in-${endpoint.id}`}
             label={t("common.port")}
             value={endpoint.portName}
-            onChange={(event) =>
-              updateMidiInput(endpoint.id, { portName: event.target.value })
-            }
+            onChange={(event) => updateMidiInput(endpoint.id, { portName: event.target.value })}
           >
             {ports.length === 0 && (
               <MenuItem value="" disabled>
@@ -443,9 +432,7 @@ function OscSettingsPanel() {
           {performerIo.oscSenders.length === 0 ? (
             <EmptyState message={t("io.noSenders")} />
           ) : (
-            performerIo.oscSenders.map((sender) => (
-              <OscSenderRow key={sender.id} sender={sender} />
-            ))
+            performerIo.oscSenders.map((sender) => <OscSenderRow key={sender.id} sender={sender} />)
           )}
         </Stack>
       </Box>
@@ -475,20 +462,11 @@ function OscSettingsPanel() {
   );
 }
 
-function VirtualMidiPortRow({
-  name,
-  onRemove,
-}: {
-  name: string;
-  onRemove: () => void;
-}) {
+function VirtualMidiPortRow({ name, onRemove }: { name: string; onRemove: () => void }) {
   const { t } = useTranslation();
 
   return (
-    <EndpointCard
-      onRemove={onRemove}
-      removeLabel={t("common.removeNamed", { name })}
-    >
+    <EndpointCard onRemove={onRemove} removeLabel={t("common.removeNamed", { name })}>
       <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
         <Chip size="small" label={t("io.virtual")} />
         <Typography
@@ -621,9 +599,7 @@ function MidiSettingsPanel() {
             })
           }
           secondaryAddLabel={virtualSupported ? t("io.addVirtualOutput") : undefined}
-          onSecondaryAdd={
-            virtualSupported ? () => void createVirtualPort("output") : undefined
-          }
+          onSecondaryAdd={virtualSupported ? () => void createVirtualPort("output") : undefined}
           secondaryAddDisabled={virtualBusy}
         />
         <Stack spacing={1}>
@@ -656,9 +632,7 @@ function MidiSettingsPanel() {
             })
           }
           secondaryAddLabel={virtualSupported ? t("io.addVirtualInput") : undefined}
-          onSecondaryAdd={
-            virtualSupported ? () => void createVirtualPort("input") : undefined
-          }
+          onSecondaryAdd={virtualSupported ? () => void createVirtualPort("input") : undefined}
           secondaryAddDisabled={virtualBusy}
         />
         <Stack spacing={1}>

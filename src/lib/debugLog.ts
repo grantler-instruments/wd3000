@@ -171,9 +171,7 @@ export function isEchoOfRecentOutboundMqtt(summary: string) {
   return summary.trim() === recentOutboundMqtt.key;
 }
 
-export function pushDebugLog(
-  entry: Omit<DebugLogEntry, "id" | "timestamp">,
-) {
+export function pushDebugLog(entry: Omit<DebugLogEntry, "id" | "timestamp">) {
   entries = [
     {
       ...entry,
@@ -190,9 +188,7 @@ export function clearDebugLog() {
   notify();
 }
 
-export function clearDebugLogFiltered(
-  predicate: (entry: DebugLogEntry) => boolean,
-) {
+export function clearDebugLogFiltered(predicate: (entry: DebugLogEntry) => boolean) {
   entries = entries.filter((entry) => !predicate(entry));
   notify();
 }

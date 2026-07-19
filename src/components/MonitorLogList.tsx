@@ -91,9 +91,7 @@ export function MonitorLogList({ entries, emptyMessage, logId }: MonitorLogListP
     [entries, logId, replayProgress],
   );
   const showReplayStatus =
-    replayProgress.active &&
-    Boolean(logId) &&
-    replayProgress.logId === logId;
+    replayProgress.active && Boolean(logId) && replayProgress.logId === logId;
 
   const kindLabel = (kind: DebugLogKind) => {
     if (kind === "osc") {
@@ -113,11 +111,7 @@ export function MonitorLogList({ entries, emptyMessage, logId }: MonitorLogListP
 
   if (entries.length === 0) {
     return (
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        sx={{ p: 2, textAlign: "center" }}
-      >
+      <Typography variant="body2" color="text.secondary" sx={{ p: 2, textAlign: "center" }}>
         {emptyMessage}
       </Typography>
     );
@@ -160,7 +154,12 @@ export function MonitorLogList({ entries, emptyMessage, logId }: MonitorLogListP
             color={entry.direction === "in" ? "info" : "success"}
             sx={{ minWidth: 48, flexShrink: 0 }}
           />
-          <Chip label={kindLabel(entry.kind)} size="small" variant="outlined" sx={{ flexShrink: 0 }} />
+          <Chip
+            label={kindLabel(entry.kind)}
+            size="small"
+            variant="outlined"
+            sx={{ flexShrink: 0 }}
+          />
           <Typography
             component="span"
             variant="body2"

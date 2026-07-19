@@ -7,12 +7,7 @@ interface ShortcutMenuItemProps {
   onClick: () => void;
 }
 
-export function ShortcutMenuItem({
-  label,
-  shortcut,
-  disabled,
-  onClick,
-}: ShortcutMenuItemProps) {
+export function ShortcutMenuItem({ label, shortcut, disabled, onClick }: ShortcutMenuItemProps) {
   return (
     <MenuItem disabled={disabled} onClick={onClick}>
       <ListItemText primary={label} />

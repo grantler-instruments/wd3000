@@ -1,12 +1,7 @@
 import type { StateCreator } from "zustand";
 import i18n from "../../i18n";
-import { DEFAULT_LANGUAGE, type AppLanguage } from "../../i18n/languages";
-import type {
-  AppMode,
-  DashboardView,
-  DebuggerSubView,
-  PerformerSubView,
-} from "../../types";
+import { type AppLanguage, DEFAULT_LANGUAGE } from "../../i18n/languages";
+import type { AppMode, DashboardView, DebuggerSubView, PerformerSubView } from "../../types";
 import type { AppStore } from "../appStoreTypes";
 
 export interface UiSlice {
@@ -18,10 +13,7 @@ export interface UiSlice {
   lastError: string | null;
   setLanguage: (language: AppLanguage) => void;
   setMode: (mode: AppMode) => void;
-  setActiveView: (
-    view: DashboardView,
-    subView?: PerformerSubView | DebuggerSubView,
-  ) => void;
+  setActiveView: (view: DashboardView, subView?: PerformerSubView | DebuggerSubView) => void;
   setLastError: (message: string | null) => void;
 }
 

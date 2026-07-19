@@ -1,8 +1,4 @@
-import {
-  Control,
-  KEYBOARD_DEFAULT_OCTAVES,
-  controlTabs,
-} from "../types";
+import { type Control, controlTabs, KEYBOARD_DEFAULT_OCTAVES } from "../types";
 
 export interface OscInputMessage {
   address: string;
@@ -147,9 +143,7 @@ function matchesMidiCc(control: Control, channel: number, cc: number): boolean {
     return control.midi.cc === cc || ccY === cc;
   }
 
-  return control.type === "slider" || control.type === "tabs"
-    ? control.midi.cc === cc
-    : false;
+  return control.type === "slider" || control.type === "tabs" ? control.midi.cc === cc : false;
 }
 
 function matchesPadOsc(control: Control, address: string): "x" | "y" | null {

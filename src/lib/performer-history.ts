@@ -1,5 +1,5 @@
-import type { Control, LayoutSettings } from "../types";
 import { useAppStore } from "../store/useAppStore";
+import type { Control, LayoutSettings } from "../types";
 
 const MAX_UNDO_STACK = 50;
 const COALESCE_MS = 400;
@@ -24,7 +24,9 @@ const revisionListeners = new Set<() => void>();
 
 function notifyRevisionChange(): void {
   revision += 1;
-  revisionListeners.forEach((listener) => listener());
+  for (const listener of revisionListeners) {
+    listener();
+  }
 }
 
 export function subscribePerformerHistoryRevision(listener: () => void): () => void {

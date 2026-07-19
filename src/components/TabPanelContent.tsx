@@ -1,8 +1,9 @@
-import { Box, Typography, alpha } from "@mui/material";
+import { alpha, Box, Typography } from "@mui/material";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDragPosition } from "../hooks/useDragPosition";
 import { useLongPress } from "../hooks/useLongPress";
+import { useWidgetContextMenu } from "../hooks/useWidgetContextMenu";
 import {
   assignControlToHoveredTab,
   dropPositionInElement,
@@ -11,18 +12,17 @@ import {
   resolveTabDropAtPoint,
   setTabDropHover,
 } from "../lib/controlDrag";
+import { useAppStore } from "../store/useAppStore";
 import {
-  Control,
-  ControlTab,
-  LAYOUT_GRID_SIZE,
+  type Control,
+  type ControlTab,
   controlLayoutHeight,
+  LAYOUT_GRID_SIZE,
   tabChildControls,
   tabPanelContentSize,
 } from "../types";
-import { useAppStore } from "../store/useAppStore";
 import { ControlWidgetMenu } from "./ControlWidgetMenu";
 import { ResizableControlFrame } from "./ResizableControlFrame";
-import { useWidgetContextMenu } from "../hooks/useWidgetContextMenu";
 
 interface TabPanelContentProps {
   parentControl: Control;
@@ -141,9 +141,7 @@ function TabChildItem({
   });
 
   const longPressHandlers = useLongPress(
-    editable
-      ? (point) => onLongPressMenu(control.id, point.clientX, point.clientY)
-      : null,
+    editable ? (point) => onLongPressMenu(control.id, point.clientX, point.clientY) : null,
   );
 
   useEffect(() => {
@@ -152,15 +150,8 @@ function TabChildItem({
     }
 
     const handlePointerMove = (event: PointerEvent) => {
-      const preview = resolveTabDropAtPoint(
-        event.clientX,
-        event.clientY,
-        gridSize,
-        control.id,
-      );
-      setTabDropHover(
-        preview ? { ...preview, sourceControlId: control.id } : null,
-      );
+      const preview = resolveTabDropAtPoint(event.clientX, event.clientY, gridSize, control.id);
+      setTabDropHover(preview ? { ...preview, sourceControlId: control.id } : null);
     };
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -227,19 +218,16 @@ export function TabPanelContent({
     closeMenu: closeWidgetMenu,
   } = useWidgetContextMenu(editable);
   const previewForPanel =
-    tabDropPreview?.tabsControlId === parentControl.id &&
-    tabDropPreview.tabId === tab.id
+    tabDropPreview?.tabsControlId === parentControl.id && tabDropPreview.tabId === tab.id
       ? tabDropPreview
       : null;
   const showDropHighlight = editable && (dragOverPanel || previewForPanel !== null);
   const previewSourceId = previewForPanel?.sourceControlId ?? draggingControlId;
   const previewSourceControl = previewSourceId
-    ? controls.find((control) => control.id === previewSourceId) ?? null
+    ? (controls.find((control) => control.id === previewSourceId) ?? null)
     : null;
   const previewWidth = previewSourceControl?.layout.width ?? 160;
-  const previewHeight = previewSourceControl
-    ? controlLayoutHeight(previewSourceControl)
-    : 120;
+  const previewHeight = previewSourceControl ? controlLayoutHeight(previewSourceControl) : 120;
 
   useLayoutEffect(() => {
     if (!active || !panelRef.current) {
@@ -273,12 +261,7 @@ export function TabPanelContent({
       return;
     }
 
-    const position = dropPositionInElement(
-      event.clientX,
-      event.clientY,
-      content,
-      gridSize,
-    );
+    const position = dropPositionInElement(event.clientX, event.clientY, content, gridSize);
     setTabDropHover({
       tabsControlId: parentControl.id,
       tabId: tab.id,
@@ -288,10 +271,7 @@ export function TabPanelContent({
     });
   };
 
-  const assignDroppedControl = (
-    sourceId: string,
-    event: React.DragEvent<HTMLElement>,
-  ) => {
+  const assignDroppedControl = (sourceId: string, event: React.DragEvent<HTMLElement>) => {
     if (sourceId === parentControl.id) {
       return;
     }

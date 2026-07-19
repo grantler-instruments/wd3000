@@ -1,11 +1,11 @@
 import { Checkbox, FormControlLabel, Stack } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import type { MidiDebugKind } from "../lib/midiTypes";
 import {
   MONITOR_MIDI_KINDS,
-  toggleMonitorMidiType,
   type MonitorMidiTypeFilterState,
+  toggleMonitorMidiType,
 } from "../lib/monitorMidiFilter";
-import type { MidiDebugKind } from "../lib/midiTypes";
 
 const MIDI_KIND_KEYS: Record<MidiDebugKind, string> = {
   "midi-note": "midiKinds.note",
@@ -42,11 +42,7 @@ export function MonitorMidiTypeFilter({ value, onChange }: MonitorMidiTypeFilter
   };
 
   return (
-    <Stack
-      direction="row"
-      spacing={0.5}
-      sx={{ alignItems: "center", flexWrap: "wrap", rowGap: 0 }}
-    >
+    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", flexWrap: "wrap", rowGap: 0 }}>
       {MONITOR_MIDI_KINDS.map((kind) => (
         <FormControlLabel
           key={kind}

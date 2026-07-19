@@ -1,7 +1,7 @@
 import { Divider, Menu } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { formatShortcutKey } from "../lib/platform";
-import { CONTROL_WIDGET_TYPES, ControlType, controlTypeLabel } from "../types";
+import { CONTROL_WIDGET_TYPES, type ControlType, controlTypeLabel } from "../types";
 import { ShortcutMenuItem } from "./ShortcutMenuItem";
 
 interface AddWidgetMenuProps {

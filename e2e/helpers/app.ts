@@ -11,9 +11,7 @@ export async function clearLayoutStorage(page: Page): Promise<void> {
 }
 
 export async function waitForAppReady(page: Page): Promise<void> {
-  await expect(
-    page.getByRole("button", { name: "UI", exact: true }),
-  ).toBeVisible({
+  await expect(page.getByRole("button", { name: "UI", exact: true })).toBeVisible({
     timeout: 30_000,
   });
 }

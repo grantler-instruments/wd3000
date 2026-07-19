@@ -1,5 +1,5 @@
 import {
-  Control,
+  type Control,
   controlTabs,
   isTopLevelControl,
   tabChildControls,
