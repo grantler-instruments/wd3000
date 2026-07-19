@@ -6,9 +6,7 @@ import { useLongPress } from "../hooks/useLongPress";
 import { useWidgetContextMenu } from "../hooks/useWidgetContextMenu";
 import {
   assignControlToHoveredTab,
-  dropPositionInElement,
-  endControlDrag,
-  resolveDroppedControlId,
+  resolveCanvasDropAtPoint,
   resolveTabDropAtPoint,
   setTabDropHover,
 } from "../lib/controlDrag";
@@ -31,11 +29,6 @@ interface TabPanelContentProps {
   editable: boolean;
   layoutPreview?: boolean;
   gridSize?: number;
-}
-
-function allowDrop(event: React.DragEvent<HTMLElement>) {
-  event.preventDefault();
-  event.dataTransfer.dropEffect = "move";
 }
 
 function DropPlacementPreview({
@@ -110,26 +103,41 @@ function TabChildItem({
   onLongPressMenu: (controlId: string, clientX: number, clientY: number) => void;
 }) {
   const updateControlLayout = useAppStore((state) => state.updateControlLayout);
-  const draggingControlId = useAppStore((state) => state.draggingControlId);
+  const assignControlToTab = useAppStore((state) => state.assignControlToTab);
   const selectedControlId = useAppStore((state) => state.selectedControlId);
   const selected = editable && selectedControlId === control.id;
+  const lastPointerRef = useRef({ clientX: 0, clientY: 0 });
 
   const handleCommit = useCallback(
     (x: number, y: number) => {
-      const tabsControlId = useAppStore.getState().dragHoverTabsId;
+      const pointer = lastPointerRef.current;
+      const preview = resolveTabDropAtPoint(pointer.clientX, pointer.clientY, gridSize, control.id);
+
       if (
-        tabsControlId &&
-        tabsControlId !== parentControl.id &&
-        assignControlToHoveredTab(control.id, tabsControlId)
+        preview &&
+        preview.tabsControlId !== parentControl.id &&
+        assignControlToHoveredTab(control.id, preview.tabsControlId, {
+          x: preview.x,
+          y: preview.y,
+        })
       ) {
         setTabDropHover(null);
         return;
       }
 
+      if (!preview) {
+        const canvasPosition = resolveCanvasDropAtPoint(pointer.clientX, pointer.clientY, gridSize);
+        if (canvasPosition) {
+          assignControlToTab(control.id, null, null, canvasPosition);
+          setTabDropHover(null);
+          return;
+        }
+      }
+
       setTabDropHover(null);
       updateControlLayout(control.id, { x, y });
     },
-    [control.id, parentControl.id, updateControlLayout],
+    [assignControlToTab, control.id, gridSize, parentControl.id, updateControlLayout],
   );
 
   const { position, dragging, startDrag } = useDragPosition({
@@ -139,6 +147,14 @@ function TabChildItem({
     gridSize,
     onCommit: handleCommit,
   });
+
+  const handleDragStart = useCallback(
+    (event: React.PointerEvent<HTMLElement>) => {
+      lastPointerRef.current = { clientX: event.clientX, clientY: event.clientY };
+      startDrag(event);
+    },
+    [startDrag],
+  );
 
   const longPressHandlers = useLongPress(
     editable ? (point) => onLongPressMenu(control.id, point.clientX, point.clientY) : null,
@@ -150,6 +166,7 @@ function TabChildItem({
     }
 
     const handlePointerMove = (event: PointerEvent) => {
+      lastPointerRef.current = { clientX: event.clientX, clientY: event.clientY };
       const preview = resolveTabDropAtPoint(event.clientX, event.clientY, gridSize, control.id);
       setTabDropHover(preview ? { ...preview, sourceControlId: control.id } : null);
     };
@@ -157,8 +174,6 @@ function TabChildItem({
     window.addEventListener("pointermove", handlePointerMove);
     return () => window.removeEventListener("pointermove", handlePointerMove);
   }, [dragging, gridSize, control.id]);
-
-  const isDragging = draggingControlId === control.id;
 
   return (
     <Box
@@ -170,7 +185,7 @@ function TabChildItem({
         left: position.x,
         top: position.y,
         zIndex: dragging || selected ? 2 : 1,
-        opacity: dragging ? 0.92 : isDragging ? 0.35 : 1,
+        opacity: dragging ? 0.92 : 1,
         pointerEvents: dragging ? "none" : "auto",
         WebkitTouchCallout: "none",
       }}
@@ -183,8 +198,7 @@ function TabChildItem({
         canvasSize={panelSize}
         subtractPosition
         showDragHandle={editable}
-        onDragStart={startDrag}
-        showCanvasDragHandle={editable}
+        onDragStart={handleDragStart}
       />
     </Box>
   );
@@ -199,16 +213,11 @@ export function TabPanelContent({
   gridSize = LAYOUT_GRID_SIZE,
 }: TabPanelContentProps) {
   const { t } = useTranslation();
-  const assignControlToTab = useAppStore((state) => state.assignControlToTab);
   const selectControl = useAppStore((state) => state.selectControl);
   const tabDropPreview = useAppStore((state) => state.tabDropPreview);
-  const draggingControlId = useAppStore((state) => state.draggingControlId);
   const controls = useAppStore((state) => state.controls);
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const contentRef = useRef<HTMLDivElement | null>(null);
-  const dragDepthRef = useRef(0);
   const [panelSize, setPanelSize] = useState({ width: 320, height: 200 });
-  const [dragOverPanel, setDragOverPanel] = useState(false);
   const children = tabChildControls(controls, parentControl.id, tab.id);
   const contentSize = tabPanelContentSize(children, panelSize);
   const {
@@ -221,8 +230,8 @@ export function TabPanelContent({
     tabDropPreview?.tabsControlId === parentControl.id && tabDropPreview.tabId === tab.id
       ? tabDropPreview
       : null;
-  const showDropHighlight = editable && (dragOverPanel || previewForPanel !== null);
-  const previewSourceId = previewForPanel?.sourceControlId ?? draggingControlId;
+  const showDropHighlight = editable && previewForPanel !== null;
+  const previewSourceId = previewForPanel?.sourceControlId;
   const previewSourceControl = previewSourceId
     ? (controls.find((control) => control.id === previewSourceId) ?? null)
     : null;
@@ -248,108 +257,9 @@ export function TabPanelContent({
     return () => observer.disconnect();
   }, [active]);
 
-  const clearPanelDragState = () => {
-    dragDepthRef.current = 0;
-    setDragOverPanel(false);
-    setTabDropHover(null);
-  };
-
-  const updateDropPreview = (event: React.DragEvent<HTMLElement>) => {
-    const content = contentRef.current;
-    if (!content) {
-      setTabDropHover(null);
-      return;
-    }
-
-    const position = dropPositionInElement(event.clientX, event.clientY, content, gridSize);
-    setTabDropHover({
-      tabsControlId: parentControl.id,
-      tabId: tab.id,
-      x: position.x,
-      y: position.y,
-      sourceControlId: draggingControlId ?? undefined,
-    });
-  };
-
-  const assignDroppedControl = (sourceId: string, event: React.DragEvent<HTMLElement>) => {
-    if (sourceId === parentControl.id) {
-      return;
-    }
-
-    const content = contentRef.current;
-    const position = content
-      ? dropPositionInElement(event.clientX, event.clientY, content, gridSize)
-      : undefined;
-    assignControlToTab(sourceId, parentControl.id, tab.id, position);
-  };
-
-  const handlePanelDragEnter = (event: React.DragEvent<HTMLDivElement>) => {
-    if (!editable) {
-      return;
-    }
-
-    allowDrop(event);
-    dragDepthRef.current += 1;
-    setDragOverPanel(true);
-    updateDropPreview(event);
-  };
-
-  const handlePanelDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
-    if (!editable) {
-      return;
-    }
-
-    const nextTarget = event.relatedTarget as Node | null;
-    if (nextTarget && panelRef.current?.contains(nextTarget)) {
-      return;
-    }
-
-    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
-    if (dragDepthRef.current === 0) {
-      setDragOverPanel(false);
-      setTabDropHover(null);
-    }
-  };
-
-  const handlePanelDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    if (!editable) {
-      return;
-    }
-
-    allowDrop(event);
-    setDragOverPanel(true);
-    updateDropPreview(event);
-  };
-
-  const handlePanelDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    if (!editable) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-    clearPanelDragState();
-
-    const sourceId = resolveDroppedControlId(event.dataTransfer);
-    if (sourceId) {
-      assignDroppedControl(sourceId, event);
-    }
-
-    endControlDrag();
-  };
-
   if (!active) {
     return null;
   }
-
-  const dragHandlers = editable
-    ? {
-        onDragEnter: handlePanelDragEnter,
-        onDragOver: handlePanelDragOver,
-        onDragLeave: handlePanelDragLeave,
-        onDrop: handlePanelDrop,
-      }
-    : {};
 
   return (
     <Box
@@ -364,7 +274,6 @@ export function TabPanelContent({
       }}
     >
       <Box
-        ref={contentRef}
         data-tab-drop-target={parentControl.id}
         data-tab-id={tab.id}
         onPointerDown={(event) => {
@@ -376,7 +285,6 @@ export function TabPanelContent({
             selectControl(null);
           }
         }}
-        {...(draggingControlId ? {} : dragHandlers)}
         sx={{
           position: "relative",
           width: contentSize.width,
@@ -441,17 +349,6 @@ export function TabPanelContent({
             onLongPressMenu={openMenuAt}
           />
         ))}
-
-        {editable && draggingControlId && (
-          <Box
-            {...dragHandlers}
-            sx={{
-              position: "absolute",
-              inset: 0,
-              zIndex: 6,
-            }}
-          />
-        )}
       </Box>
       <ControlWidgetMenu
         open={widgetMenu !== null}

@@ -191,9 +191,7 @@ const de: TranslationSchema = {
     runShortcut: "{{shortcut}} ausführen",
     backToHome: "Zurück zum Start",
     swipeExit: "Von der Ecke nach unten-links wischen, um den Run-Modus zu verlassen",
-    dragToReposition: "Ziehen zum Neupositionieren, oder auf ein Tab-Raster ablegen",
-    dragWidget: "Widget ziehen",
-    dragIntoTabPanel: "In Tab-Panel ziehen (HTML5)",
+    dragToReposition: "Ziehen zum Neupositionieren, auf ein Tab-Raster oder die Fläche ablegen",
   },
   monitor: {
     monitor: "Monitor",

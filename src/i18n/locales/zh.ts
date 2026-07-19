@@ -189,9 +189,7 @@ const zh: TranslationSchema = {
     runShortcut: "运行 {{shortcut}}",
     backToHome: "返回首页",
     swipeExit: "从角落向左下滑动以退出运行模式",
-    dragToReposition: "拖动以在画布上重新定位，或放到标签网格上",
-    dragWidget: "拖动控件",
-    dragIntoTabPanel: "拖到标签面板 (HTML5)",
+    dragToReposition: "拖动以重新定位，放到标签网格或画布上",
   },
   monitor: {
     monitor: "监视器",

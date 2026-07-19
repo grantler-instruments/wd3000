@@ -7,10 +7,7 @@ import { useViewportSize } from "../hooks/useViewportSize";
 import { useWidgetContextMenu } from "../hooks/useWidgetContextMenu";
 import {
   assignControlToHoveredTab,
-  assignDraggedControlToHoveredTab,
   dropPositionInElement,
-  endControlDrag,
-  resolveDroppedControlId,
   resolveTabDropAtPoint,
   setTabDropHover,
 } from "../lib/controlDrag";
@@ -84,53 +81,6 @@ function useCanvasContextMenu(editable: boolean, gridSize: number) {
   };
 }
 
-function useCanvasDropHandlers(editable: boolean) {
-  const assignControlToTab = useAppStore((state) => state.assignControlToTab);
-  const [dragOverCanvas, setDragOverCanvas] = useState(false);
-
-  const handleCanvasDragOver = useCallback(
-    (event: React.DragEvent<HTMLElement>) => {
-      if (!editable) {
-        return;
-      }
-
-      event.preventDefault();
-      event.dataTransfer.dropEffect = "move";
-      setDragOverCanvas(true);
-    },
-    [editable],
-  );
-
-  const handleCanvasDragLeave = useCallback(() => {
-    setDragOverCanvas(false);
-  }, []);
-
-  const handleCanvasDrop = useCallback(
-    (event: React.DragEvent<HTMLElement>) => {
-      if (!editable) {
-        return;
-      }
-
-      event.preventDefault();
-      setDragOverCanvas(false);
-
-      const sourceId = resolveDroppedControlId(event.dataTransfer);
-      if (sourceId) {
-        assignControlToTab(sourceId, null, null);
-      }
-      endControlDrag();
-    },
-    [assignControlToTab, editable],
-  );
-
-  return {
-    dragOverCanvas,
-    handleCanvasDragOver,
-    handleCanvasDragLeave,
-    handleCanvasDrop,
-  };
-}
-
 function ControlItem({
   control,
   editable,
@@ -147,7 +97,6 @@ function ControlItem({
   onLongPressMenu: (controlId: string, clientX: number, clientY: number) => void;
 }) {
   const updateControlLayout = useAppStore((state) => state.updateControlLayout);
-  const draggingControlId = useAppStore((state) => state.draggingControlId);
   const selectedControlId = useAppStore((state) => state.selectedControlId);
   const selected = editable && selectedControlId === control.id;
 
@@ -191,8 +140,6 @@ function ControlItem({
     return () => window.removeEventListener("pointermove", handlePointerMove);
   }, [dragging, gridSize, control.id]);
 
-  const isCanvasDragging = draggingControlId === control.id;
-
   return (
     <Box
       data-control-frame={control.id}
@@ -203,7 +150,7 @@ function ControlItem({
         left: position.x,
         top: position.y,
         zIndex: dragging || selected ? 2 : 1,
-        opacity: dragging ? 0.92 : isCanvasDragging ? 0.35 : 1,
+        opacity: dragging ? 0.92 : 1,
         pointerEvents: dragging ? "none" : "auto",
         WebkitTouchCallout: "none",
       }}
@@ -217,7 +164,6 @@ function ControlItem({
         subtractPosition
         showDragHandle={editable}
         onDragStart={startDrag}
-        showCanvasDragHandle={editable}
       />
     </Box>
   );
@@ -242,22 +188,6 @@ function FreeLayoutCanvas({
   const selectControl = useAppStore((state) => state.selectControl);
   const { width, height } = useViewportSize();
   const sortedControls = topLevelControls(controls);
-  const { dragOverCanvas, handleCanvasDragOver, handleCanvasDragLeave, handleCanvasDrop } =
-    useCanvasDropHandlers(editable);
-
-  useEffect(() => {
-    if (!editable) {
-      return;
-    }
-
-    const handleWindowDragEnd = () => {
-      assignDraggedControlToHoveredTab();
-      endControlDrag();
-    };
-
-    window.addEventListener("dragend", handleWindowDragEnd);
-    return () => window.removeEventListener("dragend", handleWindowDragEnd);
-  }, [editable]);
 
   return (
     <Box
@@ -268,12 +198,10 @@ function FreeLayoutCanvas({
         p: 0,
         bgcolor: "background.default",
       }}
-      onDragOver={handleCanvasDragOver}
-      onDragLeave={handleCanvasDragLeave}
-      onDrop={handleCanvasDrop}
     >
       <Box
         ref={canvasRef}
+        data-control-canvas
         onContextMenu={onContextMenu}
         onPointerDown={(event) => {
           if (!editable || event.button !== 0) {
@@ -292,7 +220,7 @@ function FreeLayoutCanvas({
           minHeight: height,
           flexShrink: 0,
           border: editable ? 1 : 0,
-          borderColor: dragOverCanvas ? "primary.main" : "divider",
+          borderColor: "divider",
           bgcolor: "background.paper",
           boxSizing: "border-box",
           backgroundImage: editable

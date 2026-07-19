@@ -36,7 +36,6 @@ export interface PerformerSlice {
   controlActiveNotes: Record<string, number[]>;
   controlPadValues: Record<string, ControlPadValue>;
   controlTabIndex: Record<string, number>;
-  draggingControlId: string | null;
   dragHoverTabsId: string | null;
   tabDropPreview: TabDropPreview | null;
   controlClipboard: ControlClipboard | null;
@@ -63,7 +62,6 @@ export interface PerformerSlice {
   setControlNoteActive: (id: string, note: number, active: boolean) => void;
   setControlPadValue: (id: string, x: number, y: number) => void;
   setControlTabIndex: (id: string, index: number) => void;
-  setDraggingControlId: (id: string | null) => void;
   setDragHoverTabsId: (id: string | null) => void;
   setTabDropPreview: (preview: TabDropPreview | null) => void;
 }
@@ -77,7 +75,6 @@ export const createPerformerSlice: StateCreator<AppStore, [], [], PerformerSlice
   controlActiveNotes: {},
   controlPadValues: {},
   controlTabIndex: {},
-  draggingControlId: null,
   dragHoverTabsId: null,
   tabDropPreview: null,
   controlClipboard: null,
@@ -288,6 +285,7 @@ export const createPerformerSlice: StateCreator<AppStore, [], [], PerformerSlice
           tabId: undefined,
           layout: {
             ...control.layout,
+            ...(position ? { x: position.x, y: position.y } : {}),
             order: topLevelControls(withoutControl).length,
           },
         };
@@ -371,7 +369,6 @@ export const createPerformerSlice: StateCreator<AppStore, [], [], PerformerSlice
         [id]: Math.max(0, Math.round(index)),
       },
     })),
-  setDraggingControlId: (id) => set({ draggingControlId: id }),
   setDragHoverTabsId: (id) => set({ dragHoverTabsId: id }),
   setTabDropPreview: (preview) => set({ tabDropPreview: preview }),
 });

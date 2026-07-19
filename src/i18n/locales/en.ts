@@ -189,9 +189,7 @@ const en = {
     runShortcut: "Run {{shortcut}}",
     backToHome: "Back to home",
     swipeExit: "Swipe down-left from the corner to exit run mode",
-    dragToReposition: "Drag to reposition on canvas, or drop onto a tab grid",
-    dragWidget: "Drag widget",
-    dragIntoTabPanel: "Drag into tab panel (HTML5)",
+    dragToReposition: "Drag to reposition, drop onto a tab grid, or onto the canvas",
   },
   monitor: {
     monitor: "Monitor",

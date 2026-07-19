@@ -1,35 +1,5 @@
 import { useAppStore } from "../store/useAppStore";
-import {
-  CONTROL_DRAG_MIME,
-  controlTabs,
-  LAYOUT_GRID_SIZE,
-  readControlDragId,
-  snapToGrid,
-  type TabDropPreview,
-} from "../types";
-
-export function beginControlDrag(event: React.DragEvent<HTMLElement>, controlId: string): void {
-  event.dataTransfer.setData("text/plain", controlId);
-  event.dataTransfer.setData(CONTROL_DRAG_MIME, controlId);
-  event.dataTransfer.effectAllowed = "move";
-
-  const dragImage = new Image();
-  dragImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-  event.dataTransfer.setDragImage(dragImage, 0, 0);
-
-  useAppStore.getState().setDraggingControlId(controlId);
-}
-
-export function endControlDrag(): void {
-  const store = useAppStore.getState();
-  store.setDraggingControlId(null);
-  store.setDragHoverTabsId(null);
-  store.setTabDropPreview(null);
-}
-
-export function resolveDroppedControlId(dataTransfer: DataTransfer): string | null {
-  return readControlDragId(dataTransfer) ?? useAppStore.getState().draggingControlId;
-}
+import { controlTabs, LAYOUT_GRID_SIZE, snapToGrid, type TabDropPreview } from "../types";
 
 export function dropPositionInElement(
   clientX: number,
@@ -50,7 +20,6 @@ export function resolveTabDropAtPoint(
   gridSize = LAYOUT_GRID_SIZE,
   excludeControlId?: string | null,
 ): TabDropPreview | null {
-  const excludeId = excludeControlId ?? useAppStore.getState().draggingControlId;
   const elements = document.elementsFromPoint(clientX, clientY);
 
   for (const element of elements) {
@@ -58,7 +27,7 @@ export function resolveTabDropAtPoint(
       continue;
     }
 
-    if (excludeId && element.closest(`[data-control-frame="${excludeId}"]`)) {
+    if (excludeControlId && element.closest(`[data-control-frame="${excludeControlId}"]`)) {
       continue;
     }
 
@@ -83,6 +52,27 @@ export function resolveTabDropAtPoint(
   }
 
   return null;
+}
+
+export function resolveCanvasDropAtPoint(
+  clientX: number,
+  clientY: number,
+  gridSize = LAYOUT_GRID_SIZE,
+): { x: number; y: number } | null {
+  const canvas = document.querySelector("[data-control-canvas]");
+  if (!(canvas instanceof HTMLElement)) {
+    return null;
+  }
+
+  const underPointer = document.elementsFromPoint(clientX, clientY);
+  const overCanvas = underPointer.some(
+    (element) => element === canvas || (element instanceof Node && canvas.contains(element)),
+  );
+  if (!overCanvas) {
+    return null;
+  }
+
+  return dropPositionInElement(clientX, clientY, canvas, gridSize);
 }
 
 export function setTabDropHover(preview: TabDropPreview | null): void {
@@ -135,19 +125,4 @@ export function assignControlToHoveredTab(
 
   assignControlToTab(controlId, parent.id, targetTabId, dropPosition);
   return true;
-}
-
-export function assignDraggedControlToHoveredTab(): boolean {
-  const { draggingControlId, dragHoverTabsId, tabDropPreview } = useAppStore.getState();
-
-  if (!draggingControlId || !dragHoverTabsId) {
-    return false;
-  }
-
-  const position =
-    tabDropPreview?.tabsControlId === dragHoverTabsId
-      ? { x: tabDropPreview.x, y: tabDropPreview.y }
-      : undefined;
-
-  return assignControlToHoveredTab(draggingControlId, dragHoverTabsId, position);
 }

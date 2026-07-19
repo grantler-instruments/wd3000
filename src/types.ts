@@ -282,13 +282,6 @@ export function pruneOrphanTabChildren(
   );
 }
 
-export const CONTROL_DRAG_MIME = "application/x-wd40-control-id";
-
-export function readControlDragId(dataTransfer: DataTransfer): string | null {
-  const id = dataTransfer.getData("text/plain") || dataTransfer.getData(CONTROL_DRAG_MIME);
-  return id.length > 0 ? id : null;
-}
-
 export interface ControlPadValue {
   x: number;
   y: number;

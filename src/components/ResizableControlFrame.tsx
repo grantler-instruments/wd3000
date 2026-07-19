@@ -3,7 +3,6 @@ import { Box } from "@mui/material";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useResizeControl } from "../hooks/useResizeControl";
-import { beginControlDrag } from "../lib/controlDrag";
 import { useAppStore } from "../store/useAppStore";
 import {
   type Control,
@@ -24,8 +23,6 @@ interface ResizableControlFrameProps {
   subtractPosition?: boolean;
   showDragHandle?: boolean;
   onDragStart?: (event: React.PointerEvent<HTMLElement>) => void;
-  showCanvasDragHandle?: boolean;
-  onCanvasDragStart?: (event: React.DragEvent<HTMLElement>) => void;
 }
 
 export function ResizableControlFrame({
@@ -37,8 +34,6 @@ export function ResizableControlFrame({
   subtractPosition = true,
   showDragHandle = false,
   onDragStart,
-  showCanvasDragHandle = false,
-  onCanvasDragStart,
 }: ResizableControlFrameProps) {
   const { t } = useTranslation();
   const updateControlLayout = useAppStore((state) => state.updateControlLayout);
@@ -95,7 +90,7 @@ export function ResizableControlFrame({
         control={control}
         editable={editable}
         layoutPreview={layoutPreview}
-        hideLabel={showDragHandle || (showCanvasDragHandle && !showDragHandle)}
+        hideLabel={showDragHandle}
       />
       {editable && showDragHandle && (
         <Box
@@ -131,70 +126,11 @@ export function ResizableControlFrame({
           >
             <DragIndicatorIcon fontSize="small" />
           </Box>
-          {showCanvasDragHandle && (
-            <Box
-              draggable
-              onPointerDown={(event) => event.stopPropagation()}
-              onDragStart={(event) => {
-                beginControlDrag(event, control.id);
-                onCanvasDragStart?.(event);
-              }}
-              onClick={(event) => event.stopPropagation()}
-              title={t("control.dragIntoTabPanel")}
-              sx={{
-                width: 28,
-                height: 28,
-                flexShrink: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "text.disabled",
-                cursor: "grab",
-                touchAction: "none",
-                userSelect: "none",
-                borderRadius: 1,
-                bgcolor: "action.hover",
-              }}
-            >
-              <DragIndicatorIcon fontSize="small" />
-            </Box>
-          )}
           <ControlEditButton inline onClick={() => openControlInspector(control.id)} />
         </Box>
       )}
       {editable && !showDragHandle && (
         <ControlEditButton onClick={() => openControlInspector(control.id)} />
-      )}
-      {editable && showCanvasDragHandle && !showDragHandle && (
-        <Box
-          draggable
-          onPointerDown={(event) => event.stopPropagation()}
-          onDragStart={(event) => {
-            beginControlDrag(event, control.id);
-            onCanvasDragStart?.(event);
-          }}
-          onClick={(event) => event.stopPropagation()}
-          title={t("control.dragWidget")}
-          sx={{
-            position: "absolute",
-            top: 4,
-            left: 4,
-            zIndex: 3,
-            width: 28,
-            height: 28,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "text.disabled",
-            cursor: "grab",
-            touchAction: "none",
-            userSelect: "none",
-            borderRadius: 1,
-            bgcolor: "action.hover",
-          }}
-        >
-          <DragIndicatorIcon fontSize="small" />
-        </Box>
       )}
       {editable && <ControlResizeHandle onPointerDown={startResize} />}
     </Box>

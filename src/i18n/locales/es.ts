@@ -192,9 +192,7 @@ const es: TranslationSchema = {
     backToHome: "Volver al inicio",
     swipeExit: "Desliza hacia abajo-izquierda desde la esquina para salir del modo ejecución",
     dragToReposition:
-      "Arrastra para reposicionar en el lienzo, o suelta en una cuadrícula de pestaña",
-    dragWidget: "Arrastrar widget",
-    dragIntoTabPanel: "Arrastrar al panel de pestañas (HTML5)",
+      "Arrastra para reposicionar, suelta en una cuadrícula de pestaña o en el lienzo",
   },
   monitor: {
     monitor: "Monitor",
