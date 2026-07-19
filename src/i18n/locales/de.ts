@@ -364,6 +364,8 @@ const de: TranslationSchema = {
       "Sensorberechtigung wurde verweigert. Aktiviere sie in den Browser-Einstellungen.",
     noBrowserSensors:
       "In diesem Browser sind keine Bewegungs- oder Orientierungs-APIs verfügbar.",
+    mobileOnlyHint:
+      "Bewegungs- und Orientierungssensoren funktionieren gut auf Smartphones und Tablets. Desktop-Browser liefern in der Regel keine brauchbaren Messwerte.",
     nativeDesktopIntro:
       "Native Sensoren aus der Desktop-App. Auf unterstützten MacBooks inklusive des Deckelwinkel-Sensors.",
     nativeMobileIntro:

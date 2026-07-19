@@ -364,6 +364,8 @@ const es: TranslationSchema = {
       "Se denegó el permiso del sensor. Actívalo en los ajustes del navegador para continuar.",
     noBrowserSensors:
       "No hay APIs de movimiento u orientación disponibles en este navegador.",
+    mobileOnlyHint:
+      "Los sensores de movimiento y orientación funcionan bien en teléfonos y tabletas. Los navegadores de escritorio suelen no ofrecer lecturas útiles.",
     nativeDesktopIntro:
       "Sensores nativos de la app de escritorio. En MacBooks compatibles incluye el sensor de ángulo de tapa.",
     nativeMobileIntro:

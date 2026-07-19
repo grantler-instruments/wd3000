@@ -359,6 +359,8 @@ const en = {
     permissionDenied:
       "Sensor permission was denied. Enable it in browser settings to continue.",
     noBrowserSensors: "No motion or orientation APIs are available in this browser.",
+    mobileOnlyHint:
+      "Motion and orientation sensors work well on phones and tablets. Desktop browsers usually do not provide useful readings.",
     nativeDesktopIntro:
       "Native sensors from the desktop app. On supported MacBooks this includes the built-in lid angle sensor.",
     nativeMobileIntro:

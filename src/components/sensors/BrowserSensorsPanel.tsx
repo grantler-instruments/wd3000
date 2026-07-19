@@ -7,6 +7,7 @@ import {
 } from "@mui/material";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { isMobileBrowserDevice } from "../../lib/platform";
 import { useBrowserSensors } from "../../lib/sensors/browser";
 import { useBrowserSensorOutput } from "../../lib/sensors/osc";
 import { useAppStore } from "../../store/useAppStore";
@@ -18,6 +19,7 @@ const MOTION_SENSOR_ID = "device_motion";
 
 export function BrowserSensorsPanel() {
   const { t } = useTranslation();
+  const mobileBrowser = isMobileBrowserDevice();
   const performerIo = useAppStore((state) => state.performerIo);
   const sensorMappings = useAppStore((state) => state.sensorMappings);
   const {
@@ -27,7 +29,7 @@ export function BrowserSensorsPanel() {
     orientation,
     motion,
     active,
-  } = useBrowserSensors(true);
+  } = useBrowserSensors(mobileBrowser);
 
   const browserReadings = useMemo(
     () => [
@@ -76,6 +78,14 @@ export function BrowserSensorsPanel() {
     permission === "unknown" ||
     permission === "denied" ||
     (requiresGesturePermission && permission !== "granted");
+
+  if (!mobileBrowser) {
+    return (
+      <Stack spacing={3} sx={{ maxWidth: 720 }}>
+        <Alert severity="info">{t("sensors.mobileOnlyHint")}</Alert>
+      </Stack>
+    );
+  }
 
   return (
     <Stack spacing={3} sx={{ maxWidth: 720 }}>

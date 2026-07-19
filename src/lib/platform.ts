@@ -22,6 +22,25 @@ export function getAppPlatform(): AppPlatform {
   return "desktop";
 }
 
+/** True for phone/tablet browsers (incl. iPadOS with desktop UA). Not viewport-based. */
+export function isMobileBrowserDevice(): boolean {
+  if (typeof navigator === "undefined") {
+    return false;
+  }
+
+  const ua = navigator.userAgent;
+  if (/android|iphone|ipod|ipad/i.test(ua)) {
+    return true;
+  }
+
+  // iPadOS 13+ reports as Macintosh but has multi-touch.
+  if (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1) {
+    return true;
+  }
+
+  return false;
+}
+
 export function isWebMidiSupported(): boolean {
   return typeof navigator !== "undefined" && "requestMIDIAccess" in navigator;
 }

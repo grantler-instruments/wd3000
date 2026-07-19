@@ -1,15 +1,21 @@
 import BugReportIcon from "@mui/icons-material/BugReport";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SettingsIcon from "@mui/icons-material/Settings";
 import {
   Box,
   Button,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { formatShortcutKey } from "../lib/platform";
+import {
+  formatShortcutKey,
+  isMobileBrowserDevice,
+  isNativeApp,
+} from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import type { DebuggerSubView, PerformerSubView } from "../types";
 import { GrantlerLogo } from "./GrantlerLogo";
@@ -19,6 +25,13 @@ const PERFORMER_ITEMS: { value: PerformerSubView; labelKey: string }[] = [
   { value: "sensors", labelKey: "home.sensors" },
   { value: "mediapipe", labelKey: "home.mediapipe" },
 ];
+
+const NATIVE_ONLY_DEBUGGER = new Set<DebuggerSubView>([
+  "midi",
+  "osc",
+  "tuio",
+  "artnet",
+]);
 
 const DEBUGGER_ITEMS: { value: DebuggerSubView; labelKey: string }[] = [
   { value: "midi", labelKey: "protocols.midi" },
@@ -76,14 +89,21 @@ function HomeNavGrid({
 function HomeNavButton({
   label,
   onClick,
+  disabled = false,
+  disabledTooltip,
+  infoTooltip,
 }: {
   label: string;
   onClick: () => void;
+  disabled?: boolean;
+  disabledTooltip?: string;
+  infoTooltip?: string;
 }) {
-  return (
+  const button = (
     <Button
       variant="outlined"
       onClick={onClick}
+      disabled={disabled}
       fullWidth
       sx={{
         minWidth: 0,
@@ -92,13 +112,45 @@ function HomeNavButton({
       }}
     >
       {label}
+      {infoTooltip ? (
+        <Tooltip title={infoTooltip}>
+          <Box
+            component="span"
+            sx={{
+              display: "inline-flex",
+              ml: 0.75,
+              verticalAlign: "middle",
+              pointerEvents: "auto",
+            }}
+            onClick={(event) => event.stopPropagation()}
+            aria-label={infoTooltip}
+          >
+            <InfoOutlinedIcon fontSize="small" color="action" />
+          </Box>
+        </Tooltip>
+      ) : null}
     </Button>
+  );
+
+  if (!disabled || !disabledTooltip) {
+    return button;
+  }
+
+  return (
+    <Tooltip title={disabledTooltip}>
+      <Box component="span" sx={{ display: "block", width: "100%" }}>
+        {button}
+      </Box>
+    </Tooltip>
   );
 }
 
 export function HomePage({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { t } = useTranslation();
   const setActiveView = useAppStore((state) => state.setActiveView);
+  const nativeApp = isNativeApp();
+  const sensorsMobileOnlyHint =
+    !nativeApp && !isMobileBrowserDevice() ? t("sensors.mobileOnlyHint") : undefined;
 
   return (
     <Box
@@ -134,6 +186,9 @@ export function HomePage({ onOpenSettings }: { onOpenSettings: () => void }) {
                   key={item.value}
                   label={t(item.labelKey)}
                   onClick={() => setActiveView("performer", item.value)}
+                  infoTooltip={
+                    item.value === "sensors" ? sensorsMobileOnlyHint : undefined
+                  }
                 />
               ))}
             </HomeNavGrid>
@@ -144,13 +199,24 @@ export function HomePage({ onOpenSettings }: { onOpenSettings: () => void }) {
             title={t("home.debugger")}
           >
             <HomeNavGrid columns={{ xs: 1, sm: 5 }}>
-              {DEBUGGER_ITEMS.map((item) => (
-                <HomeNavButton
-                  key={item.value}
-                  label={t(item.labelKey)}
-                  onClick={() => setActiveView("debugger", item.value)}
-                />
-              ))}
+              {DEBUGGER_ITEMS.map((item) => {
+                const nativeOnly = !nativeApp && NATIVE_ONLY_DEBUGGER.has(item.value);
+                return (
+                  <HomeNavButton
+                    key={item.value}
+                    label={t(item.labelKey)}
+                    onClick={() => setActiveView("debugger", item.value)}
+                    disabled={nativeOnly}
+                    disabledTooltip={
+                      nativeOnly
+                        ? t("monitor.nativeOnly", {
+                            protocol: t(item.labelKey),
+                          })
+                        : undefined
+                    }
+                  />
+                );
+              })}
             </HomeNavGrid>
           </HomeSection>
 
