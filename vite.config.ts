@@ -6,10 +6,13 @@ const host = process.env.TAURI_DEV_HOST;
 // @ts-expect-error process is a nodejs global
 const isTauri = Boolean(process.env.TAURI_ENV_PLATFORM);
 
+/** Vite `base` — trailing slash required. Override with VITE_BASE (e.g. Pages app). */
+const base = process.env.VITE_BASE ?? (isTauri ? "/" : "/wd3000/app/");
+
 // https://vite.dev/config/
 export default defineConfig({
-  // Web deploy keeps the /wd3000/ prefix; Tauri embeds dist at the app root.
-  base: isTauri ? "/" : "/wd3000/",
+  // Pages web app: /wd3000/app/; Tauri embeds dist at the app root.
+  base,
   plugins: [react()],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

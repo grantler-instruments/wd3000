@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const APP_URL = "http://localhost:1420/wd3000/";
+const APP_URL = "http://localhost:1420/wd3000/app/";
 
 export default defineConfig({
   testDir: "./e2e",

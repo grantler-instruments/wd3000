@@ -1,10 +1,56 @@
 # WD3000
 
-A Tauri + React + TypeScript app for monitoring and composing OSC, Art-Net, and TUIO traffic.
+Desktop performer and protocol debugger for MIDI, OSC, TUIO, Art-Net, and MQTT. Built with Tauri, React, and TypeScript.
 
-## Recommended IDE Setup
+**Site:** https://grantler-instruments.github.io/wd3000/  
+**Web app:** https://grantler-instruments.github.io/wd3000/app/  
+**Privacy policy:** https://grantler-instruments.github.io/wd3000/privacy  
+**Downloads:** https://github.com/grantler-instruments/wd3000/releases/latest
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+[![CI](https://github.com/grantler-instruments/wd3000/actions/workflows/ci.yml/badge.svg)](https://github.com/grantler-instruments/wd3000/actions/workflows/ci.yml)
+
+## Features
+
+- **Performer** — playable UI, phone sensors, and MediaPipe tracking
+- **Debugger** — inspect and compose MIDI, OSC, TUIO, Art-Net, and MQTT traffic
+- **Free desktop** — open source builds for macOS, Windows, and Linux
+
+## Development
+
+```bash
+npm install
+npm run tauri dev
+```
+
+| Command | What |
+| --- | --- |
+| `npm run dev` | Vite frontend only (http://localhost:1420/wd3000/app/) |
+| `npm run tauri dev` | Desktop app |
+| `npm test` | Unit tests |
+| `npm run test:e2e` | Playwright e2e |
+| `npm run website:dev` | Marketing site (http://localhost:5174/wd3000/) |
+| `npm run build:pages` | Marketing + app → `site/` for GitHub Pages |
+
+## GitHub Pages
+
+CI deploys `site/` after a successful run on `main`:
+
+| URL | What |
+| --- | --- |
+| `/wd3000/` | Marketing site (`website/`) |
+| `/wd3000/app/` | Web build of the React frontend |
+| `/wd3000/privacy` | Privacy policy |
+
+Enable **Settings → Pages → Source: GitHub Actions** on the repo. Desktop installers still ship via GitHub Releases (`npm run` tag → Release workflow).
+
+## Marketing site
+
+The landing page lives in [`website/`](website/) (separate from the app frontend in `src/`). It uses React, MUI, Zustand, and the Grantler dark theme.
+
+```bash
+cd website && npm install --legacy-peer-deps
+npm run website:dev
+```
 
 ## Support
 

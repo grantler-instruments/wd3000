@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:pages": "cross-env VITE_BASE=/wd3000/ npm run build --prefix website && cross-env VITE_BASE=/wd3000/app/ npm run build && node scripts/assemble-pages.mjs",
     "preview": "vite preview",
+    "preview:pages": "vite preview --outDir site --base /wd3000/",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
@@ -20,7 +22,11 @@
     "tauri:ios:bundle": "npm run tauri:ios:sync-export-options && tauri ios build --debug --open --export-method debugging",
     "tauri:ios:build": "npm run tauri:ios:sync-export-options && tauri ios build -- --export-method app-store-connect",
     "tauri:ios:open-archive": "open src-tauri/gen/apple/build/wd3000_iOS.xcarchive",
-    "tauri:android": "tauri android dev"
+    "tauri:android": "tauri android dev",
+    "website:dev": "npm run dev --prefix website",
+    "website:build": "npm run build --prefix website",
+    "website:preview": "npm run preview --prefix website",
+    "version:sync": "node scripts/sync-version.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
