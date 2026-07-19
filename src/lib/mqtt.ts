@@ -3,8 +3,6 @@ import { isNativeApp } from "./platform";
 
 export const MQTT_DEFAULT_TCP_PORT = 1883;
 export const MQTT_DEFAULT_WS_PORT = 9001;
-/** @deprecated Use MQTT_DEFAULT_TCP_PORT */
-export const MQTT_DEFAULT_PORT = MQTT_DEFAULT_TCP_PORT;
 
 export type MqttQoS = 0 | 1 | 2;
 export type MqttTransportProtocol = "tcp" | "ws";
@@ -16,8 +14,6 @@ export interface MqttBrokerStatus {
   running: boolean;
   tcpPort: number | null;
   wsPort: number | null;
-  /** @deprecated Use tcpPort */
-  port: number | null;
   listening: boolean;
   subscribeTopics: string[];
 }
@@ -128,7 +124,6 @@ export async function getMqttBrokerStatus(): Promise<MqttBrokerStatus> {
       running: false,
       tcpPort: null,
       wsPort: null,
-      port: null,
       listening: false,
       subscribeTopics: [],
     };

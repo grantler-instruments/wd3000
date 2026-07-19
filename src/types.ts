@@ -289,12 +289,6 @@ export function readControlDragId(dataTransfer: DataTransfer): string | null {
   return id.length > 0 ? id : null;
 }
 
-export function writeControlDragId(dataTransfer: DataTransfer, controlId: string): void {
-  dataTransfer.setData("text/plain", controlId);
-  dataTransfer.setData(CONTROL_DRAG_MIME, controlId);
-  dataTransfer.effectAllowed = "move";
-}
-
 export interface ControlPadValue {
   x: number;
   y: number;

@@ -52,7 +52,6 @@ pub struct MqttBrokerStatus {
     pub running: bool,
     pub tcp_port: Option<u16>,
     pub ws_port: Option<u16>,
-    pub port: Option<u16>,
     pub listening: bool,
     pub subscribe_topics: Option<Vec<String>>,
 }
@@ -182,26 +181,6 @@ impl MqttState {
         self.stop_monitor_locked(&mut inner)
     }
 
-    fn ensure_broker_running(&self, port: u16) -> Result<(), String> {
-        let inner = self.inner.lock().map_err(|error| error.to_string())?;
-        if !inner.broker_enabled {
-            return Err("MQTT broker is not enabled.".to_string());
-        }
-        if inner.broker_handle.is_none() {
-            return Err("MQTT broker is not running.".to_string());
-        }
-        if inner.broker_endpoints.map(|endpoints| endpoints.tcp) != Some(port) {
-            return Err(format!(
-                "MQTT broker TCP port is {}, not {port}.",
-                inner
-                    .broker_endpoints
-                    .map(|endpoints| endpoints.tcp)
-                    .unwrap_or(0)
-            ));
-        }
-        Ok(())
-    }
-
     fn stop_monitor_locked(&self, inner: &mut MqttInner) -> Result<(), String> {
         if let Some(stop_flag) = inner.monitor_stop.take() {
             stop_flag.store(true, Ordering::Relaxed);
@@ -261,7 +240,6 @@ impl MqttState {
             running: inner.broker_handle.is_some(),
             tcp_port: inner.broker_endpoints.map(|endpoints| endpoints.tcp),
             ws_port: inner.broker_endpoints.map(|endpoints| endpoints.ws),
-            port: inner.broker_endpoints.map(|endpoints| endpoints.tcp),
             listening: inner.monitor_handle.is_some(),
             subscribe_topics: inner.subscribe_topics.clone(),
         })
