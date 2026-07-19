@@ -260,7 +260,7 @@ export function ArtNetMonitor() {
   }, [listenerStatus]);
 
   return (
-    <DebuggerSection title={t("monitor.monitor")} flexGrow>
+    <DebuggerSection title={t("monitor.artNetMonitor")} flexGrow>
       <Stack spacing={2} sx={debuggerFillSx}>
         <Stack
           direction="row"
@@ -268,10 +268,14 @@ export function ArtNetMonitor() {
           sx={{
             flexShrink: 0,
             alignItems: "flex-start",
-            justifyContent: "flex-end",
+            justifyContent: "space-between",
             flexWrap: "wrap",
+            gap: 1,
           }}
         >
+          <Typography variant="caption" color="text.secondary" sx={{ maxWidth: 480 }}>
+            {t("monitor.artNetMonitorHint")}
+          </Typography>
           <Button
             size="small"
             onClick={() => clearDebugLogFiltered(isArtNetDebugEntry)}
@@ -294,16 +298,16 @@ export function ArtNetMonitor() {
                 disabled={!native || listenerStatus === "starting"}
               />
             }
-            label={t("common.listen")}
+            label={t("monitor.listenArtNetLabel")}
           />
           <TextField
-            label={t("common.listenPort")}
+            label={t("monitor.artNetListenPort")}
             size="small"
             type="number"
             value={listenPort}
             onChange={(event) => setListenPort(Number(event.target.value) || 0)}
             disabled={!native || !listeningEnabled}
-            sx={{ maxWidth: 160 }}
+            sx={{ maxWidth: 180 }}
             slotProps={{
               htmlInput: { min: 1, max: 65535 },
             }}
@@ -324,7 +328,7 @@ export function ArtNetMonitor() {
             sx={{ alignItems: { xs: "stretch", sm: "center" }, mb: 1, flexWrap: "wrap" }}
           >
             <Typography variant="subtitle2" sx={{ alignSelf: "center" }}>
-              {t("monitor.liveChannels")}
+              {t("monitor.liveDmxChannels")}
             </Typography>
             <TextField
               label={t("common.universe")}
@@ -415,7 +419,13 @@ export function ArtNetMonitor() {
                     sx={{ minWidth: 48, flexShrink: 0 }}
                   />
                   <Chip
-                    label={t("protocols.artnet")}
+                    label={
+                      getArtNetPayload(entry)?.transport === "enttec"
+                        ? t("protocols.enttec")
+                        : getArtNetPayload(entry)?.transport === "deemex"
+                          ? t("protocols.deemex")
+                          : t("protocols.artnet")
+                    }
                     size="small"
                     variant="outlined"
                     sx={{ flexShrink: 0 }}

@@ -40,6 +40,7 @@ export interface ArtNetDebugPayload {
   physical: number;
   channelCount: number;
   channels: number[];
+  transport?: "artnet" | "enttec" | "deemex";
 }
 
 export function formatArtNetSummary(payload: {
@@ -109,6 +110,7 @@ export async function sendArtNetDmx(
     physical: 0,
     channelCount: normalized.length,
     channels: normalized,
+    transport: "artnet",
   };
   const logSummary = summary ?? formatArtNetSummary(payload);
   recordOutboundArtNetDebug(logSummary);

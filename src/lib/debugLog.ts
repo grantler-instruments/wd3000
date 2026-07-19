@@ -42,6 +42,8 @@ export interface ArtNetMonitorPayload {
   physical: number;
   channelCount: number;
   channels: number[];
+  /** Present on composer outbound; inbound Art-Net omits this (treat as artnet). */
+  transport?: "artnet" | "enttec" | "deemex";
 }
 
 export interface MqttMonitorPayload {

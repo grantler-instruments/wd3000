@@ -1,5 +1,6 @@
 mod artnet;
 mod artnet_listen;
+mod enttec_pro;
 mod midi;
 mod midi_input;
 mod midi_virtual;
@@ -12,6 +13,7 @@ mod tuio_listen;
 mod tuio_send;
 
 use artnet_listen::ArtNetListenerState;
+use enttec_pro::EnttecProState;
 use midi::MidiState;
 use midi_input::MidiInputState;
 use midi_virtual::VirtualMidiState;
@@ -196,6 +198,7 @@ pub fn run() {
         .manage(VirtualMidiState::new())
         .manage(OscListenerState::new())
         .manage(ArtNetListenerState::new())
+        .manage(EnttecProState::new())
         .manage(TuioListenerState::new())
         .manage(TuioSenderState::new())
         .manage(MqttState::new())
@@ -224,6 +227,11 @@ pub fn run() {
             artnet_listen::stop_artnet_listener,
             artnet_listen::get_artnet_listener_status,
             send_artnet_dmx,
+            enttec_pro::list_serial_ports,
+            enttec_pro::connect_enttec_pro,
+            enttec_pro::disconnect_enttec_pro,
+            enttec_pro::is_enttec_pro_connected,
+            enttec_pro::send_enttec_pro_dmx,
             mqtt::start_mqtt_broker,
             mqtt::stop_mqtt_broker,
             mqtt::start_mqtt_listener,
