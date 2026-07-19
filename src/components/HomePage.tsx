@@ -16,7 +16,7 @@ const PERFORMER_ITEMS: { value: PerformerSubView; labelKey: string }[] = [
   { value: "mediapipe", labelKey: "home.mediapipe" },
 ];
 
-const NATIVE_ONLY_DEBUGGER = new Set<DebuggerSubView>(["midi", "osc", "tuio", "artnet"]);
+const NATIVE_ONLY_DEBUGGER = new Set<DebuggerSubView>(["osc", "tuio", "artnet"]);
 
 const DEBUGGER_ITEMS: { value: DebuggerSubView; labelKey: string }[] = [
   { value: "midi", labelKey: "protocols.midi" },

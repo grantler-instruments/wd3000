@@ -58,7 +58,6 @@ export function DebuggerPanel() {
         >
           {tab === "midi" ? (
             <Stack spacing={1} sx={debuggerStackSx}>
-              <NativeOnlyAlert protocol="midi" />
               <MidiComposer />
               <Box sx={debuggerMonitorSx}>
                 <MidiMonitor />
