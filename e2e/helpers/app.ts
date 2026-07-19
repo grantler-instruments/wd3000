@@ -11,7 +11,9 @@ export async function clearLayoutStorage(page: Page): Promise<void> {
 }
 
 export async function waitForAppReady(page: Page): Promise<void> {
-  await expect(page.getByRole("button", { name: "UI" })).toBeVisible({
+  await expect(
+    page.getByRole("button", { name: "UI", exact: true }),
+  ).toBeVisible({
     timeout: 30_000,
   });
 }
@@ -29,11 +31,11 @@ export async function gotoApp(page: Page, options?: { resetStorage?: boolean }):
 }
 
 export async function openPerformerSubView(page: Page, label: string): Promise<void> {
-  await page.getByRole("button", { name: label }).click();
+  await page.getByRole("button", { name: label, exact: true }).click();
 }
 
 export async function openDebuggerSubView(page: Page, label: string): Promise<void> {
-  await page.getByRole("button", { name: label }).click();
+  await page.getByRole("button", { name: label, exact: true }).click();
 }
 
 /** Modifier key for shortcuts: Meta on macOS, Control in Linux CI. */
