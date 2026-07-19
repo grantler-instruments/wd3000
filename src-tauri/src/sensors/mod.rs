@@ -1,11 +1,16 @@
 use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Mutex;
-use tauri::ipc::{Channel, JavaScriptChannelId};
+use tauri::ipc::JavaScriptChannelId;
 use tauri::{AppHandle, Emitter, Runtime, State, Webview};
 
 #[cfg(mobile)]
+use tauri::ipc::Channel;
+#[cfg(mobile)]
 use tauri::Manager;
+
+#[cfg(any(target_os = "macos", windows, target_os = "linux"))]
+mod ambient_light;
 
 #[cfg(target_os = "macos")]
 mod macos_lid;
@@ -37,6 +42,8 @@ pub struct SensorsState {
 struct SensorsInner {
     #[cfg(target_os = "macos")]
     lid_watcher: Option<macos_lid::LidAngleWatcher>,
+    #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
+    ambient_light_watcher: Option<ambient_light::AmbientLightWatcher>,
     #[cfg(mobile)]
     mobile_watching: bool,
     #[cfg(mobile)]
@@ -49,6 +56,8 @@ impl SensorsState {
             inner: Mutex::new(SensorsInner {
                 #[cfg(target_os = "macos")]
                 lid_watcher: None,
+                #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
+                ambient_light_watcher: None,
                 #[cfg(mobile)]
                 mobile_watching: false,
                 #[cfg(mobile)]
@@ -56,6 +65,11 @@ impl SensorsState {
             }),
         }
     }
+}
+
+#[cfg(mobile)]
+fn is_desktop_only_sensor(id: &str) -> bool {
+    matches!(id, "lid_angle" | "ambient_light")
 }
 
 #[tauri::command]
@@ -67,15 +81,22 @@ pub fn list_sensors<R: Runtime>(app: AppHandle<R>) -> Result<Vec<SensorDescripto
         sensors.extend(macos_lid::list_sensors());
     }
 
+    #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
+    {
+        sensors.extend(ambient_light::list_sensors());
+    }
+
     #[cfg(mobile)]
     {
         if let Some(plugin) = app.try_state::<tauri_plugin_sensors::Sensors<R>>() {
-            sensors.extend(plugin.list_sensors()?.into_iter().map(|descriptor| SensorDescriptor {
-                id: descriptor.id,
-                label: descriptor.label,
-                description: descriptor.description,
-                unit: descriptor.unit,
-                axes: descriptor.axes,
+            sensors.extend(plugin.list_sensors()?.into_iter().map(|descriptor| {
+                SensorDescriptor {
+                    id: descriptor.id,
+                    label: descriptor.label,
+                    description: descriptor.description,
+                    unit: descriptor.unit,
+                    axes: descriptor.axes,
+                }
             }));
         }
     }
@@ -110,6 +131,21 @@ pub fn start_sensor_watch<R: Runtime>(
             if inner.lid_watcher.is_none() {
                 inner.lid_watcher = Some(macos_lid::LidAngleWatcher::start(app.clone())?);
                 started = true;
+            } else {
+                started = true;
+            }
+        }
+    }
+
+    #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
+    {
+        if sensor_ids.iter().any(|id| id == "ambient_light") {
+            if inner.ambient_light_watcher.is_none() {
+                inner.ambient_light_watcher =
+                    Some(ambient_light::AmbientLightWatcher::start(app.clone())?);
+                started = true;
+            } else {
+                started = true;
             }
         }
     }
@@ -118,7 +154,7 @@ pub fn start_sensor_watch<R: Runtime>(
     {
         let mobile_ids: Vec<String> = sensor_ids
             .iter()
-            .filter(|id| *id != "lid_angle")
+            .filter(|id| !is_desktop_only_sensor(id))
             .cloned()
             .collect();
 
@@ -142,9 +178,17 @@ pub fn start_sensor_watch<R: Runtime>(
         }
     }
 
-    #[cfg(not(any(mobile, target_os = "macos")))]
+    #[cfg(not(any(mobile, target_os = "macos", windows, target_os = "linux")))]
     {
         let _ = (app, webview, channel);
+    }
+
+    #[cfg(all(
+        not(mobile),
+        any(target_os = "macos", windows, target_os = "linux")
+    ))]
+    {
+        let _ = (&channel, &webview);
     }
 
     if !started {
@@ -164,6 +208,13 @@ pub fn stop_sensor_watch<R: Runtime>(
     #[cfg(target_os = "macos")]
     {
         if let Some(watcher) = inner.lid_watcher.take() {
+            watcher.stop();
+        }
+    }
+
+    #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
+    {
+        if let Some(watcher) = inner.ambient_light_watcher.take() {
             watcher.stop();
         }
     }

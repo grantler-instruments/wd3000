@@ -447,11 +447,11 @@ const de: TranslationSchema = {
     mobileOnlyHint:
       "Bewegungs- und Orientierungssensoren funktionieren gut auf Smartphones und Tablets. Desktop-Browser liefern in der Regel keine brauchbaren Messwerte.",
     nativeDesktopIntro:
-      "Native Sensoren aus der Desktop-App. Auf unterstützten MacBooks inklusive des Deckelwinkel-Sensors.",
+      "Native Sensoren aus der Desktop-App. Auf unterstützter Hardware ggf. Deckelwinkel und Umgebungslicht.",
     nativeMobileIntro:
       "Native Gerätesensoren (Bewegung, Barometer, Nähe, Pedometer und weitere, sofern verfügbar).",
     noNativeSensorsDesktop:
-      "Auf diesem Rechner wurden keine nativen Sensoren gefunden. Deckelwinkel ist nur auf unterstützten MacBooks verfügbar.",
+      "Auf diesem Rechner wurden keine nativen Sensoren gefunden. Deckelwinkel und Umgebungslicht erscheinen nur, wenn die Hardware sie bereitstellt.",
     deviceOrientation: "Geräteorientierung",
     deviceOrientationDescription: "Alpha-, Beta- und Gamma-Winkel relativ zum Geräterahmen.",
     deviceMotion: "Gerätebewegung",

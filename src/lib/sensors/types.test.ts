@@ -13,6 +13,13 @@ describe("sensor MIDI mapping defaults", () => {
     expect(mapping.midi.max).toBe(180);
   });
 
+  it("uses a 0-1000 lux input range for ambient light", () => {
+    const mapping = defaultSensorAxisMapping("ambient_light", "illuminance", performerIo);
+
+    expect(mapping.midi.min).toBe(0);
+    expect(mapping.midi.max).toBe(1000);
+  });
+
   it("upgrades legacy lid-angle mappings that used the generic 0-127 range", () => {
     const mapping = normalizeSensorAxisMapping(
       {

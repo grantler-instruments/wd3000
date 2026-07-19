@@ -43,6 +43,10 @@ function defaultSensorMidiInputRange(sensorId: string, axis: string) {
     return { min: 0, max: 180 };
   }
 
+  if (sensorId === "ambient_light" && axis === "illuminance") {
+    return { min: 0, max: 1000 };
+  }
+
   return { min: 0, max: 127 };
 }
 

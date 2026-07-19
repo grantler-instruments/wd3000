@@ -442,11 +442,11 @@ const en = {
     mobileOnlyHint:
       "Motion and orientation sensors work well on phones and tablets. Desktop browsers usually do not provide useful readings.",
     nativeDesktopIntro:
-      "Native sensors from the desktop app. On supported MacBooks this includes the built-in lid angle sensor.",
+      "Native sensors from the desktop app. Supported machines may expose lid angle and ambient light when available.",
     nativeMobileIntro:
       "Native device sensors (motion, barometer, proximity, pedometer, and more when available).",
     noNativeSensorsDesktop:
-      "No native sensors were found on this machine. Lid angle is only available on supported MacBooks.",
+      "No native sensors were found on this machine. Lid angle and ambient light only appear when this hardware exposes them.",
     deviceOrientation: "Device orientation",
     deviceOrientationDescription: "Alpha, beta, and gamma angles relative to the device frame.",
     deviceMotion: "Device motion",

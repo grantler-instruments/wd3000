@@ -448,11 +448,11 @@ const es: TranslationSchema = {
     mobileOnlyHint:
       "Los sensores de movimiento y orientación funcionan bien en teléfonos y tabletas. Los navegadores de escritorio suelen no ofrecer lecturas útiles.",
     nativeDesktopIntro:
-      "Sensores nativos de la app de escritorio. En MacBooks compatibles incluye el sensor de ángulo de tapa.",
+      "Sensores nativos de la app de escritorio. En hardware compatible puede incluir ángulo de tapa y luz ambiental.",
     nativeMobileIntro:
       "Sensores nativos del dispositivo (movimiento, barómetro, proximidad, podómetro y más si están disponibles).",
     noNativeSensorsDesktop:
-      "No se encontraron sensores nativos en este equipo. El ángulo de tapa solo está disponible en MacBooks compatibles.",
+      "No se encontraron sensores nativos en este equipo. El ángulo de tapa y la luz ambiental solo aparecen si el hardware los expone.",
     deviceOrientation: "Orientación del dispositivo",
     deviceOrientationDescription: "Ángulos alpha, beta y gamma relativos al marco del dispositivo.",
     deviceMotion: "Movimiento del dispositivo",
