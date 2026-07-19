@@ -30,10 +30,11 @@ test("add button widget @smoke", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Edit widget" })).toBeVisible();
 });
 
-test("switch to debugger MIDI view @smoke", async ({ page }) => {
+test("switch to debugger MQTT view @smoke", async ({ page }) => {
   await gotoApp(page, { resetStorage: true });
 
-  await openDebuggerSubView(page, "MIDI");
+  // MIDI/OSC/TUIO/Art-Net are native-only; MQTT is available in the browser.
+  await openDebuggerSubView(page, "MQTT");
   await expect(page.getByRole("tab", { name: "Live" })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Saved" })).toBeVisible();
 });
