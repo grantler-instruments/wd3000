@@ -31,6 +31,9 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "android": {
+      "minSdkVersion": 29
+    },
     "iOS": {
       "developmentTeam": "DP9DFGMC65",
       "frameworks": [

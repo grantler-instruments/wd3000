@@ -107,16 +107,16 @@ class SensorsPlugin(private val activity: android.app.Activity) : Plugin(activit
         try {
             val available = catalog.mapNotNull { entry ->
                 sensorManager.getDefaultSensor(entry.type) ?: return@mapNotNull null
-                JSObject().apply {
+                buildMap<String, Any?> {
                     put("id", entry.id)
                     put("label", entry.label)
                     put("description", entry.description)
                     entry.unit?.let { put("unit", it) }
-                    put("axes", entry.axes.toTypedArray())
+                    put("axes", entry.axes)
                 }
             }
 
-            invoke.resolve(available.toTypedArray())
+            invoke.resolveObject(available)
         } catch (ex: Exception) {
             invoke.reject(ex.message)
         }

@@ -4,6 +4,8 @@
 
     <!-- AndroidTV support -->
     <uses-feature android:name="android.software.leanback" android:required="false" />
+    <!-- midir Android MIDI (USB/BLE MIDI work without requiring this feature) -->
+    <uses-feature android:name="android.software.midi" android:required="false" />
 
     <application
         android:icon="@mipmap/ic_launcher"
