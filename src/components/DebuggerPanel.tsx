@@ -83,12 +83,8 @@ export function DebuggerPanel() {
             <Stack spacing={1} sx={debuggerStackSx}>
               <NativeOnlyAlert protocol="mqtt" />
               <MqttComposer />
-              <Box sx={debuggerMonitorSx}>
-                <MqttMonitor />
-              </Box>
-              <Box sx={{ flexShrink: 0 }}>
-                <MqttBroker />
-              </Box>
+              <MqttMonitor />
+              <MqttBroker />
             </Stack>
           ) : tab === "tuio" ? (
             <Stack spacing={1} sx={debuggerStackSx}>
