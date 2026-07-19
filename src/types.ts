@@ -36,7 +36,7 @@ export type ControlProtocol = "osc" | "midi" | "mqtt" | "both";
 
 export type AppMode = "edit" | "play";
 
-export type DashboardView = "home" | "performer" | "debugger";
+export type DashboardView = "home" | "performer" | "debugger" | "synth";
 
 export type PerformerSubView = "ui" | "sensors" | "mediapipe";
 

@@ -7,6 +7,7 @@ import { createMediaPipeSlice } from "./slices/mediaPipeSlice";
 import { createPerformerSlice } from "./slices/performerSlice";
 import { createProjectSlice } from "./slices/projectSlice";
 import { createSensorsSlice } from "./slices/sensorsSlice";
+import { createSynthSlice } from "./slices/synthSlice";
 import { createUiSlice } from "./slices/uiSlice";
 
 export type { AppStore } from "./appStoreTypes";
@@ -20,6 +21,7 @@ export const useAppStore = create<AppStore>()(
       ...createSensorsSlice(...args),
       ...createMediaPipeSlice(...args),
       ...createProjectSlice(...args),
+      ...createSynthSlice(...args),
     }),
     appStorePersistOptions,
   ),

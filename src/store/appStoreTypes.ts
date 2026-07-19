@@ -3,6 +3,7 @@ import type { MediaPipeSlice } from "./slices/mediaPipeSlice";
 import type { PerformerSlice } from "./slices/performerSlice";
 import type { ProjectSlice } from "./slices/projectSlice";
 import type { SensorsSlice } from "./slices/sensorsSlice";
+import type { SynthSlice } from "./slices/synthSlice";
 import type { UiSlice } from "./slices/uiSlice";
 
 export type AppStore = UiSlice &
@@ -10,4 +11,5 @@ export type AppStore = UiSlice &
   IoSlice &
   SensorsSlice &
   MediaPipeSlice &
-  ProjectSlice;
+  ProjectSlice &
+  SynthSlice;

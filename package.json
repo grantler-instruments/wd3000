@@ -36,6 +36,8 @@
     "*": "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
   },
   "dependencies": {
+    "@elemaudio/core": "^3.2.1",
+    "@elemaudio/web-renderer": "^3.2.3",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@grantler-instruments/mui-theme": "^0.0.3",

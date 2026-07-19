@@ -27,9 +27,10 @@ import {
   type PerformerIoConfig,
 } from "../types";
 import type { AppStore } from "./appStoreTypes";
+import { normalizeSynthConfig, type SynthConfig } from "./slices/synthSlice";
 
 export const APP_STORE_PERSIST_NAME = "wd3000-layout";
-export const APP_STORE_PERSIST_VERSION = 12;
+export const APP_STORE_PERSIST_VERSION = 13;
 
 type PersistedAppStore = Pick<
   AppStore,
@@ -41,6 +42,7 @@ type PersistedAppStore = Pick<
   | "mediapipeConfig"
   | "mediapipeMappings"
   | "language"
+  | "synthConfig"
 >;
 
 type LegacyPersistedState = {
@@ -63,6 +65,7 @@ type LegacyPersistedState = {
   mediapipeConfig?: Partial<MediaPipeConfig>;
   mediapipeMappings?: Record<string, MediaPipeLandmarkMapping>;
   language?: AppLanguage;
+  synthConfig?: Partial<SynthConfig>;
 };
 
 function migratePersistedState(persistedState: unknown, version: number): PersistedAppStore {
@@ -223,6 +226,7 @@ function migratePersistedState(persistedState: unknown, version: number): Persis
       mediapipeConfig,
       mediapipeMappings,
       layoutSettings,
+      synthConfig: normalizeSynthConfig(state.synthConfig),
     } as PersistedAppStore;
   }
 
@@ -241,6 +245,7 @@ function migratePersistedState(persistedState: unknown, version: number): Persis
           ? state.layoutSettings.gridSize
           : defaultLayoutSettings().gridSize,
     },
+    synthConfig: normalizeSynthConfig(state.synthConfig),
   } as PersistedAppStore;
 }
 
@@ -257,6 +262,8 @@ export const appStorePersistOptions: PersistOptions<AppStore, PersistedAppStore>
       language: isAppLanguage(persisted.language) ? persisted.language : currentState.language,
       output: normalizeOutputConfig(persisted.output),
       performerIo: normalizePerformerIoConfig(persisted.performerIo, persisted.output),
+      synthConfig: normalizeSynthConfig(persisted.synthConfig),
+      synthRunning: false,
       mode: "edit",
       activeView: "home",
       selectedControlId: null,
@@ -272,6 +279,7 @@ export const appStorePersistOptions: PersistOptions<AppStore, PersistedAppStore>
     mediapipeConfig: state.mediapipeConfig,
     mediapipeMappings: state.mediapipeMappings,
     language: state.language,
+    synthConfig: state.synthConfig,
   }),
   onRehydrateStorage: () => (state) => {
     clearPerformerHistory();

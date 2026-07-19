@@ -9,9 +9,11 @@ import { MediaPipePlayView } from "./components/mediapipe/MediaPipePlayView";
 import { PageHeader } from "./components/PageHeader";
 import { PerformerPanel } from "./components/PerformerPanel";
 import { PlayModeBezelExit } from "./components/PlayModeBezelExit";
+import { SynthPanel } from "./components/SynthPanel";
 import { useControlClipboardShortcuts } from "./hooks/useControlClipboardShortcuts";
 import { useInputControl } from "./hooks/useInputControl";
 import { usePerformerHistory } from "./hooks/usePerformerHistory";
+import { useSynthRuntime } from "./hooks/useSynthRuntime";
 import { isTextInputTarget } from "./lib/platform";
 import { useAppStore } from "./store/useAppStore";
 import { playTheme } from "./theme";
@@ -29,6 +31,7 @@ function App() {
     activeView === "performer" && (performerSubView === "ui" || performerSubView === "mediapipe");
 
   useInputControl();
+  useSynthRuntime();
   usePerformerHistory();
   useControlClipboardShortcuts(
     isEditMode && activeView === "performer" && performerSubView === "ui",
@@ -123,6 +126,7 @@ function App() {
               <Box sx={{ flex: 1, minHeight: 0, width: "100%", display: "flex" }}>
                 {activeView === "performer" && <PerformerPanel />}
                 {activeView === "debugger" && <DebuggerPanel />}
+                {activeView === "synth" && <SynthPanel />}
               </Box>
             </>
           )}

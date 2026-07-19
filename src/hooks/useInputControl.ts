@@ -1,6 +1,5 @@
 import { listen } from "@tauri-apps/api/event";
 import { useEffect } from "react";
-import { startPerformerInputListeners, stopInputListeners } from "../lib/input";
 import {
   type ControlInputUpdate,
   type MidiCcInputMessage,
@@ -10,7 +9,9 @@ import {
   routeMidiNoteMessage,
   routeOscMessage,
 } from "../lib/inputRouter";
+import { collectPerformerListenPorts, collectPerformerMidiInputPorts } from "../lib/performerIo";
 import { isNativeApp } from "../lib/platform";
+import { clearInputListenerNeed, setInputListenerNeed } from "../lib/sharedInputListeners";
 import { setWebMidiControlHandlers } from "../lib/webMidi";
 import { useAppStore } from "../store/useAppStore";
 import { DEFAULT_CONTROL_PAD_VALUE } from "../types";
@@ -26,13 +27,18 @@ export function useInputControl() {
 
   useEffect(() => {
     if (mode !== "play") {
-      void stopInputListeners();
+      void clearInputListenerNeed("performer");
       return;
     }
 
     let cancelled = false;
+    const oscPorts = collectPerformerListenPorts(performerIo, controls);
+    const midiPorts = collectPerformerMidiInputPorts(performerIo, controls);
 
-    void startPerformerInputListeners(performerIo, controls).catch((error) => {
+    void setInputListenerNeed("performer", {
+      oscListenPort: oscPorts[0] ?? 0,
+      midiInputPortName: midiPorts[0] ?? null,
+    }).catch((error) => {
       if (!cancelled) {
         useAppStore.getState().setLastError(error instanceof Error ? error.message : String(error));
       }
@@ -40,7 +46,7 @@ export function useInputControl() {
 
     return () => {
       cancelled = true;
-      void stopInputListeners();
+      void clearInputListenerNeed("performer");
     };
   }, [controls, mode, performerIo]);
 

@@ -107,7 +107,8 @@ export function parseMidiInput(message: number[]): ParsedMidiInput | null {
   switch (messageType) {
     case 0x80:
       if (message.length >= 3) {
-        return noteEntry(channel, message[1], message[2], message);
+        // Normalize Note Off to velocity 0 so consumers can key on velocity.
+        return noteEntry(channel, message[1], 0, message);
       }
       break;
     case 0x90:

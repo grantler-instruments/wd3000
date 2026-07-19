@@ -7,10 +7,13 @@ import { isWebMidiSupported } from "./platform";
 let midiAccess: MIDIAccess | null = null;
 let connectedInput: MIDIInput | null = null;
 
-let controlHandlers: {
+type MidiControlHandlers = {
   onNote?: (message: MidiNoteInputMessage) => void;
   onCc?: (message: MidiCcInputMessage) => void;
-} = {};
+};
+
+let controlHandlers: MidiControlHandlers = {};
+let synthHandlers: MidiControlHandlers = {};
 
 export async function ensureMidiAccess(): Promise<MIDIAccess> {
   if (midiAccess) {
@@ -40,12 +43,14 @@ function handleIncomingMidi(event: MIDIMessageEvent) {
     return;
   }
 
-  if (parsed.controlNote && controlHandlers.onNote) {
-    controlHandlers.onNote(parsed.controlNote);
+  if (parsed.controlNote) {
+    controlHandlers.onNote?.(parsed.controlNote);
+    synthHandlers.onNote?.(parsed.controlNote);
   }
 
-  if (parsed.controlCc && controlHandlers.onCc) {
-    controlHandlers.onCc(parsed.controlCc);
+  if (parsed.controlCc) {
+    controlHandlers.onCc?.(parsed.controlCc);
+    synthHandlers.onCc?.(parsed.controlCc);
   }
 
   pushDebugLog({
@@ -64,8 +69,12 @@ function disconnectInput() {
   }
 }
 
-export function setWebMidiControlHandlers(handlers: typeof controlHandlers) {
+export function setWebMidiControlHandlers(handlers: MidiControlHandlers) {
   controlHandlers = handlers;
+}
+
+export function setWebMidiSynthHandlers(handlers: MidiControlHandlers) {
+  synthHandlers = handlers;
 }
 
 export async function listWebMidiInputs(): Promise<string[]> {

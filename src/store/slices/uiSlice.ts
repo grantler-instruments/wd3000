@@ -31,8 +31,8 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   setMode: (mode) => set({ mode }),
   setActiveView: (view, subView) =>
     set((state) => {
-      if (view === "home") {
-        return { activeView: "home" };
+      if (view === "home" || view === "synth") {
+        return { activeView: view };
       }
 
       if (view === "performer") {

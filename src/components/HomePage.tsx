@@ -1,5 +1,6 @@
 import BugReportIcon from "@mui/icons-material/BugReport";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import PianoIcon from "@mui/icons-material/Piano";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { Box, Button, Stack, Tooltip, Typography } from "@mui/material";
 import type { ReactNode } from "react";
@@ -7,7 +8,6 @@ import { useTranslation } from "react-i18next";
 import { formatShortcutKey, isMobileBrowserDevice, isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import type { DebuggerSubView, PerformerSubView } from "../types";
-import { GrantlerLogo } from "./GrantlerLogo";
 
 const PERFORMER_ITEMS: { value: PerformerSubView; labelKey: string }[] = [
   { value: "ui", labelKey: "home.ui" },
@@ -75,15 +75,18 @@ function HomeNavButton({
   onClick,
   disabled = false,
   disabledTooltip,
+  active = false,
 }: {
   label: string;
   onClick: () => void;
   disabled?: boolean;
   disabledTooltip?: string;
+  active?: boolean;
 }) {
   const button = (
     <Button
-      variant="outlined"
+      variant={active ? "contained" : "outlined"}
+      color="primary"
       onClick={onClick}
       disabled={disabled}
       fullWidth
@@ -113,6 +116,7 @@ function HomeNavButton({
 export function HomePage({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { t } = useTranslation();
   const setActiveView = useAppStore((state) => state.setActiveView);
+  const synthRunning = useAppStore((state) => state.synthRunning);
   const nativeApp = isNativeApp();
   const sensorsUnavailable = !nativeApp && !isMobileBrowserDevice();
 
@@ -137,7 +141,12 @@ export function HomePage({ onOpenSettings }: { onOpenSettings: () => void }) {
           alignItems: "center",
         }}
       >
-        <GrantlerLogo height={56} />
+        <Box
+          component="img"
+          src={`${import.meta.env.BASE_URL}app-logo.svg`}
+          alt="WD3000"
+          sx={{ height: 72, width: 72, display: "block", pointerEvents: "none" }}
+        />
 
         <Stack spacing={4} sx={{ width: "100%" }}>
           <HomeSection
@@ -186,20 +195,33 @@ export function HomePage({ onOpenSettings }: { onOpenSettings: () => void }) {
             </HomeNavGrid>
           </HomeSection>
 
-          <HomeSection
-            icon={<SettingsIcon fontSize="small" color="action" />}
-            title={t("home.settings")}
-          >
-            <Button
-              variant="outlined"
-              startIcon={<SettingsIcon />}
-              onClick={onOpenSettings}
-              aria-label={`${t("home.settings")} (${formatShortcutKey(",")})`}
-              sx={{ minWidth: 160 }}
+          <HomeNavGrid columns={{ xs: 1, sm: 2 }}>
+            <HomeSection
+              icon={<PianoIcon fontSize="small" color="action" />}
+              title={t("home.synth")}
             >
-              {t("home.settings")} ({formatShortcutKey(",")})
-            </Button>
-          </HomeSection>
+              <HomeNavButton
+                label={synthRunning ? t("synth.openOn") : t("synth.open")}
+                active={synthRunning}
+                onClick={() => setActiveView("synth")}
+              />
+            </HomeSection>
+
+            <HomeSection
+              icon={<SettingsIcon fontSize="small" color="action" />}
+              title={t("home.settings")}
+            >
+              <Button
+                variant="outlined"
+                startIcon={<SettingsIcon />}
+                onClick={onOpenSettings}
+                aria-label={`${t("home.settings")} (${formatShortcutKey(",")})`}
+                fullWidth
+              >
+                {t("home.settings")} ({formatShortcutKey(",")})
+              </Button>
+            </HomeSection>
+          </HomeNavGrid>
         </Stack>
       </Stack>
     </Box>

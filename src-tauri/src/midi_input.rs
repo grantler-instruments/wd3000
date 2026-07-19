@@ -198,7 +198,8 @@ pub(crate) fn parse_and_emit(app: &AppHandle, message: &[u8]) {
 
     match message_type {
         0x80 if message.len() >= 3 => {
-            emit_note(app, channel, message[1], message[2], message);
+            // Normalize Note Off to velocity 0 so consumers can key on velocity.
+            emit_note(app, channel, message[1], 0, message);
         }
         0x90 if message.len() >= 3 => {
             let velocity = message[2];
