@@ -286,6 +286,8 @@ const de: TranslationSchema = {
     events: "Ereignisse",
     removeEventsHint: "Remove-Ereignisse erscheinen hier.",
     nativeOnly: "{{protocol}} ist nur in Desktop- und Mobil-Apps verfügbar.",
+    mqttBrowserHint:
+      "Der integrierte MQTT-Broker erfordert die Desktop- oder Mobil-App. Monitor und Composer können sich über WebSocket mit einem externen Broker verbinden.",
     debuggerFailed: "Debugger konnte nicht geladen werden.",
     debuggerFailedDetail: "Debugger-Rendering fehlgeschlagen:",
   },

@@ -13,8 +13,11 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  defaultMqttClientPort,
+  isMqttClientSupported,
   MQTT_DEFAULT_COMPOSER_HOST,
   MQTT_DEFAULT_TCP_PORT,
+  MQTT_DEFAULT_WS_PORT,
   type MqttQoS,
   type MqttTransportProtocol,
 } from "../lib/mqtt";
@@ -25,7 +28,6 @@ import { DebuggerSection } from "./DebuggerSection";
 import { debuggerComposerRowSx } from "./debuggerLayoutSx";
 
 const QOS_OPTIONS: MqttQoS[] = [0, 1, 2];
-const PROTOCOL_OPTIONS: MqttTransportProtocol[] = ["tcp", "ws"];
 
 function clampPort(value: number, fallback: number) {
   if (!Number.isFinite(value) || value < 1 || value > 65535) {
@@ -40,23 +42,39 @@ export function MqttComposer() {
   const setOutput = useAppStore((state) => state.setOutput);
   const setLastError = useAppStore((state) => state.setLastError);
   const native = isNativeApp();
+  const protocolOptions: MqttTransportProtocol[] = native ? ["tcp", "ws"] : ["ws"];
+
+  const storedProtocol = output.mqttComposerProtocol || (native ? "tcp" : "ws");
+  const storedPort = output.mqttComposerPort || defaultMqttClientPort(storedProtocol);
 
   const [host, setHost] = useState(output.mqttComposerHost || MQTT_DEFAULT_COMPOSER_HOST);
-  const [port, setPort] = useState(output.mqttComposerPort || MQTT_DEFAULT_TCP_PORT);
-  const [protocol, setProtocol] = useState<MqttTransportProtocol>(
-    output.mqttComposerProtocol || "tcp",
-  );
+  const [port, setPort] = useState(storedPort);
+  const [protocol, setProtocol] = useState<MqttTransportProtocol>(storedProtocol);
   const [topic, setTopic] = useState("wd3000/test");
   const [payload, setPayload] = useState("hello");
   const [qos, setQos] = useState<MqttQoS>(0);
   const [retain, setRetain] = useState(false);
   const [sending, setSending] = useState(false);
 
+  const clientEnabled = isMqttClientSupported(protocol);
+
+  useEffect(() => {
+    if (native || storedProtocol === "ws") {
+      return;
+    }
+
+    const nextPort = storedPort === MQTT_DEFAULT_TCP_PORT ? MQTT_DEFAULT_WS_PORT : storedPort;
+    setOutput({
+      mqttComposerProtocol: "ws",
+      mqttComposerPort: nextPort,
+    });
+  }, [native, setOutput, storedPort, storedProtocol]);
+
   useEffect(() => {
     setHost(output.mqttComposerHost || MQTT_DEFAULT_COMPOSER_HOST);
-    setPort(output.mqttComposerPort || MQTT_DEFAULT_TCP_PORT);
-    setProtocol(output.mqttComposerProtocol || "tcp");
-  }, [output.mqttComposerHost, output.mqttComposerPort, output.mqttComposerProtocol]);
+    setPort(storedPort);
+    setProtocol(storedProtocol);
+  }, [output.mqttComposerHost, storedPort, storedProtocol]);
 
   const handleSend = async () => {
     setSending(true);
@@ -82,15 +100,25 @@ export function MqttComposer() {
             <Select
               labelId="mqtt-protocol-label"
               label={t("common.protocol")}
-              value={protocol}
+              value={protocolOptions.includes(protocol) ? protocol : "ws"}
               onChange={(event) => {
                 const nextProtocol = event.target.value as MqttTransportProtocol;
                 setProtocol(nextProtocol);
-                setOutput({ mqttComposerProtocol: nextProtocol });
+                const nextPort =
+                  nextProtocol === "ws" && port === MQTT_DEFAULT_TCP_PORT
+                    ? MQTT_DEFAULT_WS_PORT
+                    : nextProtocol === "tcp" && port === MQTT_DEFAULT_WS_PORT
+                      ? MQTT_DEFAULT_TCP_PORT
+                      : port;
+                setPort(nextPort);
+                setOutput({
+                  mqttComposerProtocol: nextProtocol,
+                  mqttComposerPort: nextPort,
+                });
               }}
-              disabled={!native}
+              disabled={!native && protocolOptions.length <= 1}
             >
-              {PROTOCOL_OPTIONS.map((value) => (
+              {protocolOptions.map((value) => (
                 <MenuItem key={value} value={value}>
                   {t(`protocols.${value}`)}
                 </MenuItem>
@@ -107,7 +135,7 @@ export function MqttComposer() {
               setHost(nextHost);
               setOutput({ mqttComposerHost: nextHost });
             }}
-            disabled={!native}
+            disabled={!clientEnabled}
             sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 180 }, flex: { sm: 1 } }}
           />
 
@@ -117,11 +145,14 @@ export function MqttComposer() {
             type="number"
             value={port}
             onChange={(event) => {
-              const nextPort = clampPort(Number(event.target.value), MQTT_DEFAULT_TCP_PORT);
+              const nextPort = clampPort(
+                Number(event.target.value),
+                defaultMqttClientPort(protocol),
+              );
               setPort(nextPort);
               setOutput({ mqttComposerPort: nextPort });
             }}
-            disabled={!native}
+            disabled={!clientEnabled}
             sx={{ width: { xs: "100%", sm: 120 } }}
             slotProps={{
               htmlInput: { min: 1, max: 65535 },
@@ -135,7 +166,7 @@ export function MqttComposer() {
             size="small"
             value={topic}
             onChange={(event) => setTopic(event.target.value)}
-            disabled={!native}
+            disabled={!clientEnabled}
             sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 220 }, flex: { sm: 1 } }}
           />
 
@@ -144,7 +175,7 @@ export function MqttComposer() {
             size="small"
             value={payload}
             onChange={(event) => setPayload(event.target.value)}
-            disabled={!native}
+            disabled={!clientEnabled}
             sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 220 }, flex: { sm: 1 } }}
           />
 
@@ -158,7 +189,7 @@ export function MqttComposer() {
               label={t("common.qos")}
               value={qos}
               onChange={(event) => setQos(Number(event.target.value) as MqttQoS)}
-              disabled={!native}
+              disabled={!clientEnabled}
             >
               {QOS_OPTIONS.map((value) => (
                 <MenuItem key={value} value={value}>
@@ -174,7 +205,7 @@ export function MqttComposer() {
                 checked={retain}
                 onChange={(event) => setRetain(event.target.checked)}
                 size="small"
-                disabled={!native}
+                disabled={!clientEnabled}
               />
             }
             label={t("common.retain")}
@@ -184,7 +215,7 @@ export function MqttComposer() {
             variant="contained"
             startIcon={<SendIcon />}
             onClick={handleSend}
-            disabled={!native || sending || !topic.trim() || !host.trim()}
+            disabled={!clientEnabled || sending || !topic.trim() || !host.trim()}
             sx={{ flexShrink: 0, width: { xs: "100%", sm: "auto" } }}
           >
             {t("monitor.publish")}

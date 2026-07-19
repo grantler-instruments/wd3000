@@ -287,6 +287,8 @@ const es: TranslationSchema = {
     events: "Eventos",
     removeEventsHint: "Los eventos de eliminación aparecerán aquí.",
     nativeOnly: "{{protocol}} solo está disponible en las apps de escritorio y móvil.",
+    mqttBrowserHint:
+      "El broker MQTT integrado requiere la app de escritorio o móvil. El monitor y el compositor pueden conectarse a un broker externo por WebSocket.",
     debuggerFailed: "El depurador no pudo cargarse.",
     debuggerFailedDetail: "El depurador falló al renderizar:",
   },

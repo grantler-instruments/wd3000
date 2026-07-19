@@ -26,8 +26,11 @@ import {
 } from "../lib/monitorLogFilter";
 import { useMonitorLogReplayProgress } from "../lib/monitorLogReplay";
 import {
+  defaultMqttClientPort,
+  isMqttClientSupported,
   MQTT_DEFAULT_COMPOSER_HOST,
   MQTT_DEFAULT_TCP_PORT,
+  MQTT_DEFAULT_WS_PORT,
   type MqttTransportProtocol,
 } from "../lib/mqtt";
 import {
@@ -48,8 +51,6 @@ import { SavedMonitorLogTab } from "./SavedMonitorLogTab";
 import { useOpenSavedLogOnReplay } from "./useOpenSavedLogOnReplay";
 
 type MonitorTab = "live" | "saved";
-
-const PROTOCOL_OPTIONS: MqttTransportProtocol[] = ["tcp", "ws"];
 
 function clampPort(value: number, fallback: number) {
   if (!Number.isFinite(value) || value < 1 || value > 65535) {
@@ -74,7 +75,6 @@ function describeMonitorStatus(
       return { label: t("monitor.connecting"), color: "warning" };
     case "disconnected":
       return { label: t("monitor.disconnected"), color: "error" };
-    case "idle":
     default:
       return { label: t("monitor.notConnected"), color: "default" };
   }
@@ -99,11 +99,14 @@ export function MqttMonitor() {
   const replayProgress = useMonitorLogReplayProgress();
   const monitorStatus = useMqttMonitorStatus();
   const native = isNativeApp();
+  const protocolOptions: MqttTransportProtocol[] = native ? ["tcp", "ws"] : ["ws"];
 
   const subscribeTopics = output.mqttSubscribeTopics ?? [];
   const brokerHost = output.mqttMonitorHost || MQTT_DEFAULT_COMPOSER_HOST;
-  const brokerPort = output.mqttMonitorPort || MQTT_DEFAULT_TCP_PORT;
-  const brokerProtocol = output.mqttMonitorProtocol || "tcp";
+  const brokerPort =
+    output.mqttMonitorPort || defaultMqttClientPort(output.mqttMonitorProtocol || "tcp");
+  const brokerProtocol = output.mqttMonitorProtocol || (native ? "tcp" : "ws");
+  const clientEnabled = isMqttClientSupported(brokerProtocol);
 
   const [tab, setTab] = useState<MonitorTab>("live");
   const [host, setHost] = useState(brokerHost);
@@ -147,13 +150,25 @@ export function MqttMonitor() {
   const topicsLabel = formatTopicsLabel(subscribeTopics, t);
 
   useEffect(() => {
+    if (native || brokerProtocol === "ws") {
+      return;
+    }
+
+    const nextPort = brokerPort === MQTT_DEFAULT_TCP_PORT ? MQTT_DEFAULT_WS_PORT : brokerPort;
+    setOutput({
+      mqttMonitorProtocol: "ws",
+      mqttMonitorPort: nextPort,
+    });
+  }, [brokerPort, brokerProtocol, native, setOutput]);
+
+  useEffect(() => {
     setHost(brokerHost);
     setPort(brokerPort);
     setProtocol(brokerProtocol);
   }, [brokerHost, brokerPort, brokerProtocol]);
 
   useEffect(() => {
-    if (!native) {
+    if (!clientEnabled) {
       return;
     }
 
@@ -189,7 +204,7 @@ export function MqttMonitor() {
       void stopMqttListener();
       resetMqttMonitorStatus();
     };
-  }, [brokerHost, brokerPort, brokerProtocol, native, setLastError, subscribeTopics]);
+  }, [brokerHost, brokerPort, brokerProtocol, clientEnabled, setLastError, subscribeTopics]);
 
   return (
     <DebuggerSection title={t("monitor.monitor")} flexGrow>
@@ -223,7 +238,7 @@ export function MqttMonitor() {
               <Button
                 size="small"
                 onClick={() => clearDebugLogFiltered(isMqttDebugEntry)}
-                disabled={!native || entries.length === 0}
+                disabled={entries.length === 0}
               >
                 {t("common.clear")}
               </Button>
@@ -263,15 +278,25 @@ export function MqttMonitor() {
                   <Select
                     labelId="mqtt-monitor-protocol-label"
                     label={t("common.protocol")}
-                    value={protocol}
+                    value={protocolOptions.includes(protocol) ? protocol : "ws"}
                     onChange={(event) => {
                       const nextProtocol = event.target.value as MqttTransportProtocol;
                       setProtocol(nextProtocol);
-                      setOutput({ mqttMonitorProtocol: nextProtocol });
+                      const nextPort =
+                        nextProtocol === "ws" && port === MQTT_DEFAULT_TCP_PORT
+                          ? MQTT_DEFAULT_WS_PORT
+                          : nextProtocol === "tcp" && port === MQTT_DEFAULT_WS_PORT
+                            ? MQTT_DEFAULT_TCP_PORT
+                            : port;
+                      setPort(nextPort);
+                      setOutput({
+                        mqttMonitorProtocol: nextProtocol,
+                        mqttMonitorPort: nextPort,
+                      });
                     }}
-                    disabled={!native}
+                    disabled={!native && protocolOptions.length <= 1}
                   >
-                    {PROTOCOL_OPTIONS.map((value) => (
+                    {protocolOptions.map((value) => (
                       <MenuItem key={value} value={value}>
                         {t(`protocols.${value}`)}
                       </MenuItem>
@@ -288,7 +313,7 @@ export function MqttMonitor() {
                     setHost(nextHost);
                     setOutput({ mqttMonitorHost: nextHost });
                   }}
-                  disabled={!native}
+                  disabled={!clientEnabled}
                   sx={{ minWidth: 180, flex: 1 }}
                 />
 
@@ -298,11 +323,14 @@ export function MqttMonitor() {
                   type="number"
                   value={port}
                   onChange={(event) => {
-                    const nextPort = clampPort(Number(event.target.value), MQTT_DEFAULT_TCP_PORT);
+                    const nextPort = clampPort(
+                      Number(event.target.value),
+                      defaultMqttClientPort(protocol),
+                    );
                     setPort(nextPort);
                     setOutput({ mqttMonitorPort: nextPort });
                   }}
-                  disabled={!native}
+                  disabled={!clientEnabled}
                   sx={{ width: 120 }}
                   slotProps={{
                     htmlInput: { min: 1, max: 65535 },
@@ -312,7 +340,7 @@ export function MqttMonitor() {
             </Stack>
 
             <Box sx={{ flexShrink: 0 }}>
-              <MqttSubscriber />
+              <MqttSubscriber disabled={!clientEnabled} />
             </Box>
 
             <Stack spacing={1} sx={{ flexShrink: 0 }}>

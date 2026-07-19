@@ -1,6 +1,12 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { Control, OutputConfig, PerformerIoConfig } from "../types";
-import type { MqttListenerOptions } from "./mqtt";
+import {
+  type MqttListenerOptions,
+  startMqttBroker as startMqttBrokerImpl,
+  startMqttListener as startMqttListenerImpl,
+  stopMqttBroker as stopMqttBrokerImpl,
+  stopMqttListener as stopMqttListenerImpl,
+} from "./mqtt";
 import { collectPerformerListenPorts, collectPerformerMidiInputPorts } from "./performerIo";
 import { isNativeApp } from "./platform";
 import { listWebMidiInputs, startWebMidiInput, stopWebMidiInput } from "./webMidi";
@@ -67,26 +73,19 @@ export async function getArtNetListenerStatus(): Promise<ArtNetListenerStatus> {
 }
 
 export async function startMqttBroker(tcpPort: number, wsPort: number): Promise<void> {
-  await invoke("start_mqtt_broker", { tcpPort, wsPort });
+  await startMqttBrokerImpl(tcpPort, wsPort);
 }
 
 export async function stopMqttBroker(): Promise<void> {
-  await invoke("stop_mqtt_broker");
+  await stopMqttBrokerImpl();
 }
 
 export async function startMqttListener(options: MqttListenerOptions): Promise<void> {
-  const topics = options.topics.map((topic) => topic.trim()).filter((topic) => topic.length > 0);
-
-  await invoke("start_mqtt_listener", {
-    host: options.host,
-    port: options.port,
-    protocol: options.protocol,
-    subscribeTopics: topics,
-  });
+  await startMqttListenerImpl(options);
 }
 
 export async function stopMqttListener(): Promise<void> {
-  await invoke("stop_mqtt_listener");
+  await stopMqttListenerImpl();
 }
 
 export async function startInputListeners(output: OutputConfig): Promise<void> {

@@ -2,18 +2,20 @@ import CloseIcon from "@mui/icons-material/Close";
 import { Button, Chip, Stack, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 
 function normalizeTopic(topic: string) {
   return topic.trim();
 }
 
-export function MqttSubscriber() {
+interface MqttSubscriberProps {
+  disabled?: boolean;
+}
+
+export function MqttSubscriber({ disabled = false }: MqttSubscriberProps) {
   const { t } = useTranslation();
   const output = useAppStore((state) => state.output);
   const setOutput = useAppStore((state) => state.setOutput);
-  const native = isNativeApp();
   const topics = output.mqttSubscribeTopics ?? [];
 
   const [topicInput, setTopicInput] = useState("");
@@ -47,7 +49,7 @@ export function MqttSubscriber() {
               addTopic();
             }
           }}
-          disabled={!native}
+          disabled={disabled}
           sx={{ flex: 1 }}
           slotProps={{
             input: {
@@ -63,7 +65,7 @@ export function MqttSubscriber() {
         <Button
           variant="contained"
           onClick={addTopic}
-          disabled={!native || !normalizeTopic(topicInput)}
+          disabled={disabled || !normalizeTopic(topicInput)}
           sx={{ flexShrink: 0 }}
         >
           {t("monitor.subscribe")}
@@ -77,7 +79,7 @@ export function MqttSubscriber() {
               key={topic}
               label={topic}
               size="small"
-              onDelete={native ? () => removeTopic(topic) : undefined}
+              onDelete={disabled ? undefined : () => removeTopic(topic)}
               deleteIcon={<CloseIcon />}
               sx={{
                 textTransform: "none",

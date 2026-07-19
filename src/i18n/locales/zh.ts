@@ -283,6 +283,8 @@ const zh: TranslationSchema = {
     events: "事件",
     removeEventsHint: "移除事件将显示在这里。",
     nativeOnly: "{{protocol}} 仅在桌面和移动应用中可用。",
+    mqttBrowserHint:
+      "内置 MQTT 代理需要桌面或移动应用。监视器和编写器可通过 WebSocket 连接外部代理。",
     debuggerFailed: "调试器加载失败。",
     debuggerFailedDetail: "调试器渲染失败：",
   },

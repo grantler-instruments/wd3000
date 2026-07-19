@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { isNativeApp } from "./platform";
 
 export const MQTT_DEFAULT_TCP_PORT = 1883;
 export const MQTT_DEFAULT_WS_PORT = 9001;
@@ -64,30 +65,74 @@ export function decodeMqttPayload(bytes: number[]): string {
   return decoded;
 }
 
+/** Browser can use MQTT over WebSocket; TCP and the built-in broker need the native app. */
+export function isMqttClientSupported(protocol: MqttTransportProtocol): boolean {
+  return isNativeApp() || protocol === "ws";
+}
+
+export function defaultMqttClientProtocol(): MqttTransportProtocol {
+  return isNativeApp() ? "tcp" : "ws";
+}
+
+export function defaultMqttClientPort(
+  protocol: MqttTransportProtocol = defaultMqttClientProtocol(),
+): number {
+  return protocol === "ws" ? MQTT_DEFAULT_WS_PORT : MQTT_DEFAULT_TCP_PORT;
+}
+
 export async function startMqttBroker(tcpPort: number, wsPort: number): Promise<void> {
+  if (!isNativeApp()) {
+    throw new Error("Built-in MQTT broker requires the desktop or mobile app");
+  }
   await invoke("start_mqtt_broker", { tcpPort, wsPort });
 }
 
 export async function stopMqttBroker(): Promise<void> {
+  if (!isNativeApp()) {
+    return;
+  }
   await invoke("stop_mqtt_broker");
 }
 
 export async function startMqttListener(options: MqttListenerOptions): Promise<void> {
   const topics = options.topics.map((topic) => topic.trim()).filter((topic) => topic.length > 0);
 
-  await invoke("start_mqtt_listener", {
-    host: options.host,
-    port: options.port,
-    protocol: options.protocol,
-    subscribeTopics: topics,
-  });
+  if (isNativeApp()) {
+    await invoke("start_mqtt_listener", {
+      host: options.host,
+      port: options.port,
+      protocol: options.protocol,
+      subscribeTopics: topics,
+    });
+    return;
+  }
+
+  const { startWebMqttListener } = await import("./webMqtt");
+  await startWebMqttListener({ ...options, topics });
 }
 
 export async function stopMqttListener(): Promise<void> {
-  await invoke("stop_mqtt_listener");
+  if (isNativeApp()) {
+    await invoke("stop_mqtt_listener");
+    return;
+  }
+
+  const { stopWebMqttListener } = await import("./webMqtt");
+  await stopWebMqttListener();
 }
 
 export async function getMqttBrokerStatus(): Promise<MqttBrokerStatus> {
+  if (!isNativeApp()) {
+    return {
+      enabled: false,
+      running: false,
+      tcpPort: null,
+      wsPort: null,
+      port: null,
+      listening: false,
+      subscribeTopics: [],
+    };
+  }
   return invoke<MqttBrokerStatus>("get_mqtt_broker_status");
 }
 
@@ -100,13 +145,19 @@ export async function publishMqttMessage(options: {
   qos: MqttQoS;
   retain: boolean;
 }): Promise<void> {
-  await invoke("mqtt_publish", {
-    host: options.host,
-    port: options.port,
-    protocol: options.protocol,
-    topic: options.topic,
-    payload: encodeMqttPayload(options.payload),
-    qos: options.qos,
-    retain: options.retain,
-  });
+  if (isNativeApp()) {
+    await invoke("mqtt_publish", {
+      host: options.host,
+      port: options.port,
+      protocol: options.protocol,
+      topic: options.topic,
+      payload: encodeMqttPayload(options.payload),
+      qos: options.qos,
+      retain: options.retain,
+    });
+    return;
+  }
+
+  const { publishWebMqttMessage } = await import("./webMqtt");
+  await publishWebMqttMessage(options);
 }

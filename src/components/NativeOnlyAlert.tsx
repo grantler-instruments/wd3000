@@ -13,6 +13,14 @@ export function NativeOnlyAlert({ protocol }: NativeOnlyAlertProps) {
     return null;
   }
 
+  if (protocol === "mqtt") {
+    return (
+      <Alert severity="info" sx={{ mb: 2 }}>
+        {t("monitor.mqttBrowserHint")}
+      </Alert>
+    );
+  }
+
   return (
     <Alert severity="info" sx={{ mb: 2 }}>
       {t("monitor.nativeOnly", { protocol: t(`protocols.${protocol}`) })}

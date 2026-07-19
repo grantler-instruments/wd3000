@@ -283,6 +283,8 @@ const en = {
     events: "Events",
     removeEventsHint: "Remove events will appear here.",
     nativeOnly: "{{protocol}} is only available in the desktop and mobile apps.",
+    mqttBrowserHint:
+      "The built-in MQTT broker requires the desktop or mobile app. Monitor and composer can connect to an external broker over WebSocket.",
     debuggerFailed: "The debugger failed to load.",
     debuggerFailedDetail: "Debugger failed to render:",
   },

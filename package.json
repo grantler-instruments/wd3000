@@ -48,6 +48,7 @@
     "@tauri-apps/plugin-opener": "^2",
     "i18next": "^26.3.6",
     "lodash.throttle": "^4.1.1",
+    "mqtt": "^5.15.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-i18next": "^17.0.10",
