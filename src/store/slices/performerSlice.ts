@@ -267,7 +267,7 @@ export const createPerformerSlice: StateCreator<AppStore, [], [], PerformerSlice
         }
 
         const parent = state.controls.find((entry) => entry.id === parentId);
-        if (!parent || parent.type !== "tabs" || !tabId) {
+        if (parent?.type !== "tabs" || !tabId) {
           return state;
         }
 

@@ -14,7 +14,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listMidiInputs } from "../lib/input";
 import { listMidiOutputs } from "../lib/output";
@@ -508,10 +508,10 @@ function MidiSettingsPanel() {
       });
   };
 
-  const refreshVirtualPorts = async () => {
+  const refreshVirtualPorts = useCallback(async () => {
     const next = await listVirtualMidiPorts();
     setVirtualPorts(next);
-  };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -536,7 +536,7 @@ function MidiSettingsPanel() {
     return () => {
       cancelled = true;
     };
-  }, [setLastError]);
+  }, [refreshVirtualPorts, setLastError]);
 
   const createVirtualPort = async (direction: "output" | "input") => {
     setVirtualBusy(true);

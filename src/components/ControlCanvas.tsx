@@ -189,7 +189,7 @@ function ControlItem({
 
     window.addEventListener("pointermove", handlePointerMove);
     return () => window.removeEventListener("pointermove", handlePointerMove);
-  }, [dragging, gridSize]);
+  }, [dragging, gridSize, control.id]);
 
   const isCanvasDragging = draggingControlId === control.id;
 

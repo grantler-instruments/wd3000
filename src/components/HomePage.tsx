@@ -1,6 +1,5 @@
 import BugReportIcon from "@mui/icons-material/BugReport";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { Box, Button, Stack, Tooltip, Typography } from "@mui/material";
 import type { ReactNode } from "react";
@@ -76,13 +75,11 @@ function HomeNavButton({
   onClick,
   disabled = false,
   disabledTooltip,
-  infoTooltip,
 }: {
   label: string;
   onClick: () => void;
   disabled?: boolean;
   disabledTooltip?: string;
-  infoTooltip?: string;
 }) {
   const button = (
     <Button
@@ -97,23 +94,6 @@ function HomeNavButton({
       }}
     >
       {label}
-      {infoTooltip ? (
-        <Tooltip title={infoTooltip}>
-          <Box
-            component="span"
-            sx={{
-              display: "inline-flex",
-              ml: 0.75,
-              verticalAlign: "middle",
-              pointerEvents: "auto",
-            }}
-            onClick={(event) => event.stopPropagation()}
-            aria-label={infoTooltip}
-          >
-            <InfoOutlinedIcon fontSize="small" color="action" />
-          </Box>
-        </Tooltip>
-      ) : null}
     </Button>
   );
 
@@ -134,8 +114,7 @@ export function HomePage({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { t } = useTranslation();
   const setActiveView = useAppStore((state) => state.setActiveView);
   const nativeApp = isNativeApp();
-  const sensorsMobileOnlyHint =
-    !nativeApp && !isMobileBrowserDevice() ? t("sensors.mobileOnlyHint") : undefined;
+  const sensorsUnavailable = !nativeApp && !isMobileBrowserDevice();
 
   return (
     <Box
@@ -166,14 +145,18 @@ export function HomePage({ onOpenSettings }: { onOpenSettings: () => void }) {
             title={t("home.performer")}
           >
             <HomeNavGrid columns={{ xs: 1, sm: 3 }}>
-              {PERFORMER_ITEMS.map((item) => (
-                <HomeNavButton
-                  key={item.value}
-                  label={t(item.labelKey)}
-                  onClick={() => setActiveView("performer", item.value)}
-                  infoTooltip={item.value === "sensors" ? sensorsMobileOnlyHint : undefined}
-                />
-              ))}
+              {PERFORMER_ITEMS.map((item) => {
+                const sensorsDisabled = item.value === "sensors" && sensorsUnavailable;
+                return (
+                  <HomeNavButton
+                    key={item.value}
+                    label={t(item.labelKey)}
+                    onClick={() => setActiveView("performer", item.value)}
+                    disabled={sensorsDisabled}
+                    disabledTooltip={sensorsDisabled ? t("sensors.mobileOnlyHint") : undefined}
+                  />
+                );
+              })}
             </HomeNavGrid>
           </HomeSection>
 

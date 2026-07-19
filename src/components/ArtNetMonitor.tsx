@@ -25,6 +25,7 @@ import { DebuggerSection } from "./DebuggerSection";
 import { debuggerFillSx, debuggerLogSx } from "./debuggerLayoutSx";
 
 const DMX_CHANNEL_COUNT = 512;
+const DMX_CHANNELS = Array.from({ length: DMX_CHANNEL_COUNT }, (_, channel) => channel);
 const GRID_COLUMNS = 32;
 const GRID_CELL_MIN = 28;
 
@@ -50,11 +51,11 @@ function ArtNetChannelGrid({ channels }: { channels: Uint8Array }) {
           minWidth: GRID_COLUMNS * GRID_CELL_MIN,
         }}
       >
-        {Array.from({ length: DMX_CHANNEL_COUNT }, (_, index) => {
-          const value = channels[index] ?? 0;
+        {DMX_CHANNELS.map((channel) => {
+          const value = channels[channel] ?? 0;
           return (
             <Box
-              key={index}
+              key={channel}
               sx={{
                 aspectRatio: "1",
                 bgcolor: `rgb(${value}, ${value}, ${value})`,
@@ -69,7 +70,7 @@ function ArtNetChannelGrid({ channels }: { channels: Uint8Array }) {
                 minWidth: 0,
               }}
             >
-              <span>{index + 1}</span>
+              <span>{channel + 1}</span>
               <span>{value}</span>
             </Box>
           );
@@ -230,7 +231,7 @@ export function ArtNetMonitor() {
       cancelled = true;
       void stopArtNetListener();
     };
-  }, [listenPort, listeningEnabled, native]);
+  }, [listenPort, listeningEnabled, native, t]);
 
   const listenerStatusLabel = useMemo(() => {
     switch (listenerStatus) {

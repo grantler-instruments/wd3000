@@ -57,8 +57,17 @@ export function cloneControlSubtree(
     }
   }
 
-  const newRootId = idMap.get(rootId)!;
+  const newRootId = idMap.get(rootId);
+  if (!newRootId) {
+    return { controls: [], rootId: null };
+  }
+
   const controls = subtree.map((control) => {
+    const nextId = idMap.get(control.id);
+    if (!nextId) {
+      throw new Error(`Missing remapped id for control ${control.id}`);
+    }
+
     const isRoot = control.id === rootId;
     let layout = { ...control.layout };
 
@@ -76,7 +85,7 @@ export function cloneControlSubtree(
 
     return {
       ...control,
-      id: idMap.get(control.id)!,
+      id: nextId,
       layout,
       tabs: control.tabs?.map((tab) => ({
         ...tab,

@@ -48,5 +48,5 @@ export function useBrowserSensorOutput(
         // Ignore transient send failures while sensors are streaming.
       });
     }
-  }, [enabled, readings, performerIo, sensorMappings]);
+  }, [enabled, readings]);
 }

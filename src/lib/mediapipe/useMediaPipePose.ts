@@ -52,6 +52,8 @@ export function useMediaPipePose({
   selectedLandmarksRef.current = selectedLandmarks;
   onLandmarkValuesRef.current = onLandmarkValues;
 
+  // Restart the pose pipeline when the camera device changes.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: videoDeviceId is a restart trigger
   useEffect(() => {
     if (!active) {
       return;
@@ -92,8 +94,9 @@ export function useMediaPipePose({
 
       const currentSelected = selectedLandmarksRef.current;
       const liveValues: Record<string, MediaPipeLandmark> = {};
+      const poseLandmarks = results.poseLandmarks;
 
-      if (!results.poseLandmarks) {
+      if (!poseLandmarks) {
         drawMediaPipePreviewFrame(canvasCtx, canvas, results.image);
         finishMediaPipePreviewFrame(canvasCtx);
         onLandmarkValuesRef.current?.(liveValues);
@@ -105,7 +108,7 @@ export function useMediaPipePose({
           return;
         }
 
-        const landmark = mirrorLandmarkX(results.poseLandmarks![index]);
+        const landmark = mirrorLandmarkX(poseLandmarks[index]);
         const key = poseLandmarkKey(label);
         liveValues[label] = landmark;
         sendMediaPipeLandmarkOutputThrottled(
@@ -124,7 +127,7 @@ export function useMediaPipePose({
       const inactiveLandmarks: NormalizedLandmark[] = [];
 
       POSE_LANDMARK_LABELS.forEach((label, index) => {
-        const landmark = results.poseLandmarks![index];
+        const landmark = poseLandmarks[index];
         if (currentSelected.includes(label)) {
           activeLandmarks.push(landmark);
         } else {
@@ -132,7 +135,7 @@ export function useMediaPipePose({
         }
       });
 
-      drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {
+      drawConnectors(canvasCtx, poseLandmarks, POSE_CONNECTIONS, {
         color: "rgba(255, 255, 255, 0.1)",
         lineWidth: 1,
       });

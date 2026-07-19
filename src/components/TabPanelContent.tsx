@@ -156,7 +156,7 @@ function TabChildItem({
 
     window.addEventListener("pointermove", handlePointerMove);
     return () => window.removeEventListener("pointermove", handlePointerMove);
-  }, [dragging, gridSize]);
+  }, [dragging, gridSize, control.id]);
 
   const isDragging = draggingControlId === control.id;
 
@@ -246,7 +246,7 @@ export function TabPanelContent({
     const observer = new ResizeObserver(updateSize);
     observer.observe(element);
     return () => observer.disconnect();
-  }, [active, children.length]);
+  }, [active]);
 
   const clearPanelDragState = () => {
     dragDepthRef.current = 0;

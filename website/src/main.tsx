@@ -7,7 +7,12 @@ import { WebsiteApp } from "./WebsiteApp";
 
 const basename = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
 
-createRoot(document.getElementById("root")!).render(
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  throw new Error('Root element "#root" not found');
+}
+
+createRoot(rootElement).render(
   <StrictMode>
     <ThemeProvider theme={websiteTheme}>
       <CssBaseline />

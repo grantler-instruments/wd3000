@@ -52,6 +52,8 @@ export function useMediaPipeHands({
   selectedLandmarksRef.current = selectedLandmarks;
   onLandmarkValuesRef.current = onLandmarkValues;
 
+  // Restart the hands pipeline when the camera device changes.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: videoDeviceId is a restart trigger
   useEffect(() => {
     if (!active) {
       return;

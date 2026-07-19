@@ -32,10 +32,14 @@ export function MediaPipePreview({
   const mediapipeMappings = useAppStore((state) => state.mediapipeMappings);
   const trackingActive = mediapipeConfig.selectedLandmarks.length > 0;
 
+  // Reset readiness when the camera source or tracker changes.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional reset triggers
   useEffect(() => {
     setCameraReady(false);
   }, [mediapipeConfig.videoDeviceId, mediapipeConfig.tracker]);
 
+  // Re-bind video readiness listeners when the device changes.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-run when device changes
   useEffect(() => {
     const syncCameraReady = () => {
       const video = webcamRef.current?.video ?? null;
@@ -55,6 +59,8 @@ export function MediaPipePreview({
     };
   }, [mediapipeConfig.videoDeviceId]);
 
+  // Clear throttles when tracking stops or the pipeline identity changes.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset on tracker/device change
   useEffect(() => {
     if (!trackingActive) {
       resetMediaPipeOutputThrottles();

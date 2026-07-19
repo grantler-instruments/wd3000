@@ -104,7 +104,7 @@ export function assignControlToHoveredTab(
   }
 
   const parent = controls.find((control) => control.id === tabsControlId);
-  if (!parent || parent.type !== "tabs") {
+  if (parent?.type !== "tabs") {
     return false;
   }
 
