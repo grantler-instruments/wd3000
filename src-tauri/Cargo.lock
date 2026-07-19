@@ -5440,7 +5440,7 @@ dependencies = [
 
 [[package]]
 name = "wd3000"
-version = "0.0.3"
+version = "0.1.0"
 dependencies = [
  "core-foundation",
  "core-foundation-sys",
