@@ -15,6 +15,9 @@ dist-ssr
 site
 *.local
 
+# Local App Store / device captures (not for the repo)
+screenshots/
+
 # Test output
 coverage
 test-results
