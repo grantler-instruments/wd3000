@@ -111,6 +111,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             let handle = api.register_android_plugin(PLUGIN_IDENTIFIER, "SensorsPlugin")?;
             #[cfg(target_os = "ios")]
             let handle = api.register_ios_plugin(init_plugin_sensors)?;
+            #[cfg(not(mobile))]
+            let _ = api;
 
             app.manage(Sensors {
                 #[cfg(not(mobile))]

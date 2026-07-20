@@ -60,7 +60,7 @@ impl VirtualMidiState {
                 .collect();
             inputs.sort();
 
-            return Ok(VirtualMidiPorts { outputs, inputs });
+            Ok(VirtualMidiPorts { outputs, inputs })
         }
 
         #[cfg(not(any(target_os = "macos", target_os = "ios", target_os = "linux")))]
@@ -106,7 +106,7 @@ impl VirtualMidiState {
                 .create_virtual(&name)
                 .map_err(|e| e.to_string())?;
             outputs.insert(name, conn);
-            return Ok(());
+            Ok(())
         }
 
         #[cfg(not(any(target_os = "macos", target_os = "ios", target_os = "linux")))]
@@ -143,7 +143,7 @@ impl VirtualMidiState {
                 .map_err(|e| e.to_string())?;
 
             inputs.insert(name, conn);
-            return Ok(());
+            Ok(())
         }
 
         #[cfg(not(any(target_os = "macos", target_os = "ios", target_os = "linux")))]
@@ -166,7 +166,7 @@ impl VirtualMidiState {
             if !removed {
                 return Err(format!("Virtual MIDI output not found: {name}"));
             }
-            return Ok(());
+            Ok(())
         }
 
         #[cfg(not(any(target_os = "macos", target_os = "ios", target_os = "linux")))]
@@ -189,7 +189,7 @@ impl VirtualMidiState {
             if !removed {
                 return Err(format!("Virtual MIDI input not found: {name}"));
             }
-            return Ok(());
+            Ok(())
         }
 
         #[cfg(not(any(target_os = "macos", target_os = "ios", target_os = "linux")))]
@@ -208,7 +208,7 @@ impl VirtualMidiState {
                 return Ok(false);
             };
             conn.send(bytes).map_err(|e| e.to_string())?;
-            return Ok(true);
+            Ok(true)
         }
 
         #[cfg(not(any(target_os = "macos", target_os = "ios", target_os = "linux")))]

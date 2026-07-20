@@ -83,6 +83,7 @@ impl MqttState {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn publish(
         &self,
         host: String,
@@ -686,6 +687,7 @@ pub fn get_mqtt_broker_status(state: State<'_, MqttState>) -> Result<MqttBrokerS
 }
 
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 pub fn mqtt_publish(
     state: State<'_, MqttState>,
     host: String,

@@ -37,15 +37,15 @@ pub fn list_sensors() -> Vec<SensorDescriptor> {
 fn is_available() -> bool {
     #[cfg(target_os = "macos")]
     {
-        return macos::is_available();
+        macos::is_available()
     }
     #[cfg(windows)]
     {
-        return windows::is_available();
+        windows::is_available()
     }
     #[cfg(target_os = "linux")]
     {
-        return linux::is_available();
+        linux::is_available()
     }
     #[cfg(not(any(target_os = "macos", windows, target_os = "linux")))]
     {
@@ -56,15 +56,15 @@ fn is_available() -> bool {
 fn read_illuminance() -> Option<f64> {
     #[cfg(target_os = "macos")]
     {
-        return macos::read_illuminance();
+        macos::read_illuminance()
     }
     #[cfg(windows)]
     {
-        return windows::read_illuminance();
+        windows::read_illuminance()
     }
     #[cfg(target_os = "linux")]
     {
-        return linux::read_illuminance();
+        linux::read_illuminance()
     }
     #[cfg(not(any(target_os = "macos", windows, target_os = "linux")))]
     {

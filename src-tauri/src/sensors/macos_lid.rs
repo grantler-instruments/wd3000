@@ -1,5 +1,3 @@
-#![cfg(target_os = "macos")]
-
 use super::{emit_sensor_reading, SensorDescriptor, SensorReading};
 use core_foundation::base::{CFRelease, CFRetain, CFType, TCFType};
 use core_foundation::dictionary::{CFDictionary, CFDictionaryRef, CFMutableDictionary};
@@ -41,6 +39,7 @@ struct HidDevice {
 }
 
 #[repr(C)]
+#[allow(dead_code)] // FFI layout; only Feature is used today.
 enum IOHIDReportType {
     Input = 0,
     Output = 1,
