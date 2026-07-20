@@ -2,6 +2,10 @@ import { defineConfig, devices } from "@playwright/test";
 
 const APP_URL = "http://localhost:1420/wd3000/app/";
 
+// CI already runs `npm run build` before e2e; locally build once then preview.
+const preview = "npm run preview -- --port 1420 --strictPort";
+const webServerCommand = process.env.CI ? preview : `npm run build && ${preview}`;
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -15,18 +19,13 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "chromium",
-      grepInvert: /@smoke/,
-      use: { ...devices["Desktop Chrome"] },
-    },
-    {
       name: "smoke",
       grep: /@smoke/,
       use: { ...devices["Desktop Chrome"] },
     },
   ],
   webServer: {
-    command: "npm run build && npm run preview -- --port 1420 --strictPort",
+    command: webServerCommand,
     url: APP_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

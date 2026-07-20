@@ -40,10 +40,10 @@ jobs:
           cache: npm
 
       - name: Install app dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
 
       - name: Install website dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
         working-directory: website
 
       # Project Pages URL: grantler-instruments.github.io/wd3000/

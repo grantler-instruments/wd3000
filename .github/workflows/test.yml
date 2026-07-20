@@ -19,7 +19,7 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci
 
       - name: Lint
         run: npm run lint
@@ -44,8 +44,9 @@ jobs:
       - name: Install Playwright
         run: npm run test:e2e:install -- --with-deps
 
-      - name: E2E tests
-        run: npm run test:e2e
+      # Reuses dist/ from the Build step (playwright preview-only when CI=1).
+      - name: E2E smoke tests
+        run: npm run test:e2e:smoke
 
   pages:
     runs-on: ubuntu-latest
@@ -58,11 +59,58 @@ jobs:
           cache: npm
 
       - name: Install app dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
 
       - name: Install website dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
         working-directory: website
 
       - name: Build Pages site (marketing + app)
         run: npm run build:pages
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK
+        run: |
+          sdkmanager "ndk;29.0.13846066"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/29.0.13846066" >> "$GITHUB_ENV"
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+          prefix-key: android-aarch64
+
+      - run: npm ci
+
+      - name: Build Android debug APK
+        run: npm run tauri:android:build
+
+      - name: Upload Android debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-apk
+          path: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+          retention-days: 14

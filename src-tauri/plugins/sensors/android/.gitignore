@@ -1,0 +1,7 @@
+# Android plugin build outputs (Gradle / Kotlin)
+/.gradle/
+/build/
+/local.properties
+*.iml
+.cxx/
+.externalNativeBuild/
