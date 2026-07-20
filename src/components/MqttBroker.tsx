@@ -4,17 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { startMqttBroker, stopMqttBroker } from "../lib/input";
 import { MQTT_DEFAULT_TCP_PORT, MQTT_DEFAULT_WS_PORT } from "../lib/mqtt";
-import { getLocalIp } from "../lib/network";
+import { clampPort, getLocalIp } from "../lib/network";
 import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import { DebuggerSection } from "./DebuggerSection";
-
-function clampPort(value: number, fallback: number) {
-  if (!Number.isFinite(value) || value < 1 || value > 65535) {
-    return fallback;
-  }
-  return Math.round(value);
-}
 
 function stopPropagation(event: MouseEvent) {
   event.stopPropagation();

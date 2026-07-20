@@ -21,6 +21,7 @@ import {
   type MqttQoS,
   type MqttTransportProtocol,
 } from "../lib/mqtt";
+import { clampPort } from "../lib/network";
 import { sendMqttMessage } from "../lib/output";
 import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
@@ -28,13 +29,6 @@ import { DebuggerSection } from "./DebuggerSection";
 import { debuggerComposerRowSx } from "./debuggerLayoutSx";
 
 const QOS_OPTIONS: MqttQoS[] = [0, 1, 2];
-
-function clampPort(value: number, fallback: number) {
-  if (!Number.isFinite(value) || value < 1 || value > 65535) {
-    return fallback;
-  }
-  return Math.round(value);
-}
 
 export function MqttComposer() {
   const { t } = useTranslation();

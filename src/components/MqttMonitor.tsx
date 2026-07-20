@@ -38,6 +38,7 @@ import {
   resetMqttMonitorStatus,
   useMqttMonitorStatus,
 } from "../lib/mqttMonitorStatus";
+import { clampPort } from "../lib/network";
 import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
 import { DebuggerSection } from "./DebuggerSection";
@@ -51,13 +52,6 @@ import { SavedMonitorLogTab } from "./SavedMonitorLogTab";
 import { useOpenSavedLogOnReplay } from "./useOpenSavedLogOnReplay";
 
 type MonitorTab = "live" | "saved";
-
-function clampPort(value: number, fallback: number) {
-  if (!Number.isFinite(value) || value < 1 || value > 65535) {
-    return fallback;
-  }
-  return Math.round(value);
-}
 
 type StatusChipColor = "default" | "success" | "warning" | "error";
 

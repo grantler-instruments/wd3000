@@ -1,9 +1,9 @@
 import { Box, Stack } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { useDebuggerEvents } from "../hooks/useDebuggerEvents";
 import { useAppStore } from "../store/useAppStore";
 import { ArtNetComposer } from "./ArtNetComposer";
 import { ArtNetMonitor } from "./ArtNetMonitor";
-import { DebuggerErrorBoundary } from "./DebuggerErrorBoundary";
 import { MidiComposer } from "./MidiComposer";
 import { MidiMonitor } from "./MidiMonitor";
 import { MqttBroker } from "./MqttBroker";
@@ -12,6 +12,7 @@ import { MqttMonitor } from "./MqttMonitor";
 import { NativeOnlyAlert } from "./NativeOnlyAlert";
 import { OscComposer } from "./OscComposer";
 import { OscMonitor } from "./OscMonitor";
+import { PanelErrorBoundary } from "./PanelErrorBoundary";
 import { TuioMonitor } from "./TuioMonitor";
 
 /** Fill the viewport; monitor details scroll inside their panel. */
@@ -32,12 +33,13 @@ const debuggerMonitorSx = {
 } as const;
 
 export function DebuggerPanel() {
+  const { t } = useTranslation();
   const tab = useAppStore((state) => state.debuggerSubView);
 
   useDebuggerEvents();
 
   return (
-    <DebuggerErrorBoundary>
+    <PanelErrorBoundary title={t("monitor.debuggerFailed")}>
       <Box
         sx={{
           flex: 1,
@@ -94,6 +96,6 @@ export function DebuggerPanel() {
           ) : null}
         </Box>
       </Box>
-    </DebuggerErrorBoundary>
+    </PanelErrorBoundary>
   );
 }

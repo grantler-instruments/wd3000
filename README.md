@@ -48,7 +48,7 @@ Enable **Settings → Pages → Source: GitHub Actions** on the repo. Desktop in
 The landing page lives in [`website/`](website/) (separate from the app frontend in `src/`). It uses React, MUI, Zustand, and the Grantler dark theme.
 
 ```bash
-cd website && npm install --legacy-peer-deps
+cd website && npm install
 npm run website:dev
 ```
 
