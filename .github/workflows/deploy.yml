@@ -2,6 +2,7 @@ name: Deploy to GitHub Pages
 
 # Push-to-main deploys are gated by the CI workflow's result (no duplicate test
 # run). Manual runs (workflow_dispatch) still run the full gate themselves.
+# CI skips its pages job on main so build:pages runs once here.
 on:
   workflow_run:
     workflows: ["CI"]

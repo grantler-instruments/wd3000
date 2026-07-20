@@ -84,7 +84,10 @@ jobs:
       - name: Unit tests
         run: cargo test --lib
 
+  # Deploy rebuilds site/ on main; release/tag CI does not ship Pages.
+  # Keep this compile gate on pull requests only to avoid a double build:pages.
   pages:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
