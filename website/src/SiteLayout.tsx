@@ -1,3 +1,4 @@
+import { WorkInProgressBanner } from "@grantler-instruments/mui-theme";
 import MenuIcon from "@mui/icons-material/Menu";
 import {
   AppBar,
@@ -182,6 +183,7 @@ export function SiteLayout() {
       </Box>
 
       <SupportDialog />
+      <WorkInProgressBanner />
     </Box>
   );
 }
