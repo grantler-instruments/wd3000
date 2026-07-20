@@ -1,11 +1,12 @@
 [package]
 name = "wd3000"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "Desktop performer and protocol debugger for MIDI, OSC, TUIO, Art-Net, and MQTT"
+authors = ["Thomas Geissl <thomas.geissl@gmail.com>", "Grantler Instruments"]
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "LGPL-3.0-only"
+repository = "https://github.com/grantler-instruments/wd3000"
+homepage = "https://grantler-instruments.github.io/wd3000/"
 
 [lib]
 # The `_lib` suffix may seem redundant but it is necessary
