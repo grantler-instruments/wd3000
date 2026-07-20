@@ -1,6 +1,7 @@
 import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import OpenInBrowserOutlinedIcon from "@mui/icons-material/OpenInBrowserOutlined";
-import { Box, Button, Container, Stack, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, Container, Stack, Typography } from "@mui/material";
+import { PlatformShowcase } from "../components/PlatformShowcase";
 import { GITHUB_RELEASES_URL } from "../links";
 
 const webAppUrl = `${import.meta.env.BASE_URL}app/`;
@@ -8,15 +9,42 @@ const webAppUrl = `${import.meta.env.BASE_URL}app/`;
 const features = [
   {
     title: "Performer",
-    body: "Build playable UI, wire phone sensors, and drive MediaPipe tracking into your show.",
+    body: "Build playable controls and drive tracking into your show.",
+    bullets: [
+      { label: "UI", description: "Design playable controls for live performance." },
+      { label: "Sensor", description: "Map phone motion and orientation into your show." },
+      { label: "MediaPipe", description: "Track hands, face, and body as control input." },
+    ],
   },
   {
-    title: "Protocols",
-    body: "Inspect and compose MIDI, OSC, TUIO, Art-Net, and MQTT traffic in one place.",
+    title: "Debuggers",
+    body: "Composers and monitors for show traffic in one place.",
+    bullets: [
+      { label: "MIDI", description: "Compose and monitor MIDI messages." },
+      { label: "OSC", description: "Compose and monitor OSC traffic." },
+      { label: "TUIO", description: "Compose and monitor TUIO touch streams." },
+      { label: "Art-Net", description: "Compose and monitor Art-Net / DMX." },
+      { label: "MQTT", description: "Compose and monitor MQTT topics." },
+    ],
   },
   {
-    title: "Free desktop",
-    body: "Open source under LGPL-3.0. Download builds for macOS, Windows, and Linux.",
+    title: "Free desktop & browser",
+    body: "Open source under LGPL-3.0. Download builds for macOS, Windows, and Linux, or run in the browser.",
+  },
+] as const;
+
+const showFlow = [
+  {
+    title: "Input",
+    body: "UI, sensors, and MediaPipe tracking from the performer.",
+  },
+  {
+    title: "Map",
+    body: "Route and shape values into the signals your show needs.",
+  },
+  {
+    title: "Out",
+    body: "Send and inspect MIDI, OSC, TUIO, Art-Net, and MQTT.",
   },
 ] as const;
 
@@ -73,7 +101,7 @@ export function HomePage() {
                 sx={{ fontWeight: 400, maxWidth: 520, lineHeight: 1.45 }}
               >
                 Performer controls and a protocol debugger for MIDI, OSC, TUIO, Art-Net, and MQTT,
-                free for desktop.
+                free for desktop & browser.
               </Typography>
 
               <Typography color="text.secondary" sx={{ maxWidth: 520, lineHeight: 1.5 }}>
@@ -106,25 +134,87 @@ export function HomePage() {
 
             <Box
               sx={{
-                flex: { md: "0 0 42%" },
+                flex: { md: "0 0 48%" },
+                minWidth: 0,
                 display: "flex",
                 justifyContent: { xs: "center", md: "flex-end" },
               }}
             >
-              <Box
-                component="img"
-                src={`${import.meta.env.BASE_URL}hero.png`}
-                alt="WD3000 performer and debugger home screen"
-                sx={{
-                  width: "100%",
-                  maxWidth: 360,
-                  borderRadius: 3,
-                  border: 1,
-                  borderColor: "divider",
-                  boxShadow: "0 24px 80px rgba(0,0,0,0.45)",
-                }}
-              />
+              <PlatformShowcase />
             </Box>
+          </Stack>
+        </Container>
+      </Box>
+
+      <Box component="section" sx={{ py: { xs: 6, md: 8 }, borderTop: 1, borderColor: "divider" }}>
+        <Container maxWidth="lg">
+          <Typography variant="h4" component="h2" sx={{ fontWeight: 700, mb: 1 }}>
+            Who it&apos;s for
+          </Typography>
+          <Typography
+            color="text.secondary"
+            sx={{ maxWidth: 720, lineHeight: 1.6, fontSize: "1.1rem" }}
+          >
+            Built for lighting, AV, interactive installations, and performers. Also for anyone who
+            just needs a debugger: send a MIDI or DMX message, monitor what&apos;s coming in, and
+            replay it when something misbehaves.
+          </Typography>
+        </Container>
+      </Box>
+
+      <Box component="section" sx={{ py: { xs: 6, md: 8 }, borderTop: 1, borderColor: "divider" }}>
+        <Container maxWidth="lg">
+          <Typography variant="h4" component="h2" sx={{ fontWeight: 700, mb: 1 }}>
+            How it fits a show
+          </Typography>
+          <Typography color="text.secondary" sx={{ mb: 4, maxWidth: 560, lineHeight: 1.6 }}>
+            One path from performer input to show traffic.
+          </Typography>
+
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            spacing={{ xs: 3, md: 2 }}
+            sx={{ alignItems: { xs: "stretch", md: "flex-start" } }}
+          >
+            {showFlow.map((step, index) => (
+              <Stack
+                key={step.title}
+                direction={{ xs: "column", md: "row" }}
+                spacing={{ xs: 0, md: 2 }}
+                sx={{ flex: 1, alignItems: { md: "flex-start" } }}
+              >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography
+                    variant="overline"
+                    color="primary"
+                    sx={{ fontWeight: 700, letterSpacing: "0.08em" }}
+                  >
+                    {String(index + 1).padStart(2, "0")}
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.75 }}>
+                    {step.title}
+                  </Typography>
+                  <Typography color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                    {step.body}
+                  </Typography>
+                </Box>
+                {index < showFlow.length - 1 && (
+                  <Typography
+                    aria-hidden
+                    color="text.disabled"
+                    sx={{
+                      display: { xs: "none", md: "block" },
+                      pt: 3.5,
+                      flexShrink: 0,
+                      fontSize: "1.25rem",
+                      lineHeight: 1,
+                    }}
+                  >
+                    →
+                  </Typography>
+                )}
+              </Stack>
+            ))}
           </Stack>
         </Container>
       </Box>
@@ -135,23 +225,64 @@ export function HomePage() {
             Built for live systems
           </Typography>
           <Typography color="text.secondary" sx={{ mb: 5, maxWidth: 560 }}>
-            One desktop app for shaping performer input and watching the traffic that leaves it.
+            Performer tools and protocol debuggers, free on desktop and in the browser.
           </Typography>
 
           <Stack
             direction={{ xs: "column", md: "row" }}
-            spacing={{ xs: 4, md: 6 }}
+            spacing={{ xs: 2.5, md: 3 }}
             sx={{ alignItems: "stretch" }}
           >
             {features.map((feature) => (
-              <Box key={feature.title} sx={{ flex: 1 }}>
-                <Typography variant="h6" color="primary" sx={{ fontWeight: 700, mb: 1 }}>
-                  {feature.title}
-                </Typography>
-                <Typography color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                  {feature.body}
-                </Typography>
-              </Box>
+              <Card
+                key={feature.title}
+                variant="outlined"
+                sx={{
+                  flex: 1,
+                  bgcolor: "rgba(255, 255, 255, 0.03)",
+                  borderColor: "divider",
+                }}
+              >
+                <CardContent
+                  sx={{ p: { xs: 2.5, md: 3 }, "&:last-child": { pb: { xs: 2.5, md: 3 } } }}
+                >
+                  <Typography variant="h6" color="primary" sx={{ fontWeight: 700, mb: 1 }}>
+                    {feature.title}
+                  </Typography>
+                  <Typography color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                    {feature.body}
+                  </Typography>
+                  {"bullets" in feature && (
+                    <Box
+                      component="ul"
+                      sx={{
+                        m: 0,
+                        mt: 1.5,
+                        pl: 2.25,
+                        color: "text.secondary",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1,
+                      }}
+                    >
+                      {feature.bullets.map((item) => (
+                        <Box component="li" key={item.label} sx={{ lineHeight: 1.45 }}>
+                          <Typography
+                            component="span"
+                            sx={{ fontWeight: 600, color: "text.primary" }}
+                          >
+                            {item.label}
+                          </Typography>
+                          <Typography component="span" color="text.secondary">
+                            {": "}
+                            {item.description}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
+                </CardContent>
+              </Card>
             ))}
           </Stack>
         </Container>
