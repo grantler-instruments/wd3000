@@ -1,0 +1,1 @@
+export { TuioMonitor } from "./TuioMonitor";

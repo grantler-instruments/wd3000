@@ -1,7 +1,7 @@
 import { Alert, Box, Snackbar, ThemeProvider } from "@mui/material";
 import { useEffect, useState } from "react";
 import { ControlCanvas } from "./components/ControlCanvas";
-import { ControlPerformerDialog } from "./components/ControlPerformer";
+import { ControlPerformerDialog } from "./components/controlPerformer";
 import { DebuggerPanel } from "./components/DebuggerPanel";
 import { HomePage } from "./components/HomePage";
 import { IoSettingsDialog } from "./components/IoSettingsDialog";

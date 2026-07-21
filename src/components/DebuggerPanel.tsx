@@ -13,7 +13,7 @@ import { NativeOnlyAlert } from "./NativeOnlyAlert";
 import { OscComposer } from "./OscComposer";
 import { OscMonitor } from "./OscMonitor";
 import { PanelErrorBoundary } from "./PanelErrorBoundary";
-import { TuioMonitor } from "./TuioMonitor";
+import { TuioMonitor } from "./tuioMonitor";
 
 /** Fill the viewport; monitor details scroll inside their panel. */
 const debuggerStackSx = {

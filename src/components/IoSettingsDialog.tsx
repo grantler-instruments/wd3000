@@ -3,7 +3,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
 import { settingsTheme } from "../theme";
 import { AppDialogHeader } from "./AppDialogHeader";
-import { IoSettingsPanel } from "./IoSettingsPanel";
+import { IoSettingsPanel } from "./ioSettings";
 
 interface IoSettingsDialogProps {
   open: boolean;
