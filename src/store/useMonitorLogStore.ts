@@ -10,6 +10,7 @@ interface MonitorLogLibraryState {
   saveLog: (log: SavedMonitorLog) => void;
   saveLogAndSelect: (log: SavedMonitorLog) => void;
   removeLog: (id: string) => void;
+  removeLogEvent: (logId: string, eventIndex: number) => void;
   clearPendingSelection: () => void;
 }
 
@@ -112,6 +113,28 @@ export const useMonitorLogStore = create<MonitorLogLibraryState>()(
       removeLog: (id) =>
         set((state) => ({
           logs: state.logs.filter((log) => log.id !== id),
+        })),
+      removeLogEvent: (logId, eventIndex) =>
+        set((state) => ({
+          logs: state.logs.map((log) => {
+            if (log.id !== logId) {
+              return log;
+            }
+
+            if (eventIndex < 0 || eventIndex >= log.events.length) {
+              return log;
+            }
+
+            const events = log.events.filter((_, index) => index !== eventIndex);
+            const firstTimestamp = events[0]?.timestamp ?? 0;
+            return {
+              ...log,
+              events: events.map((event) => ({
+                ...event,
+                deltaMs: event.timestamp - firstTimestamp,
+              })),
+            };
+          }),
         })),
       clearPendingSelection: () => set({ pendingSelection: null }),
     }),

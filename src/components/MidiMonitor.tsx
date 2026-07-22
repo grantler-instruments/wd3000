@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { clearDebugLogFiltered, useDebugLog } from "../lib/debugLog";
+import { clearDebugLogFiltered, removeDebugLogEntry, useDebugLog } from "../lib/debugLog";
 import { listMidiInputs, startMidiInput, stopMidiInput } from "../lib/input";
 import { isMidiDebugKind } from "../lib/midiTypes";
 import { createMonitorLogEvents } from "../lib/monitorLog";
@@ -305,6 +305,7 @@ export function MidiMonitor() {
               <MonitorLogList
                 logId={liveLog.id}
                 entries={listEntries}
+                onRemoveEntry={removeDebugLogEntry}
                 emptyMessage={
                   entries.length === 0
                     ? inputPort

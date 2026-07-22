@@ -49,6 +49,7 @@ export function SavedMonitorLogTab({
   const logs = useSavedMonitorLogs(protocol);
   const saveLog = useMonitorLogStore((state) => state.saveLog);
   const removeLog = useMonitorLogStore((state) => state.removeLog);
+  const removeLogEvent = useMonitorLogStore((state) => state.removeLogEvent);
   const setLastError = useAppStore((state) => state.setLastError);
   const replayProgress = useMonitorLogReplayProgress();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -214,6 +215,23 @@ export function SavedMonitorLogTab({
         <MonitorLogList
           logId={selectedLog?.id}
           entries={previewEntries}
+          onRemoveEntry={
+            selectedLog
+              ? (entryId) => {
+                  const prefix = `${selectedLog.id}-`;
+                  if (!entryId.startsWith(prefix)) {
+                    return;
+                  }
+
+                  const eventIndex = Number(entryId.slice(prefix.length));
+                  if (!Number.isInteger(eventIndex)) {
+                    return;
+                  }
+
+                  removeLogEvent(selectedLog.id, eventIndex);
+                }
+              : undefined
+          }
           emptyMessage={
             !selectedLog
               ? t("monitor.selectSavedLog")

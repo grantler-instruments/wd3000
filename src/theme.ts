@@ -1,8 +1,31 @@
 import { darkTheme } from "@grantler-instruments/mui-theme";
 import { createTheme } from "@mui/material/styles";
 
+/** Disable mobile/browser auto-capitalization and CSS uppercasing on inputs. */
+const textInputDefaults = {
+  MuiTextField: {
+    defaultProps: {
+      slotProps: {
+        htmlInput: {
+          autoCapitalize: "off",
+          autoCorrect: "off",
+          spellCheck: false,
+        },
+      },
+    },
+  },
+  MuiInputBase: {
+    styleOverrides: {
+      input: {
+        textTransform: "none" as const,
+      },
+    },
+  },
+};
+
 export const settingsTheme = createTheme(darkTheme, {
   components: {
+    ...textInputDefaults,
     MuiButton: {
       styleOverrides: {
         root: {
@@ -31,6 +54,7 @@ export const playTheme = createTheme(darkTheme, {
     },
   },
   components: {
+    ...textInputDefaults,
     MuiButton: {
       defaultProps: {
         size: "large",

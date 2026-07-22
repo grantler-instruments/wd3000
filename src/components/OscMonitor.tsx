@@ -2,7 +2,12 @@ import CloseIcon from "@mui/icons-material/Close";
 import { Box, Button, IconButton, Stack, Tab, Tabs, TextField } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { clearDebugLogFiltered, isOscDebugEntry, useDebugLog } from "../lib/debugLog";
+import {
+  clearDebugLogFiltered,
+  isOscDebugEntry,
+  removeDebugLogEntry,
+  useDebugLog,
+} from "../lib/debugLog";
 import { startOscListener, stopOscListener } from "../lib/input";
 import { createMonitorLogEvents } from "../lib/monitorLog";
 import { isMonitorFilterActive, matchesDirectionFilter } from "../lib/monitorLogFilter";
@@ -238,6 +243,7 @@ export function OscMonitor() {
               <MonitorLogList
                 logId={liveLog.id}
                 entries={listEntries}
+                onRemoveEntry={removeDebugLogEntry}
                 emptyMessage={
                   entries.length === 0
                     ? listenPort > 0

@@ -1,7 +1,11 @@
 import StopIcon from "@mui/icons-material/Stop";
 import { Box, Button, Stack } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { stopMonitorLogReplay, useMonitorLogReplayProgress } from "../lib/monitorLogReplay";
+import {
+  removeReplaySessionEntry,
+  stopMonitorLogReplay,
+  useMonitorLogReplayProgress,
+} from "../lib/monitorLogReplay";
 import { debuggerLogSx } from "./debuggerLayoutSx";
 import { MonitorLogList, type MonitorLogListItem } from "./MonitorLogList";
 
@@ -31,7 +35,11 @@ export function MonitorReplayTabPanel({ entries, emptyMessage }: MonitorReplayTa
         </Stack>
       )}
       <Box sx={debuggerLogSx}>
-        <MonitorLogList entries={entries} emptyMessage={emptyMessage} />
+        <MonitorLogList
+          entries={entries}
+          emptyMessage={emptyMessage}
+          onRemoveEntry={removeReplaySessionEntry}
+        />
       </Box>
     </Stack>
   );

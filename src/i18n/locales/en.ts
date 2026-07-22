@@ -4,6 +4,7 @@ const en = {
     cancel: "Cancel",
     close: "Close",
     delete: "Delete",
+    remove: "Remove",
     save: "Save",
     export: "Export",
     import: "Import",

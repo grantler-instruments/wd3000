@@ -1,8 +1,10 @@
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
+import CloseIcon from "@mui/icons-material/Close";
 import HourglassEmptyOutlinedIcon from "@mui/icons-material/HourglassEmptyOutlined";
-import { Box, Chip, Divider, Stack, Typography } from "@mui/material";
-import { useMemo } from "react";
+import { Box, Chip, Divider, IconButton, Menu, MenuItem, Stack, Typography } from "@mui/material";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLongPress } from "../hooks/useLongPress";
 import type { DebugLogKind } from "../lib/debugLog";
 import { isMidiDebugKind, type MidiDebugKind } from "../lib/midiTypes";
 import {
@@ -77,13 +79,127 @@ function ReplayStatusIcon({ status }: { status?: ReplayRowStatus }) {
   return <Box aria-hidden sx={{ width: 20, flexShrink: 0 }} />;
 }
 
+interface MonitorLogListRowProps {
+  entry: MonitorLogListItem;
+  kindLabel: string;
+  replayStatus?: ReplayRowStatus;
+  showReplayStatus: boolean;
+  onRemove?: (id: string) => void;
+  onOpenMenu: (entryId: string, clientX: number, clientY: number) => void;
+}
+
+function MonitorLogListRow({
+  entry,
+  kindLabel,
+  replayStatus,
+  showReplayStatus,
+  onRemove,
+  onOpenMenu,
+}: MonitorLogListRowProps) {
+  const { t } = useTranslation();
+  const longPressHandlers = useLongPress(
+    onRemove ? (point) => onOpenMenu(entry.id, point.clientX, point.clientY) : null,
+  );
+
+  return (
+    <Stack
+      direction="row"
+      spacing={1.5}
+      onContextMenu={
+        onRemove
+          ? (event) => {
+              event.preventDefault();
+              onOpenMenu(entry.id, event.clientX, event.clientY);
+            }
+          : undefined
+      }
+      {...longPressHandlers}
+      sx={{
+        alignItems: "center",
+        flexWrap: "nowrap",
+        px: { xs: 1.5, sm: 2 },
+        py: 1,
+        fontFamily: "monospace",
+        fontSize: "0.8125rem",
+        minWidth: 0,
+        touchAction: onRemove ? "manipulation" : undefined,
+        WebkitTouchCallout: onRemove ? "none" : undefined,
+        userSelect: onRemove ? "none" : undefined,
+        "&:hover .monitor-log-remove": {
+          opacity: 1,
+        },
+      }}
+    >
+      {showReplayStatus ? (
+        <ReplayStatusIcon status={replayStatus} />
+      ) : (
+        <Box aria-hidden sx={{ width: 20, flexShrink: 0 }} />
+      )}
+      <Typography
+        component="span"
+        variant="body2"
+        color="text.secondary"
+        sx={{ fontFamily: "inherit", minWidth: { xs: 72, sm: 108 }, flexShrink: 0 }}
+      >
+        {formatTime(entry.timestamp)}
+      </Typography>
+      <Chip
+        label={entry.direction === "in" ? "IN" : "OUT"}
+        size="small"
+        color={entry.direction === "in" ? "info" : "success"}
+        sx={{ minWidth: 48, flexShrink: 0 }}
+      />
+      <Chip label={kindLabel} size="small" variant="outlined" sx={{ flexShrink: 0 }} />
+      <Typography
+        component="span"
+        variant="body2"
+        sx={{
+          fontFamily: "inherit",
+          flex: "1 1 120px",
+          minWidth: 0,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {entry.summary}
+      </Typography>
+      {onRemove && (
+        <IconButton
+          className="monitor-log-remove"
+          size="small"
+          aria-label={t("common.remove")}
+          onClick={(event) => {
+            event.stopPropagation();
+            onRemove(entry.id);
+          }}
+          sx={{
+            flexShrink: 0,
+            display: { xs: "none", sm: "inline-flex" },
+            opacity: 0,
+            transition: "opacity 0.15s ease",
+            p: 0.25,
+          }}
+        >
+          <CloseIcon sx={{ fontSize: 14 }} />
+        </IconButton>
+      )}
+    </Stack>
+  );
+}
+
 interface MonitorLogListProps {
   entries: MonitorLogListItem[];
   emptyMessage: string;
   logId?: string;
+  onRemoveEntry?: (id: string) => void;
 }
 
-export function MonitorLogList({ entries, emptyMessage, logId }: MonitorLogListProps) {
+export function MonitorLogList({
+  entries,
+  emptyMessage,
+  logId,
+  onRemoveEntry,
+}: MonitorLogListProps) {
   const { t } = useTranslation();
   const replayProgress = useMonitorLogReplayProgress();
   const replayStatuses = useMemo(
@@ -92,6 +208,12 @@ export function MonitorLogList({ entries, emptyMessage, logId }: MonitorLogListP
   );
   const showReplayStatus =
     replayProgress.active && Boolean(logId) && replayProgress.logId === logId;
+
+  const [menu, setMenu] = useState<{
+    entryId: string;
+    top: number;
+    left: number;
+  } | null>(null);
 
   const kindLabel = (kind: DebugLogKind) => {
     if (kind === "osc") {
@@ -122,64 +244,41 @@ export function MonitorLogList({ entries, emptyMessage, logId }: MonitorLogListP
   }
 
   return (
-    <Stack divider={<Divider />}>
-      {entries.map((entry) => (
-        <Stack
-          key={entry.id}
-          direction="row"
-          spacing={1.5}
-          sx={{
-            alignItems: "center",
-            flexWrap: "wrap",
-            rowGap: 0.5,
-            px: { xs: 1.5, sm: 2 },
-            py: 1,
-            fontFamily: "monospace",
-            fontSize: "0.8125rem",
-            minWidth: 0,
+    <>
+      <Stack divider={<Divider />}>
+        {entries.map((entry) => (
+          <MonitorLogListRow
+            key={entry.id}
+            entry={entry}
+            kindLabel={kindLabel(entry.kind)}
+            replayStatus={replayStatuses.get(entry.id)}
+            showReplayStatus={showReplayStatus && entry.direction === replayProgress.direction}
+            onRemove={onRemoveEntry}
+            onOpenMenu={(entryId, clientX, clientY) =>
+              setMenu({ entryId, top: clientY, left: clientX })
+            }
+          />
+        ))}
+      </Stack>
+
+      <Menu
+        open={menu !== null && Boolean(onRemoveEntry)}
+        onClose={() => setMenu(null)}
+        anchorReference="anchorPosition"
+        anchorPosition={menu ? { top: menu.top, left: menu.left } : undefined}
+      >
+        <MenuItem
+          onClick={() => {
+            if (menu && onRemoveEntry) {
+              onRemoveEntry(menu.entryId);
+            }
+            setMenu(null);
           }}
         >
-          {showReplayStatus && entry.direction === replayProgress.direction ? (
-            <ReplayStatusIcon status={replayStatuses.get(entry.id)} />
-          ) : (
-            <Box aria-hidden sx={{ width: 20, flexShrink: 0 }} />
-          )}
-          <Typography
-            component="span"
-            variant="body2"
-            color="text.secondary"
-            sx={{ fontFamily: "inherit", minWidth: { xs: 72, sm: 108 }, flexShrink: 0 }}
-          >
-            {formatTime(entry.timestamp)}
-          </Typography>
-          <Chip
-            label={entry.direction === "in" ? "IN" : "OUT"}
-            size="small"
-            color={entry.direction === "in" ? "info" : "success"}
-            sx={{ minWidth: 48, flexShrink: 0 }}
-          />
-          <Chip
-            label={kindLabel(entry.kind)}
-            size="small"
-            variant="outlined"
-            sx={{ flexShrink: 0 }}
-          />
-          <Typography
-            component="span"
-            variant="body2"
-            sx={{
-              fontFamily: "inherit",
-              flex: "1 1 120px",
-              minWidth: 0,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {entry.summary}
-          </Typography>
-        </Stack>
-      ))}
-    </Stack>
+          {t("common.remove")}
+        </MenuItem>
+      </Menu>
+    </>
   );
 }
 

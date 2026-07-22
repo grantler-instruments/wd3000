@@ -20,6 +20,7 @@ import {
   clearDebugLogFiltered,
   type DebugLogEntry,
   isArtNetDebugEntry,
+  removeDebugLogEntry,
   useDebugLog,
 } from "../lib/debugLog";
 import { getArtNetListenerStatus, startArtNetListener, stopArtNetListener } from "../lib/input";
@@ -533,6 +534,7 @@ export function ArtNetMonitor() {
               <MonitorLogList
                 logId={liveLog.id}
                 entries={listEntries}
+                onRemoveEntry={removeDebugLogEntry}
                 emptyMessage={
                   entries.length === 0
                     ? waitingMessage

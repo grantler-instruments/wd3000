@@ -18,7 +18,12 @@ import {
 import type { TFunction } from "i18next";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { clearDebugLogFiltered, isMqttDebugEntry, useDebugLog } from "../lib/debugLog";
+import {
+  clearDebugLogFiltered,
+  isMqttDebugEntry,
+  removeDebugLogEntry,
+  useDebugLog,
+} from "../lib/debugLog";
 import { startMqttListener, stopMqttListener } from "../lib/input";
 import { createMonitorLogEvents } from "../lib/monitorLog";
 import { isMonitorFilterActive, matchesDirectionFilter } from "../lib/monitorLogFilter";
@@ -427,6 +432,7 @@ export function MqttMonitor() {
               <MonitorLogList
                 logId={liveLog.id}
                 entries={listEntries}
+                onRemoveEntry={removeDebugLogEntry}
                 emptyMessage={
                   entries.length === 0
                     ? subscribeTopics.length > 0

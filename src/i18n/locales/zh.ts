@@ -6,6 +6,7 @@ const zh: TranslationSchema = {
     cancel: "取消",
     close: "关闭",
     delete: "删除",
+    remove: "移除",
     save: "保存",
     export: "导出",
     import: "导入",

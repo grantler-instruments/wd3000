@@ -215,6 +215,16 @@ export function clearDebugLogFiltered(predicate: (entry: DebugLogEntry) => boole
   notify();
 }
 
+export function removeDebugLogEntry(id: string) {
+  const next = entries.filter((entry) => entry.id !== id);
+  if (next.length === entries.length) {
+    return;
+  }
+
+  entries = next;
+  notify();
+}
+
 export function isArtNetDebugEntry(entry: DebugLogEntry) {
   return entry.kind === "artnet";
 }

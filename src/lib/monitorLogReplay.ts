@@ -9,6 +9,8 @@ import { decodeMqttPayload, type MqttQoS, type MqttTransportProtocol } from "./m
 import { sendMidiRaw, sendMqttMessage, sendOscMessage } from "./output";
 
 const MAX_REPLAY_OUTPUT_ENTRIES = 200;
+/** Keep capturing inbound replies briefly after the last outbound send. */
+const REPLAY_CAPTURE_TAIL_MS = 500;
 
 let replayAbort: AbortController | null = null;
 let currentReplayDone: Promise<void> = Promise.resolve();
@@ -231,6 +233,19 @@ export function clearReplaySession() {
     replaySession = idleReplaySession;
     notifyReplaySession();
   });
+}
+
+export function removeReplaySessionEntry(id: string) {
+  const next = replaySession.entries.filter((entry) => entry.id !== id);
+  if (next.length === replaySession.entries.length) {
+    return;
+  }
+
+  replaySession = {
+    ...replaySession,
+    entries: next,
+  };
+  notifyReplaySession();
 }
 
 function addReplayEntry(entry: DebugLogEntry) {
@@ -576,18 +591,16 @@ export async function replayMonitorLog(
       }
 
       setReplayProgress({
-        active: index + 1 < events.length,
+        active: true,
         logId: log.id,
         direction,
         completed: index + 1,
         total: events.length,
       });
-
-      if (index + 1 >= events.length && replayAbort === controller) {
-        // Last message sent — stop immediately so capture/UI match a manual stop.
-        replayAbort = null;
-      }
     }
+
+    // Allow late device responses to land in the replay session before we stop.
+    await sleep(REPLAY_CAPTURE_TAIL_MS, controller.signal);
   } finally {
     if (replayAbort === controller) {
       replayAbort = null;

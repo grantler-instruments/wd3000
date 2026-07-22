@@ -6,6 +6,7 @@ const es: TranslationSchema = {
     cancel: "Cancelar",
     close: "Cerrar",
     delete: "Eliminar",
+    remove: "Eliminar",
     save: "Guardar",
     export: "Exportar",
     import: "Importar",

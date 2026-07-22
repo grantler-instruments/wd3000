@@ -14,6 +14,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
           html: { height: "100%", width: "100%" },
           body: { height: "100%", width: "100%", margin: 0, overflow: "hidden" },
           "#root": { height: "100%", width: "100%" },
+          "input, textarea": { textTransform: "none" },
         }}
       />
       <App />
