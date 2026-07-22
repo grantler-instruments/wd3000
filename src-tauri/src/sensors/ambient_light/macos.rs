@@ -6,7 +6,9 @@ use core_foundation::number::CFNumber;
 use core_foundation::set::{CFSet, CFSetRef};
 use core_foundation::string::CFString;
 use core_foundation_sys::base::{kCFAllocatorDefault, CFIndex, CFTypeRef};
-use core_foundation_sys::runloop::{kCFRunLoopDefaultMode, CFRunLoopGetCurrent, CFRunLoopRunInMode};
+use core_foundation_sys::runloop::{
+    kCFRunLoopDefaultMode, CFRunLoopGetCurrent, CFRunLoopRunInMode,
+};
 use core_foundation_sys::set::{CFSetGetCount, CFSetGetValues};
 use std::ffi::CString;
 use std::os::raw::{c_int, c_void};
@@ -32,6 +34,7 @@ type IOHIDDeviceRef = *mut c_void;
 type IOReturn = c_int;
 type IoServiceT = u32;
 type IoConnectT = u32;
+type IoIteratorT = u32;
 type KernReturn = c_int;
 type MachPort = u32;
 
@@ -47,6 +50,7 @@ extern "C" {
     fn IOHIDManagerCopyDevices(manager: IOHIDManagerRef) -> CFTypeRef;
     fn IOHIDManagerOpen(manager: IOHIDManagerRef, options: IOHIDOptionsType) -> IOReturn;
     fn IOHIDManagerClose(manager: IOHIDManagerRef, options: IOHIDOptionsType) -> IOReturn;
+    fn IOHIDDeviceGetService(device: IOHIDDeviceRef) -> IoServiceT;
     fn IOHIDDeviceOpen(device: IOHIDDeviceRef, options: IOHIDOptionsType) -> IOReturn;
     fn IOHIDDeviceClose(device: IOHIDDeviceRef, options: IOHIDOptionsType) -> IOReturn;
     fn IOHIDDeviceScheduleWithRunLoop(
@@ -87,6 +91,18 @@ extern "C" {
     ) -> KernReturn;
     fn IOServiceClose(connect: IoConnectT) -> KernReturn;
     fn IOObjectRelease(object: IoServiceT) -> KernReturn;
+    fn IORegistryEntryGetChildIterator(
+        entry: IoServiceT,
+        plane: *const i8,
+        iterator: *mut IoIteratorT,
+    ) -> KernReturn;
+    fn IOIteratorNext(iterator: IoIteratorT) -> IoServiceT;
+    fn IORegistryEntryCreateCFProperty(
+        entry: IoServiceT,
+        key: CFTypeRef,
+        allocator: CFTypeRef,
+        options: u32,
+    ) -> CFTypeRef;
     fn IOConnectCallMethod(
         connection: IoConnectT,
         selector: u32,
@@ -153,6 +169,9 @@ fn parse_illuminance_report(report: &[u8]) -> Option<f64> {
 }
 
 pub fn is_available() -> bool {
+    if read_hid_current_lux().is_some() {
+        return true;
+    }
     if let Ok(session) = start_hid_session() {
         drop(session);
         return true;
@@ -161,6 +180,9 @@ pub fn is_available() -> bool {
 }
 
 pub fn read_illuminance() -> Option<f64> {
+    if let Some(lux) = read_hid_current_lux() {
+        return Some(lux);
+    }
     let bits = LATEST_LUX_BITS.load(Ordering::Relaxed);
     if bits != LUX_BITS_NONE {
         return Some(f64::from_bits(bits));
@@ -175,6 +197,12 @@ pub struct WatchSession {
 
 impl WatchSession {
     pub fn start() -> Result<Self, String> {
+        if read_hid_current_lux().is_some() {
+            return Ok(Self {
+                stop_flag: Arc::new(AtomicBool::new(false)),
+                handle: None,
+            });
+        }
         if let Ok(session) = start_hid_session() {
             return Ok(session);
         }
@@ -196,6 +224,88 @@ impl Drop for WatchSession {
         }
         LATEST_LUX_BITS.store(LUX_BITS_NONE, Ordering::Relaxed);
     }
+}
+
+fn read_hid_current_lux() -> Option<f64> {
+    unsafe {
+        let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOHIDOptionsType::None);
+        if manager.is_null() {
+            return None;
+        }
+
+        let matching = matching_dictionary(APPLE_ALS_USAGE_PAGE, APPLE_ALS_USAGE);
+        IOHIDManagerSetDeviceMatching(manager, matching.as_concrete_TypeRef());
+        let devices_set_ref = IOHIDManagerCopyDevices(manager);
+        if devices_set_ref.is_null() {
+            CFRelease(manager as CFTypeRef);
+            return None;
+        }
+
+        let devices_set: CFSet<*const c_void> =
+            CFSet::wrap_under_create_rule(devices_set_ref as CFSetRef);
+        let mut device_values = vec![ptr::null(); devices_set.len()];
+        CFSetGetValues(
+            devices_set.as_concrete_TypeRef(),
+            device_values.as_mut_ptr(),
+        );
+
+        let lux = device_values.into_iter().find_map(|device| {
+            (!device.is_null())
+                .then(|| {
+                    read_current_lux_property(IOHIDDeviceGetService(device as IOHIDDeviceRef), 2)
+                })
+                .flatten()
+        });
+        CFRelease(manager as CFTypeRef);
+        lux
+    }
+}
+
+unsafe fn read_current_lux_property(entry: IoServiceT, remaining_depth: usize) -> Option<f64> {
+    let key = CFString::from_static_string("CurrentLux");
+    let property = unsafe {
+        IORegistryEntryCreateCFProperty(
+            entry,
+            key.as_concrete_TypeRef() as CFTypeRef,
+            kCFAllocatorDefault,
+            0,
+        )
+    };
+    if !property.is_null() {
+        let value = unsafe { CFNumber::wrap_under_create_rule(property as _) }.to_f64();
+        if value.is_some_and(|lux| lux.is_finite() && lux >= 0.0) {
+            return value;
+        }
+    }
+    if remaining_depth == 0 {
+        return None;
+    }
+
+    let plane = CString::new("IOService").ok()?;
+    let mut iterator = 0;
+    if unsafe { IORegistryEntryGetChildIterator(entry, plane.as_ptr(), &mut iterator) } != 0 {
+        return None;
+    }
+    loop {
+        let child = unsafe { IOIteratorNext(iterator) };
+        if child == 0 {
+            break;
+        }
+        let value = unsafe { read_current_lux_property(child, remaining_depth - 1) };
+        unsafe {
+            IOObjectRelease(child);
+        }
+        if value.is_some() {
+            unsafe {
+                IOObjectRelease(iterator);
+            }
+            return value;
+        }
+    }
+    unsafe {
+        IOObjectRelease(iterator);
+    }
+    None
 }
 
 fn start_hid_session() -> Result<WatchSession, String> {
@@ -247,8 +357,7 @@ fn run_hid_runloop(stop_flag: Arc<AtomicBool>) -> Result<(), String> {
         }
 
         let mut devices_set_ref = IOHIDManagerCopyDevices(manager);
-        let empty = devices_set_ref.is_null()
-            || CFSetGetCount(devices_set_ref as CFSetRef) == 0;
+        let empty = devices_set_ref.is_null() || CFSetGetCount(devices_set_ref as CFSetRef) == 0;
         if empty {
             if !devices_set_ref.is_null() {
                 CFRelease(devices_set_ref);
