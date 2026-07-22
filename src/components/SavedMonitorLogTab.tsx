@@ -1,43 +1,25 @@
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
-import {
-  Alert,
-  Box,
-  Button,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Stack,
-  Typography,
-} from "@mui/material";
-import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { Alert, Box, Button, Stack } from "@mui/material";
+import { type ChangeEvent, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   exportMonitorLogToFile,
-  formatMonitorLogDuration,
   type MonitorLogProtocol,
   parseMonitorLogImport,
 } from "../lib/monitorLog";
-import {
-  defaultMonitorDirectionFilter,
-  isMonitorFilterActive,
-  matchesDirectionFilter,
-} from "../lib/monitorLogFilter";
+import { isMonitorFilterActive, matchesDirectionFilter } from "../lib/monitorLogFilter";
 import {
   countIncomingMonitorEvents,
   countOutgoingMonitorEvents,
   isMonitorLogReplayActive,
   useMonitorLogReplayProgress,
 } from "../lib/monitorLogReplay";
-import { defaultMonitorMidiTypeFilter, matchesMidiTypeFilter } from "../lib/monitorMidiFilter";
-import {
-  collectMonitorMidiPorts,
-  defaultMonitorMidiPortFilter,
-  matchesMidiPortFilter,
-} from "../lib/monitorMidiPortFilter";
+import { matchesMidiTypeFilter } from "../lib/monitorMidiFilter";
+import { collectMonitorMidiPorts, matchesMidiPortFilter } from "../lib/monitorMidiPortFilter";
 import { useAppStore } from "../store/useAppStore";
+import { useMonitorFilters } from "../store/useMonitorFilterStore";
 import { useMonitorLogStore, useSavedMonitorLogs } from "../store/useMonitorLogStore";
 import { MonitorFilterAccordion } from "./MonitorFilterAccordion";
 import { MonitorLogList, monitorEventsToListItems } from "./MonitorLogList";
@@ -45,43 +27,44 @@ import { MonitorReplaySection } from "./MonitorReplaySection";
 
 interface SavedMonitorLogTabProps {
   protocol: MonitorLogProtocol;
+  logId: string;
+  onDeleted?: () => void;
+  onImported?: (logId: string) => void;
 }
 
 const PROTOCOL_KEYS: Record<MonitorLogProtocol, string> = {
   osc: "protocols.osc",
   midi: "protocols.midi",
   mqtt: "protocols.mqtt",
+  artnet: "protocols.artnet",
 };
 
-export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
+export function SavedMonitorLogTab({
+  protocol,
+  logId,
+  onDeleted,
+  onImported,
+}: SavedMonitorLogTabProps) {
   const { t } = useTranslation();
   const logs = useSavedMonitorLogs(protocol);
   const saveLog = useMonitorLogStore((state) => state.saveLog);
   const removeLog = useMonitorLogStore((state) => state.removeLog);
-  const pendingSelection = useMonitorLogStore((state) => state.pendingSelection);
-  const clearPendingSelection = useMonitorLogStore((state) => state.clearPendingSelection);
   const setLastError = useAppStore((state) => state.setLastError);
   const replayProgress = useMonitorLogReplayProgress();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const {
+    directionFilter,
+    setDirectionFilter,
+    midiTypeFilter,
+    setMidiTypeFilter,
+    midiPortFilter,
+    setMidiPortFilter,
+  } = useMonitorFilters(protocol);
 
-  const [selectedId, setSelectedId] = useState("");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [directionFilter, setDirectionFilter] = useState(defaultMonitorDirectionFilter);
-  const [midiTypeFilter, setMidiTypeFilter] = useState(defaultMonitorMidiTypeFilter);
-  const [midiPortFilter, setMidiPortFilter] = useState(defaultMonitorMidiPortFilter);
   const protocolLabel = t(PROTOCOL_KEYS[protocol]);
 
-  useEffect(() => {
-    if (pendingSelection?.protocol !== protocol) {
-      return;
-    }
-
-    setSelectedId(pendingSelection.id);
-    clearPendingSelection();
-  }, [clearPendingSelection, pendingSelection, protocol]);
-
-  const selectValue = logs.find((log) => log.id === selectedId)?.id ?? logs[0]?.id ?? "";
-  const selectedLog = logs.find((log) => log.id === selectValue) ?? null;
+  const selectedLog = logs.find((log) => log.id === logId) ?? null;
   const incomingCount = selectedLog ? countIncomingMonitorEvents(selectedLog.events) : 0;
   const outgoingCount = selectedLog ? countOutgoingMonitorEvents(selectedLog.events) : 0;
 
@@ -124,6 +107,7 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
     }
 
     removeLog(selectedLog.id);
+    onDeleted?.();
   };
 
   const handleExport = () => {
@@ -152,84 +136,45 @@ export function SavedMonitorLogTab({ protocol }: SavedMonitorLogTabProps) {
         throw new Error(t("monitor.expectedProtocolLog", { protocol: protocolLabel }));
       }
       saveLog(imported);
-      setSelectedId(imported.id);
       setSuccessMessage(t("monitor.importedLog", { name: imported.name }));
+      onImported?.(imported.id);
     } catch (error) {
       setLastError(error instanceof Error ? error.message : String(error));
     }
   };
 
-  if (logs.length === 0) {
-    return (
-      <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
-        <Stack direction="row" spacing={1}>
-          <Button size="small" startIcon={<FileUploadIcon />} onClick={handleImportClick}>
-            {t("common.import")}
-          </Button>
-        </Stack>
-
-        {successMessage && (
-          <Alert severity="success" onClose={() => setSuccessMessage(null)}>
-            {successMessage}
-          </Alert>
-        )}
-
-        <Typography variant="body2" color="text.secondary">
-          {t("monitor.noSavedLogs", { protocol: protocolLabel })}
-        </Typography>
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/json,.json,.wd3000.json"
-          hidden
-          onChange={handleFileChange}
-        />
-      </Stack>
-    );
-  }
-
   return (
     <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
-      <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
-        <FormControl size="small" sx={{ minWidth: 220, flex: 1, maxWidth: 360 }}>
-          <InputLabel id={`saved-log-label-${protocol}`}>{t("monitor.savedLog")}</InputLabel>
-          <Select
-            labelId={`saved-log-label-${protocol}`}
-            label={t("monitor.savedLog")}
-            value={selectValue}
-            onChange={(event) => setSelectedId(event.target.value)}
-          >
-            {logs.map((log) => (
-              <MenuItem key={log.id} value={log.id}>
-                {log.name} · {log.events.length} msgs · {formatMonitorLogDuration(log.events)}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-          <Button
-            size="small"
-            startIcon={<FileDownloadIcon />}
-            onClick={handleExport}
-            disabled={!selectedLog}
-          >
-            {t("common.export")}
-          </Button>
-          <Button
-            size="small"
-            color="error"
-            startIcon={<DeleteOutlinedIcon />}
-            onClick={handleDelete}
-            disabled={!selectedLog || isMonitorLogReplayActive()}
-          >
-            {t("common.delete")}
-          </Button>
-          <Button size="small" startIcon={<FileUploadIcon />} onClick={handleImportClick}>
-            {t("common.import")}
-          </Button>
-        </Box>
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          flexShrink: 0,
+          alignItems: "flex-start",
+          justifyContent: "flex-end",
+          flexWrap: "wrap",
+        }}
+      >
+        <Button
+          size="small"
+          startIcon={<FileDownloadIcon />}
+          onClick={handleExport}
+          disabled={!selectedLog}
+        >
+          {t("common.export")}
+        </Button>
+        <Button
+          size="small"
+          color="error"
+          startIcon={<DeleteOutlinedIcon />}
+          onClick={handleDelete}
+          disabled={!selectedLog || isMonitorLogReplayActive()}
+        >
+          {t("common.delete")}
+        </Button>
+        <Button size="small" startIcon={<FileUploadIcon />} onClick={handleImportClick}>
+          {t("common.import")}
+        </Button>
       </Stack>
 
       {successMessage && (

@@ -1,8 +1,10 @@
+import CloseIcon from "@mui/icons-material/Close";
 import {
   Alert,
   Box,
   Button,
   FormControl,
+  IconButton,
   InputLabel,
   MenuItem,
   Select,
@@ -16,31 +18,30 @@ import { clearDebugLogFiltered, useDebugLog } from "../lib/debugLog";
 import { listMidiInputs, startMidiInput, stopMidiInput } from "../lib/input";
 import { isMidiDebugKind } from "../lib/midiTypes";
 import { createMonitorLogEvents } from "../lib/monitorLog";
+import { isMonitorFilterActive, matchesDirectionFilter } from "../lib/monitorLogFilter";
 import {
-  defaultMonitorDirectionFilter,
-  isMonitorFilterActive,
-  matchesDirectionFilter,
-} from "../lib/monitorLogFilter";
-import { useMonitorLogReplayProgress } from "../lib/monitorLogReplay";
-import { defaultMonitorMidiTypeFilter, matchesMidiTypeFilter } from "../lib/monitorMidiFilter";
-import {
-  collectMonitorMidiPorts,
-  defaultMonitorMidiPortFilter,
-  matchesMidiPortFilter,
-} from "../lib/monitorMidiPortFilter";
+  clearReplaySession,
+  isMonitorLogReplayActive,
+  useMonitorLogReplayProgress,
+  useReplaySession,
+} from "../lib/monitorLogReplay";
+import { matchesMidiTypeFilter } from "../lib/monitorMidiFilter";
+import { collectMonitorMidiPorts, matchesMidiPortFilter } from "../lib/monitorMidiPortFilter";
 import { listMidiOutputs } from "../lib/output";
 import { isNativeApp, isWebMidiSupported } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
+import { useMonitorFilters } from "../store/useMonitorFilterStore";
+import { useMonitorLogStore } from "../store/useMonitorLogStore";
 import { DebuggerSection } from "./DebuggerSection";
 import { debuggerFillSx, debuggerLogSx } from "./debuggerLayoutSx";
 import { MonitorFilterAccordion } from "./MonitorFilterAccordion";
 import { debugEntriesToListItems, MonitorLogList } from "./MonitorLogList";
 import { MonitorLogToolbar } from "./MonitorLogToolbar";
 import { MonitorReplaySection } from "./MonitorReplaySection";
+import { MonitorReplayTabPanel } from "./MonitorReplayTabPanel";
+import { MonitorSavedLogTabLabel } from "./MonitorSavedLogTabLabel";
 import { SavedMonitorLogTab } from "./SavedMonitorLogTab";
-import { useOpenSavedLogOnReplay } from "./useOpenSavedLogOnReplay";
-
-type MonitorTab = "live" | "saved";
+import { useMonitorTabs } from "./useMonitorTabs";
 
 export function MidiMonitor() {
   const { t } = useTranslation();
@@ -53,13 +54,19 @@ export function MidiMonitor() {
   const setLastError = useAppStore((state) => state.setLastError);
   const allEntries = useDebugLog();
   const replayProgress = useMonitorLogReplayProgress();
+  const replaySession = useReplaySession();
+  const { tab, setTab, logs } = useMonitorTabs("midi");
+  const removeLog = useMonitorLogStore((state) => state.removeLog);
+  const {
+    directionFilter,
+    setDirectionFilter,
+    midiTypeFilter,
+    setMidiTypeFilter,
+    midiPortFilter,
+    setMidiPortFilter,
+  } = useMonitorFilters("midi");
 
-  const [tab, setTab] = useState<MonitorTab>("live");
-  useOpenSavedLogOnReplay("midi", setTab);
   const [inputPort, setInputPort] = useState(output.midiInputPortName ?? "");
-  const [directionFilter, setDirectionFilter] = useState(defaultMonitorDirectionFilter);
-  const [midiTypeFilter, setMidiTypeFilter] = useState(defaultMonitorMidiTypeFilter);
-  const [midiPortFilter, setMidiPortFilter] = useState(defaultMonitorMidiPortFilter);
 
   const entries = useMemo(
     () => allEntries.filter((entry) => isMidiDebugKind(entry.kind)),
@@ -106,6 +113,23 @@ export function MidiMonitor() {
   const listEntries = isReplayingLive
     ? debugEntriesToListItems(entries)
     : debugEntriesToListItems(filteredEntries);
+  const replayEntries = useMemo(
+    () => debugEntriesToListItems(replaySession.entries),
+    [replaySession.entries],
+  );
+  const hasMidiReplay = replaySession.protocol === "midi";
+  const tabValue =
+    tab === "replay" && !hasMidiReplay
+      ? "live"
+      : tab !== "live" && tab !== "replay" && !logs.some((log) => log.id === tab)
+        ? "live"
+        : tab;
+
+  useEffect(() => {
+    if (replayProgress.active && hasMidiReplay) {
+      setTab("replay");
+    }
+  }, [hasMidiReplay, replayProgress.active, setTab]);
 
   useEffect(() => {
     listMidiInputs()
@@ -147,8 +171,10 @@ export function MidiMonitor() {
         )}
 
         <Tabs
-          value={tab}
-          onChange={(_, value: MonitorTab) => setTab(value)}
+          value={tabValue}
+          onChange={(_, value: string) => setTab(value)}
+          variant="scrollable"
+          scrollButtons="auto"
           sx={{
             flexShrink: 0,
             minHeight: 36,
@@ -157,10 +183,52 @@ export function MidiMonitor() {
           }}
         >
           <Tab label={t("common.live")} value="live" sx={{ minHeight: 36 }} />
-          <Tab label={t("common.saved")} value="saved" sx={{ minHeight: 36 }} />
+          {logs.map((log) => (
+            <Tab
+              key={log.id}
+              value={log.id}
+              sx={{ minHeight: 36, pr: 0.5, textTransform: "none" }}
+              label={
+                <MonitorSavedLogTabLabel
+                  name={log.name}
+                  deleteDisabled={isMonitorLogReplayActive()}
+                  onDelete={() => {
+                    removeLog(log.id);
+                    if (tab === log.id) {
+                      setTab("live");
+                    }
+                  }}
+                />
+              }
+            />
+          ))}
+          {(hasMidiReplay || tab === "replay") && (
+            <Tab
+              value="replay"
+              sx={{ minHeight: 36, pr: 0.5 }}
+              label={
+                <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+                  <span>{t("monitor.replay")}</span>
+                  <IconButton
+                    component="span"
+                    size="small"
+                    aria-label={t("common.close")}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setTab("live");
+                      clearReplaySession();
+                    }}
+                    sx={{ p: 0.25, ml: 0.25 }}
+                  >
+                    <CloseIcon sx={{ fontSize: 14 }} />
+                  </IconButton>
+                </Stack>
+              }
+            />
+          )}
         </Tabs>
 
-        {tab === "live" ? (
+        {tabValue === "live" ? (
           <Stack spacing={2} sx={debuggerFillSx}>
             <Stack
               direction="row"
@@ -179,7 +247,12 @@ export function MidiMonitor() {
               >
                 {t("common.clear")}
               </Button>
-              <MonitorLogToolbar protocol="midi" entries={entries} />
+              <MonitorLogToolbar
+                protocol="midi"
+                entries={entries}
+                onSaved={setTab}
+                onImported={setTab}
+              />
             </Stack>
 
             {midiInputPorts.length === 0 ? (
@@ -246,9 +319,16 @@ export function MidiMonitor() {
               />
             </Box>
           </Stack>
+        ) : tabValue === "replay" ? (
+          <MonitorReplayTabPanel entries={replayEntries} emptyMessage={t("monitor.waitingMidi")} />
         ) : (
           <Box sx={debuggerLogSx}>
-            <SavedMonitorLogTab protocol="midi" />
+            <SavedMonitorLogTab
+              protocol="midi"
+              logId={tabValue}
+              onDeleted={() => setTab("live")}
+              onImported={setTab}
+            />
           </Box>
         )}
       </Stack>

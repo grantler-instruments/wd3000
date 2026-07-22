@@ -52,7 +52,10 @@ function sanitizeSavedLog(value: unknown): SavedMonitorLog | null {
   if (
     typeof value.id !== "string" ||
     typeof value.name !== "string" ||
-    (value.protocol !== "midi" && value.protocol !== "osc") ||
+    (value.protocol !== "midi" &&
+      value.protocol !== "osc" &&
+      value.protocol !== "mqtt" &&
+      value.protocol !== "artnet") ||
     !Array.isArray(value.events)
   ) {
     return null;

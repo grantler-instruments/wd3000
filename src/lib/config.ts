@@ -476,6 +476,8 @@ function parseOutputConfig(value: unknown): OutputConfig {
         : value.midiInputPortName === null
           ? null
           : defaults.midiInputPortName,
+    artnetHost: typeof value.artnetHost === "string" ? value.artnetHost : defaults.artnetHost,
+    artnetPort: typeof value.artnetPort === "number" ? value.artnetPort : defaults.artnetPort,
   };
 }
 

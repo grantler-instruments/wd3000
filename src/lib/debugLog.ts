@@ -74,6 +74,7 @@ const OUTBOUND_ECHO_MS = 1000;
 
 let entries: DebugLogEntry[] = [];
 const listeners = new Set<() => void>();
+const entryListeners = new Set<(entry: DebugLogEntry) => boolean | undefined>();
 let recentOutboundOsc: { key: string; at: number } | null = null;
 let recentOutboundArtNet: { key: string; at: number } | null = null;
 let recentOutboundMqtt: { key: string; at: number } | null = null;
@@ -82,6 +83,24 @@ function notify() {
   for (const listener of listeners) {
     listener();
   }
+}
+
+function notifyEntryListeners(entry: DebugLogEntry): boolean {
+  for (const listener of entryListeners) {
+    if (listener(entry) === true) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Observe each new debug log entry before it is stored.
+ * Return true to consume the entry exclusively (skip the live monitor).
+ */
+export function onDebugLogEntry(listener: (entry: DebugLogEntry) => boolean | undefined) {
+  entryListeners.add(listener);
+  return () => entryListeners.delete(listener);
 }
 
 function subscribe(listener: () => void) {
@@ -174,14 +193,15 @@ export function isEchoOfRecentOutboundMqtt(summary: string) {
 }
 
 export function pushDebugLog(entry: Omit<DebugLogEntry, "id" | "timestamp">) {
-  entries = [
-    {
-      ...entry,
-      id: crypto.randomUUID(),
-      timestamp: Date.now(),
-    },
-    ...entries,
-  ].slice(0, MAX_ENTRIES);
+  const newEntry: DebugLogEntry = {
+    ...entry,
+    id: crypto.randomUUID(),
+    timestamp: Date.now(),
+  };
+  if (notifyEntryListeners(newEntry)) {
+    return;
+  }
+  entries = [newEntry, ...entries].slice(0, MAX_ENTRIES);
   notify();
 }
 

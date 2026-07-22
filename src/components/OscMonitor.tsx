@@ -1,27 +1,31 @@
-import { Box, Button, Stack, Tab, Tabs, TextField } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import { Box, Button, IconButton, Stack, Tab, Tabs, TextField } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { clearDebugLogFiltered, isOscDebugEntry, useDebugLog } from "../lib/debugLog";
 import { startOscListener, stopOscListener } from "../lib/input";
 import { createMonitorLogEvents } from "../lib/monitorLog";
+import { isMonitorFilterActive, matchesDirectionFilter } from "../lib/monitorLogFilter";
 import {
-  defaultMonitorDirectionFilter,
-  isMonitorFilterActive,
-  matchesDirectionFilter,
-} from "../lib/monitorLogFilter";
-import { useMonitorLogReplayProgress } from "../lib/monitorLogReplay";
+  clearReplaySession,
+  isMonitorLogReplayActive,
+  useMonitorLogReplayProgress,
+  useReplaySession,
+} from "../lib/monitorLogReplay";
 import { isNativeApp } from "../lib/platform";
 import { useAppStore } from "../store/useAppStore";
+import { useMonitorFilters } from "../store/useMonitorFilterStore";
+import { useMonitorLogStore } from "../store/useMonitorLogStore";
 import { DebuggerSection } from "./DebuggerSection";
 import { debuggerFillSx, debuggerLogSx } from "./debuggerLayoutSx";
 import { MonitorFilterAccordion } from "./MonitorFilterAccordion";
 import { debugEntriesToListItems, MonitorLogList } from "./MonitorLogList";
 import { MonitorLogToolbar } from "./MonitorLogToolbar";
 import { MonitorReplaySection } from "./MonitorReplaySection";
+import { MonitorReplayTabPanel } from "./MonitorReplayTabPanel";
+import { MonitorSavedLogTabLabel } from "./MonitorSavedLogTabLabel";
 import { SavedMonitorLogTab } from "./SavedMonitorLogTab";
-import { useOpenSavedLogOnReplay } from "./useOpenSavedLogOnReplay";
-
-type MonitorTab = "live" | "saved";
+import { useMonitorTabs } from "./useMonitorTabs";
 
 export function OscMonitor() {
   const { t } = useTranslation();
@@ -30,12 +34,13 @@ export function OscMonitor() {
   const setLastError = useAppStore((state) => state.setLastError);
   const allEntries = useDebugLog();
   const replayProgress = useMonitorLogReplayProgress();
+  const replaySession = useReplaySession();
+  const { tab, setTab, logs } = useMonitorTabs("osc");
+  const removeLog = useMonitorLogStore((state) => state.removeLog);
+  const { directionFilter, setDirectionFilter } = useMonitorFilters("osc");
   const native = isNativeApp();
 
-  const [tab, setTab] = useState<MonitorTab>("live");
-  useOpenSavedLogOnReplay("osc", setTab);
   const [listenPort, setListenPort] = useState(output.oscListenPort);
-  const [directionFilter, setDirectionFilter] = useState(defaultMonitorDirectionFilter);
 
   const entries = useMemo(() => allEntries.filter(isOscDebugEntry), [allEntries]);
 
@@ -68,6 +73,23 @@ export function OscMonitor() {
   const listEntries = isReplayingLive
     ? debugEntriesToListItems(entries)
     : debugEntriesToListItems(filteredEntries);
+  const replayEntries = useMemo(
+    () => debugEntriesToListItems(replaySession.entries),
+    [replaySession.entries],
+  );
+  const hasOscReplay = replaySession.protocol === "osc";
+  const tabValue =
+    tab === "replay" && !hasOscReplay
+      ? "live"
+      : tab !== "live" && tab !== "replay" && !logs.some((log) => log.id === tab)
+        ? "live"
+        : tab;
+
+  useEffect(() => {
+    if (replayProgress.active && hasOscReplay) {
+      setTab("replay");
+    }
+  }, [hasOscReplay, replayProgress.active, setTab]);
 
   useEffect(() => {
     setListenPort(output.oscListenPort);
@@ -96,8 +118,10 @@ export function OscMonitor() {
     <DebuggerSection title={t("monitor.monitor")} flexGrow>
       <Stack spacing={2} sx={debuggerFillSx}>
         <Tabs
-          value={tab}
-          onChange={(_, value: MonitorTab) => setTab(value)}
+          value={tabValue}
+          onChange={(_, value: string) => setTab(value)}
+          variant="scrollable"
+          scrollButtons="auto"
           sx={{
             flexShrink: 0,
             minHeight: 36,
@@ -106,10 +130,52 @@ export function OscMonitor() {
           }}
         >
           <Tab label={t("common.live")} value="live" sx={{ minHeight: 36 }} />
-          <Tab label={t("common.saved")} value="saved" sx={{ minHeight: 36 }} />
+          {logs.map((log) => (
+            <Tab
+              key={log.id}
+              value={log.id}
+              sx={{ minHeight: 36, pr: 0.5, textTransform: "none" }}
+              label={
+                <MonitorSavedLogTabLabel
+                  name={log.name}
+                  deleteDisabled={isMonitorLogReplayActive()}
+                  onDelete={() => {
+                    removeLog(log.id);
+                    if (tab === log.id) {
+                      setTab("live");
+                    }
+                  }}
+                />
+              }
+            />
+          ))}
+          {(hasOscReplay || tab === "replay") && (
+            <Tab
+              value="replay"
+              sx={{ minHeight: 36, pr: 0.5 }}
+              label={
+                <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+                  <span>{t("monitor.replay")}</span>
+                  <IconButton
+                    component="span"
+                    size="small"
+                    aria-label={t("common.close")}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setTab("live");
+                      clearReplaySession();
+                    }}
+                    sx={{ p: 0.25, ml: 0.25 }}
+                  >
+                    <CloseIcon sx={{ fontSize: 14 }} />
+                  </IconButton>
+                </Stack>
+              }
+            />
+          )}
         </Tabs>
 
-        {tab === "live" ? (
+        {tabValue === "live" ? (
           <Stack spacing={2} sx={debuggerFillSx}>
             <Stack
               direction="row"
@@ -128,7 +194,12 @@ export function OscMonitor() {
               >
                 {t("common.clear")}
               </Button>
-              <MonitorLogToolbar protocol="osc" entries={entries} />
+              <MonitorLogToolbar
+                protocol="osc"
+                entries={entries}
+                onSaved={setTab}
+                onImported={setTab}
+              />
             </Stack>
 
             <TextField
@@ -181,9 +252,19 @@ export function OscMonitor() {
               />
             </Box>
           </Stack>
+        ) : tabValue === "replay" ? (
+          <MonitorReplayTabPanel
+            entries={replayEntries}
+            emptyMessage={t("monitor.waitingOsc", { port: listenPort })}
+          />
         ) : (
           <Box sx={debuggerLogSx}>
-            <SavedMonitorLogTab protocol="osc" />
+            <SavedMonitorLogTab
+              protocol="osc"
+              logId={tabValue}
+              onDeleted={() => setTab("live")}
+              onImported={setTab}
+            />
           </Box>
         )}
       </Stack>

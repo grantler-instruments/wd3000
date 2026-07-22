@@ -1,35 +1,55 @@
 import { useSyncExternalStore } from "react";
-import { useMonitorLogStore } from "../store/useMonitorLogStore";
-import type { DebugLogEntry, DebugLogKind } from "./debugLog";
+import { sendArtNetDmx } from "./artnet";
+import { type DebugLogEntry, type DebugLogKind, onDebugLogEntry } from "./debugLog";
 import { asMidiPayload } from "./midiPayload";
-import {
-  createMonitorLogEvents,
-  type MonitorLogEvent,
-  type MonitorLogProtocol,
-  type SavedMonitorLog,
-} from "./monitorLog";
+import { isMidiDebugKind } from "./midiTypes";
+import type { MonitorLogEvent, MonitorLogProtocol, SavedMonitorLog } from "./monitorLog";
 import { resolveMonitorEventPayload } from "./monitorLogParse";
-import { sendMidiRaw, sendOscMessage } from "./output";
+import { decodeMqttPayload, type MqttQoS, type MqttTransportProtocol } from "./mqtt";
+import { sendMidiRaw, sendMqttMessage, sendOscMessage } from "./output";
 
 const MAX_REPLAY_OUTPUT_ENTRIES = 200;
-const REPLAY_LOG_NAME = "Replay";
 
 let replayAbort: AbortController | null = null;
 let currentReplayDone: Promise<void> = Promise.resolve();
 
-interface ReplaySession {
+export interface ReplaySession {
   protocol: MonitorLogProtocol | null;
   logId: string | null;
-  outputEntries: DebugLogEntry[];
+  entries: DebugLogEntry[];
 }
 
 const idleReplaySession: ReplaySession = {
   protocol: null,
   logId: null,
-  outputEntries: [],
+  entries: [],
 };
 
 let replaySession: ReplaySession = idleReplaySession;
+const sessionListeners = new Set<() => void>();
+
+function notifyReplaySession() {
+  for (const listener of sessionListeners) {
+    listener();
+  }
+}
+
+function subscribeReplaySession(listener: () => void) {
+  sessionListeners.add(listener);
+  return () => sessionListeners.delete(listener);
+}
+
+function getReplaySessionSnapshot() {
+  return replaySession;
+}
+
+export function useReplaySession() {
+  return useSyncExternalStore(
+    subscribeReplaySession,
+    getReplaySessionSnapshot,
+    getReplaySessionSnapshot,
+  );
+}
 
 export type MonitorReplayDirection = "in" | "out";
 
@@ -190,6 +210,11 @@ export interface MonitorReplayTarget {
   midiPortName: string | null;
   oscHost: string;
   oscPort: number;
+  mqttHost: string;
+  mqttPort: number;
+  mqttProtocol: MqttTransportProtocol;
+  artnetHost: string;
+  artnetPort: number;
 }
 
 export function isMonitorLogReplayActive() {
@@ -200,47 +225,66 @@ export function stopMonitorLogReplay() {
   replayAbort?.abort();
 }
 
-function pushReplayOutput(entry: Omit<DebugLogEntry, "id" | "timestamp">) {
+export function clearReplaySession() {
+  stopMonitorLogReplay();
+  void currentReplayDone.then(() => {
+    replaySession = idleReplaySession;
+    notifyReplaySession();
+  });
+}
+
+function addReplayEntry(entry: DebugLogEntry) {
   replaySession = {
     ...replaySession,
-    outputEntries: [
-      {
-        ...entry,
-        id: crypto.randomUUID(),
-        timestamp: Date.now(),
-      },
-      ...replaySession.outputEntries,
-    ].slice(0, MAX_REPLAY_OUTPUT_ENTRIES),
+    entries: [entry, ...replaySession.entries].slice(0, MAX_REPLAY_OUTPUT_ENTRIES),
   };
+  notifyReplaySession();
+}
+
+function pushReplayOutput(entry: Omit<DebugLogEntry, "id" | "timestamp">) {
+  addReplayEntry({
+    ...entry,
+    id: crypto.randomUUID(),
+    timestamp: Date.now(),
+  });
+}
+
+export function captureReplayIncoming(entry: DebugLogEntry): boolean {
+  if (
+    !replayAbort ||
+    entry.direction !== "in" ||
+    !replaySession.protocol ||
+    !matchesReplayProtocol(entry, replaySession.protocol)
+  ) {
+    return false;
+  }
+
+  addReplayEntry(entry);
+  return true;
+}
+
+onDebugLogEntry(captureReplayIncoming);
+
+function matchesReplayProtocol(entry: DebugLogEntry, protocol: MonitorLogProtocol) {
+  if (protocol === "midi") {
+    return isMidiDebugKind(entry.kind);
+  }
+  if (protocol === "osc") {
+    return entry.kind === "osc";
+  }
+  if (protocol === "mqtt") {
+    return entry.kind === "mqtt";
+  }
+  return entry.kind === "artnet";
 }
 
 function startReplaySession(log: SavedMonitorLog) {
   replaySession = {
     protocol: log.protocol,
     logId: log.id,
-    outputEntries: [],
+    entries: [],
   };
-}
-
-function resetReplaySession() {
-  replaySession = idleReplaySession;
-}
-
-function persistReplayOutput() {
-  const { protocol, outputEntries } = replaySession;
-  if (!protocol || outputEntries.length === 0) {
-    return;
-  }
-
-  const log: SavedMonitorLog = {
-    id: crypto.randomUUID(),
-    name: REPLAY_LOG_NAME,
-    protocol,
-    savedAt: new Date().toISOString(),
-    events: createMonitorLogEvents(outputEntries),
-  };
-
-  useMonitorLogStore.getState().saveLogAndSelect(log);
+  notifyReplaySession();
 }
 
 export function directionReplayEvents(
@@ -275,6 +319,10 @@ export function countOutgoingMonitorEvents(events: MonitorLogEvent[]) {
 }
 
 function sleep(ms: number, signal: AbortSignal) {
+  if (signal.aborted) {
+    return Promise.reject(new DOMException("Replay stopped.", "AbortError"));
+  }
+
   if (ms <= 0) {
     return Promise.resolve();
   }
@@ -367,6 +415,91 @@ async function replayMidiEventAsOutput(event: MonitorLogEvent, target: MonitorRe
   });
 }
 
+async function replayMqttEventAsOutput(event: MonitorLogEvent, target: MonitorReplayTarget) {
+  const payload =
+    event.payload && "topic" in event.payload
+      ? event.payload
+      : resolveMonitorEventPayload({
+          id: "",
+          timestamp: event.timestamp,
+          direction: event.direction,
+          kind: event.kind,
+          summary: event.summary,
+          payload: event.payload,
+        });
+
+  if (!payload || !("topic" in payload)) {
+    throw new Error(`Cannot replay MQTT message: ${event.summary}`);
+  }
+
+  const text = decodeMqttPayload(payload.payload);
+  const qos = (payload.qos === 1 || payload.qos === 2 ? payload.qos : 0) as MqttQoS;
+
+  await sendMqttMessage(
+    target.mqttHost,
+    target.mqttPort,
+    target.mqttProtocol,
+    payload.topic,
+    text,
+    qos,
+    payload.retain,
+    event.summary,
+    { logToDebug: false },
+  );
+  pushReplayOutput({
+    direction: "out",
+    kind: "mqtt",
+    summary: event.summary,
+    payload: {
+      topic: payload.topic,
+      payload: payload.payload,
+      qos,
+      retain: payload.retain,
+    },
+  });
+}
+
+async function replayArtNetEventAsOutput(event: MonitorLogEvent, target: MonitorReplayTarget) {
+  const payload =
+    event.payload && "universe" in event.payload
+      ? event.payload
+      : resolveMonitorEventPayload({
+          id: "",
+          timestamp: event.timestamp,
+          direction: event.direction,
+          kind: event.kind,
+          summary: event.summary,
+          payload: event.payload,
+        });
+
+  if (!payload || !("universe" in payload)) {
+    throw new Error(`Cannot replay Art-Net message: ${event.summary}`);
+  }
+
+  await sendArtNetDmx(
+    target.artnetHost,
+    target.artnetPort,
+    payload.universe,
+    payload.sequence,
+    payload.channels,
+    event.summary,
+    { logToDebug: false },
+  );
+  pushReplayOutput({
+    direction: "out",
+    kind: "artnet",
+    summary: event.summary,
+    payload: {
+      universe: payload.universe,
+      sequence: payload.sequence,
+      physical: payload.physical,
+      channelCount: payload.channelCount,
+      channels: payload.channels,
+      transport: "artnet",
+    },
+  });
+}
+
 export async function replayMonitorLog(
   log: SavedMonitorLog,
   target: MonitorReplayTarget,
@@ -385,6 +518,14 @@ export async function replayMonitorLog(
 
   if (target.protocol === "osc" && (!target.oscHost.trim() || target.oscPort <= 0)) {
     throw new Error("Enter a valid OSC host and port.");
+  }
+
+  if (target.protocol === "mqtt" && (!target.mqttHost.trim() || target.mqttPort <= 0)) {
+    throw new Error("Enter a valid MQTT host and port.");
+  }
+
+  if (target.protocol === "artnet" && (!target.artnetHost.trim() || target.artnetPort <= 0)) {
+    throw new Error("Enter a valid Art-Net host and port.");
   }
 
   await currentReplayDone;
@@ -412,31 +553,46 @@ export async function replayMonitorLog(
     let previousDelta = 0;
 
     for (let index = 0; index < events.length; index++) {
+      if (controller.signal.aborted) {
+        throw new DOMException("Replay stopped.", "AbortError");
+      }
+
       const event = events[index];
       await sleep(event.deltaMs - previousDelta, controller.signal);
       previousDelta = event.deltaMs;
 
+      if (controller.signal.aborted) {
+        throw new DOMException("Replay stopped.", "AbortError");
+      }
+
       if (target.protocol === "osc") {
         await replayOscEventAsOutput(event, target);
+      } else if (target.protocol === "mqtt") {
+        await replayMqttEventAsOutput(event, target);
+      } else if (target.protocol === "artnet") {
+        await replayArtNetEventAsOutput(event, target);
       } else {
         await replayMidiEventAsOutput(event, target);
       }
 
       setReplayProgress({
-        active: true,
+        active: index + 1 < events.length,
         logId: log.id,
         direction,
         completed: index + 1,
         total: events.length,
       });
+
+      if (index + 1 >= events.length && replayAbort === controller) {
+        // Last message sent — stop immediately so capture/UI match a manual stop.
+        replayAbort = null;
+      }
     }
   } finally {
     if (replayAbort === controller) {
       replayAbort = null;
     }
     setReplayProgress(idleReplayProgress);
-    persistReplayOutput();
-    resetReplaySession();
     resolveDone();
   }
 }

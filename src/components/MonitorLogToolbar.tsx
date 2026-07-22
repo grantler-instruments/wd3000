@@ -1,4 +1,5 @@
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
 import SaveIcon from "@mui/icons-material/Save";
 import {
   Alert,
@@ -9,13 +10,14 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import { useState } from "react";
+import { type ChangeEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DebugLogEntry } from "../lib/debugLog";
 import {
   createSavedMonitorLog,
   exportMonitorLogToFile,
   type MonitorLogProtocol,
+  parseMonitorLogImport,
 } from "../lib/monitorLog";
 import { useAppStore } from "../store/useAppStore";
 import { useMonitorLogStore } from "../store/useMonitorLogStore";
@@ -24,18 +26,27 @@ import { AppDialogTitle } from "./AppDialogHeader";
 interface MonitorLogToolbarProps {
   protocol: MonitorLogProtocol;
   entries: DebugLogEntry[];
+  onSaved?: (logId: string) => void;
+  onImported?: (logId: string) => void;
 }
 
 const PROTOCOL_KEYS: Record<MonitorLogProtocol, string> = {
   osc: "protocols.osc",
   midi: "protocols.midi",
   mqtt: "protocols.mqtt",
+  artnet: "protocols.artnet",
 };
 
-export function MonitorLogToolbar({ protocol, entries }: MonitorLogToolbarProps) {
+export function MonitorLogToolbar({
+  protocol,
+  entries,
+  onSaved,
+  onImported,
+}: MonitorLogToolbarProps) {
   const { t } = useTranslation();
-  const saveLog = useMonitorLogStore((state) => state.saveLog);
+  const saveLogAndSelect = useMonitorLogStore((state) => state.saveLogAndSelect);
   const setLastError = useAppStore((state) => state.setLastError);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [saveOpen, setSaveOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [name, setName] = useState("");
@@ -47,9 +58,10 @@ export function MonitorLogToolbar({ protocol, entries }: MonitorLogToolbarProps)
   const handleSave = () => {
     try {
       const log = createSavedMonitorLog(name, protocol, entries);
-      saveLog(log);
+      saveLogAndSelect(log);
       setSaveOpen(false);
       setSuccessMessage(t("monitor.savedToLibrary", { name: log.name }));
+      onSaved?.(log.id);
     } catch (error) {
       setLastError(error instanceof Error ? error.message : String(error));
     }
@@ -61,6 +73,27 @@ export function MonitorLogToolbar({ protocol, entries }: MonitorLogToolbarProps)
       exportMonitorLogToFile(log);
       setExportOpen(false);
       setSuccessMessage(t("monitor.exportedFile", { name: log.name }));
+    } catch (error) {
+      setLastError(error instanceof Error ? error.message : String(error));
+    }
+  };
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const imported = parseMonitorLogImport(await file.text());
+      if (imported.protocol !== protocol) {
+        throw new Error(t("monitor.expectedProtocolLog", { protocol: protocolLabel }));
+      }
+      saveLogAndSelect(imported);
+      setSuccessMessage(t("monitor.importedLog", { name: imported.name }));
+      onImported?.(imported.id);
     } catch (error) {
       setLastError(error instanceof Error ? error.message : String(error));
     }
@@ -92,6 +125,13 @@ export function MonitorLogToolbar({ protocol, entries }: MonitorLogToolbarProps)
           >
             {t("common.export")}
           </Button>
+          <Button
+            size="small"
+            startIcon={<FileUploadIcon />}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {t("common.import")}
+          </Button>
         </Stack>
 
         {successMessage && (
@@ -100,6 +140,14 @@ export function MonitorLogToolbar({ protocol, entries }: MonitorLogToolbarProps)
           </Alert>
         )}
       </Stack>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/json,.json,.wd3000.json"
+        hidden
+        onChange={handleFileChange}
+      />
 
       <Dialog open={saveOpen} onClose={() => setSaveOpen(false)} fullWidth maxWidth="xs">
         <AppDialogTitle onClose={() => setSaveOpen(false)}>

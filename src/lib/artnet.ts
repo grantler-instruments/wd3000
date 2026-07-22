@@ -89,6 +89,7 @@ export async function sendArtNetDmx(
   sequence: number,
   channels: number[],
   summary?: string,
+  options?: { logToDebug?: boolean },
 ) {
   const normalized = channels.map((value) => Math.min(255, Math.max(0, Math.round(value))));
 
@@ -113,11 +114,14 @@ export async function sendArtNetDmx(
     transport: "artnet",
   };
   const logSummary = summary ?? formatArtNetSummary(payload);
-  recordOutboundArtNetDebug(logSummary);
-  pushDebugLog({
-    direction: "out",
-    kind: "artnet",
-    summary: logSummary,
-    payload,
-  });
+
+  if (options?.logToDebug !== false) {
+    recordOutboundArtNetDebug(logSummary);
+    pushDebugLog({
+      direction: "out",
+      kind: "artnet",
+      summary: logSummary,
+      payload,
+    });
+  }
 }

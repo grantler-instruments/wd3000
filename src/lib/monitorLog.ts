@@ -4,7 +4,7 @@ import type {
   DebugLogKind,
   MonitorEventPayload,
 } from "./debugLog";
-import { isMqttDebugEntry, isOscDebugEntry } from "./debugLog";
+import { isArtNetDebugEntry, isMqttDebugEntry, isOscDebugEntry } from "./debugLog";
 import { isMidiDebugKind } from "./midiTypes";
 import { resolveMonitorEventPayload } from "./monitorLogParse";
 
@@ -13,7 +13,7 @@ export const MONITOR_LOG_APP_ID = "wd3000";
 export const MONITOR_LOG_KIND = "monitor-log";
 export const MAX_SAVED_MONITOR_LOGS = 50;
 
-export type MonitorLogProtocol = "midi" | "osc" | "mqtt";
+export type MonitorLogProtocol = "midi" | "osc" | "mqtt" | "artnet";
 
 export interface MonitorLogEvent {
   timestamp: number;
@@ -48,7 +48,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isMonitorLogProtocol(value: unknown): value is MonitorLogProtocol {
-  return value === "midi" || value === "osc" || value === "mqtt";
+  return value === "midi" || value === "osc" || value === "mqtt" || value === "artnet";
 }
 
 function isDebugLogDirection(value: unknown): value is DebugLogDirection {
@@ -91,6 +91,9 @@ export function filterDebugEntriesByProtocol(
     }
     if (protocol === "mqtt") {
       return isMqttDebugEntry(entry);
+    }
+    if (protocol === "artnet") {
+      return isArtNetDebugEntry(entry);
     }
     return isMidiDebugKind(entry.kind);
   });

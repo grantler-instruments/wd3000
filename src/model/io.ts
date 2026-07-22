@@ -17,6 +17,8 @@ export interface OutputConfig {
   mqttComposerProtocol: "tcp" | "ws";
   midiPortName: string | null;
   midiInputPortName: string | null;
+  artnetHost: string;
+  artnetPort: number;
 }
 
 export interface OscSender {
@@ -76,6 +78,8 @@ export const defaultOutputConfig = (): OutputConfig => ({
   mqttComposerProtocol: "tcp",
   midiPortName: null,
   midiInputPortName: null,
+  artnetHost: "127.0.0.1",
+  artnetPort: 6454,
 });
 
 export function normalizeOutputConfig(

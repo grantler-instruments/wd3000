@@ -102,6 +102,10 @@ export function MonitorLogList({ entries, emptyMessage, logId }: MonitorLogListP
       return t("protocols.mqtt");
     }
 
+    if (kind === "artnet") {
+      return t("protocols.artnet");
+    }
+
     if (isMidiDebugKind(kind)) {
       return t(MIDI_KIND_KEYS[kind]);
     }
