@@ -34,9 +34,10 @@ test("switch to debugger MQTT view @smoke", async ({ page }) => {
   await gotoApp(page, { resetStorage: true });
 
   // MIDI/OSC/TUIO/Art-Net are native-only; MQTT is available in the browser.
+  // Saved logs appear as named tabs only after save/import — empty state is Live only.
   await openDebuggerSubView(page, "MQTT");
   await expect(page.getByRole("tab", { name: "Live" })).toBeVisible();
-  await expect(page.getByRole("tab", { name: "Saved" })).toBeVisible();
+  await expect(page.getByText("Add a topic to monitor incoming MQTT.")).toBeVisible();
 });
 
 test("run mode toggle with keyboard shortcut @smoke", async ({ page }) => {

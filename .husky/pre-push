@@ -1,3 +1,6 @@
 npm run lint
 npx tsc --noEmit
 npm test
+# Match CI: ensure Chromium (idempotent) then run smoke e2e.
+npm run test:e2e:install
+npm run test:e2e:smoke
